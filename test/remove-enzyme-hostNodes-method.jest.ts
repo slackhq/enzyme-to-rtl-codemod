@@ -1,7 +1,7 @@
-import { removeHostnodes } from '../src/utils/ast-transformations/individual-transformations/remove-enzyme-hostNodes-method';
+import { convertHostNodes } from '../src/utils/ast-transformations/individual-transformations/remove-enzyme-hostNodes-method';
 import jscodeshift from 'jscodeshift';
 
-describe('removeHostNodes', () => {
+describe('convertHostNodes', () => {
     let j: jscodeshift.JSCodeshift;
 
     beforeEach(() => {
@@ -16,7 +16,7 @@ describe('removeHostNodes', () => {
 
         // Transform the source code
         const root = j(source);
-        removeHostnodes(j, root);
+        convertHostNodes(j, root);
 
         // Generate the transformed source code
         const transformedSource = root.toSource();

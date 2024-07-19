@@ -12,7 +12,7 @@ import { astLogger } from '../utils/ast-logger';
  * @param root - root AST node
  * @returns {void} - The function does not return a value but mutates the AST directly.
  */
-export const removeHostnodes = (j: JSCodeshift, root: Collection) => {
+export const convertHostNodes = (j: JSCodeshift, root: Collection) => {
     // Find the hostNodes call expression within the provided AST root
     astLogger.verbose('Query for hostNodes');
     root.find(j.CallExpression, {

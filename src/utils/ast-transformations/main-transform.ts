@@ -1,8 +1,10 @@
 import fs from 'fs';
 import type { Transform } from 'jscodeshift';
 import { convertFind } from './individual-transformations/convert-find';
+import { convertHostNodes } from './individual-transformations/remove-enzyme-hostNodes-method';
 import { convertMountShallowMethods } from './individual-transformations/convert-mount-shallow-methods';
 import { convertMountShallowVars } from './individual-transformations/convert-mount-shallow-vars';
+import { convertUpdate } from './individual-transformations/remove-enzyme-update-method';
 
 /**
  * Main tranformation function for jscodeshift
@@ -49,10 +51,10 @@ const transform: Transform = (fileInfo, api, options) => {
     // addSuggestionsSimulate(j, root);
 
     // Remove update()
-    // convertUpdate(j, root);
+    convertUpdate(j, root);
 
     // Remove hostNodes()
-    // convertHostNodes(j, root);
+    convertHostNodes(j, root);
 
     // Remove first()
     // convertFirst(j, root);

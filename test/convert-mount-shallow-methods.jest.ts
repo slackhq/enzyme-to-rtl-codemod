@@ -1,5 +1,8 @@
 import jscodeshift from 'jscodeshift';
 import { convertMountShallowMethods } from '../src/utils/ast-transformations/individual-transformations/convert-mount-shallow-methods';
+import { astLogger } from '../src/utils/ast-transformations/utils/ast-logger';
+
+jest.mock('../src/utils/ast-transformations/utils/ast-logger');
 
 describe('convertMountShallowCalls', () => {
 	const j = jscodeshift;
@@ -81,9 +84,12 @@ describe('convertMountShallowCalls', () => {
 		`;
 		const root = j(source);
 
-		expect(() => {
-			convertMountShallowMethods(j, root);
-		}).toThrow('Did not find any Enzyme rendering methods: mount, shallow');
+		const result = convertMountShallowMethods(j, root);
+		expect(result).toBeNull();
+
+		expect(astLogger.warn).toHaveBeenCalledWith(
+            'Did not find any Enzyme rendering methods: mount, shallow. Please make sure shallow/mount are not abstracted in a method outside of this test file and is imported directly from enzyme. Continuing without it...'
+        );
 	});
 
 	it('should handle assignment expression with shallow', () => {

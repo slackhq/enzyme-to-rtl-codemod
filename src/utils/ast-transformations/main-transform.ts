@@ -4,6 +4,7 @@ import { convertFind } from './individual-transformations/convert-find';
 import { convertHostNodes } from './individual-transformations/remove-enzyme-hostNodes-method';
 import { convertMountShallowMethods } from './individual-transformations/convert-mount-shallow-methods';
 import { convertMountShallowVars } from './individual-transformations/convert-mount-shallow-vars';
+import { convertSimulate } from './individual-transformations/convert-simulate';
 import { convertUpdate } from './individual-transformations/remove-enzyme-update-method';
 
 /**
@@ -45,7 +46,7 @@ const transform: Transform = (fileInfo, api, options) => {
     // convertText(j, root);
 
     // Convert simulate()
-    // convertSimulate(j, root);
+    convertSimulate(j, root);
     // TODO: figure out if there are any simulate calls are left and add suggestions
     // Add suggestions
     // addSuggestionsSimulate(j, root);

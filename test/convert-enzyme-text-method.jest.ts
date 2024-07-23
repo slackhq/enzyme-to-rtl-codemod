@@ -8,7 +8,7 @@ describe('convertText', () => {
         j = jscodeshift.withParser('tsx');
     });
 
-    it('Should convert .convertText() method calls', () => {
+    it('Should convert text assertion calls to toHaveTextContent', () => {
         const source = `
             expect(wrapper.find('selector').text()).toEqual('Expected text');
         `;

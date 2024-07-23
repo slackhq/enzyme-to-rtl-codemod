@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { mainTransform } from './main-ast-transform';
+import { mainASTtransform } from './main-ast-transform';
 import { astLogger } from './utils/ast-logger';
 import {
     getConfigProperty,
@@ -21,7 +21,7 @@ export const getASTCodemodCode = (filePath: string): string => {
 
     // Run main transformation function in jscodeshift
     astLogger.info('Start: Running AST codemod');
-    const astTransformedCode = mainTransform(filePath);
+    const astTransformedCode = mainASTtransform(filePath);
 
     // Get ast transformed file path
     const astConvertedFilePath = `${getConfigProperty('astTranformedFilePath')}`;

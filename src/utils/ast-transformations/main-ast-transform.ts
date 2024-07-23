@@ -13,7 +13,7 @@ import { astLogger } from './utils/ast-logger';
  * @param filePath
  * @returns
  */
-export const mainTransform = (filePath: string): string => {
+export const mainASTtransform = (filePath: string): string => {
     // Read the file content
     astLogger.verbose('Reading Enzyme source file');
     const source = fs.readFileSync(filePath, 'utf-8');
@@ -22,6 +22,9 @@ export const mainTransform = (filePath: string): string => {
     astLogger.verbose('Parse code with jscodeshift');
     const j = jscodeshift;
     const root = j(source);
+
+    // Set tsx flag
+    j.withParser('tsx');
 
     // Convert enzyme imports
     // convertImports(j, root);
@@ -84,4 +87,5 @@ export const mainTransform = (filePath: string): string => {
     return transformedCode;
 };
 
-mainTransform('temp/ast-conversion-test-file.tsx');
+// const code = mainASTtransform('test/data/ast-conversion-test-file-no-enzyme.tsx')
+// console.log('code:', code)

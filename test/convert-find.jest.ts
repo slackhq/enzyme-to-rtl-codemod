@@ -1,6 +1,6 @@
 import { convertFind } from '../src/utils/ast-transformations/individual-transformations/convert-find';
 import { addComment } from '../src/utils/ast-transformations/utils/add-comment';
-import * as jscodeshift from 'jscodeshift';
+import jscodeshift from 'jscodeshift';
 
 // Mock the addComment function
 jest.mock('../src/utils/ast-transformations/utils/add-comment.ts', () => ({

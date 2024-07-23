@@ -12,10 +12,10 @@ import { astLogger } from '../utils/ast-logger';
  * @param root - root AST node
  * @returns - All instances of toEqual|toContain|toBe
  */
-export const getAllTextConversion = (
+const getAllTextConversion = (
     j: JSCodeshift,
     root: Collection<CallExpression>,
-) => {
+): Collection<CallExpression> => {
     astLogger.verbose('Query for toEqual|toContain|toBe calls');
     return root.find(j.CallExpression, {
         callee: {
@@ -47,19 +47,24 @@ export const getAllTextConversion = (
 export const convertText = (j: JSCodeshift, root: Collection) => {
     const textCallExpressions = getAllTextConversion(j, root);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    textCallExpressions.replaceWith(({ node }: { node: any }) => {
-        const resultIdentifier = node.callee.object.arguments[0].callee.object;
+    textCallExpressions.replaceWith(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ({ node }: { node: any }): CallExpression => {
+            const resultIdentifier =
+                node.callee.object.arguments[0].callee.object;
 
-        astLogger.verbose(
-            'Transforms toHaveTextContent within the expect assertion',
-        );
-        return j.callExpression(
-            j.memberExpression(
-                j.callExpression(j.identifier('expect'), [resultIdentifier]),
-                j.identifier('toHaveTextContent'),
-            ),
-            [node.arguments[0]],
-        );
-    });
+            astLogger.verbose(
+                'Transforms toHaveTextContent within the expect assertion',
+            );
+            return j.callExpression(
+                j.memberExpression(
+                    j.callExpression(j.identifier('expect'), [
+                        resultIdentifier,
+                    ]),
+                    j.identifier('toHaveTextContent'),
+                ),
+                [node.arguments[0]],
+            );
+        },
+    );
 };

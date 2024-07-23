@@ -20,11 +20,7 @@ import { addComment } from '../utils/add-comment';
  * @param root - The root AST node
  * @returns - Returns imported userEvent Library
  */
-export const convertSimulate = (
-    j: JSCodeshift,
-    root: Collection,
-    suggestionsFlag = false,
-) => {
+export const convertSimulate = (j: JSCodeshift, root: Collection) => {
     // Find all call expressions with the callee property name '.simulate'
     astLogger.verbose('Query for simulate');
     const simulateCalls = root.find(j.CallExpression, {
@@ -90,13 +86,12 @@ export const convertSimulate = (
                             break;
                         // Can add more cases for other simulate events as needed
                         default:
-                            suggestionsFlag = true;
                             break;
                     }
 
                     // Replace .simulate(eventType) with userEvent.{method}(elementToInteract)
                     astLogger.verbose('Convert .simulate to userEvent');
-                    if (userEventMethod && suggestionsFlag === false) {
+                    if (userEventMethod) {
                         const userEventAction = j.callExpression(
                             j.memberExpression(
                                 j.identifier('userEvent'),
@@ -110,13 +105,13 @@ export const convertSimulate = (
                         astLogger.verbose('Transformation complete.');
                     }
                     // If simulate event does not exist provides a suggestion
-                    else if (suggestionsFlag === true) {
+                    else {
                         // Iterate over each simulate call expression path and annotate
                         simulateCalls.forEach(
                             (path: ASTPath<CallExpression>) => {
                                 addComment(
                                     path,
-                                    "/* SUGGESTION: .simulate('<method>') --> userEvent.<method>(<DOM_element>);\n See: https://testing-library.com/docs/user-event/intro/ */",
+                                    "/* SUGGESTION: .simulate('<method>') --> userEvent.<method>(<DOM_element>); */",
                                 );
                             },
                         );

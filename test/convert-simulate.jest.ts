@@ -48,7 +48,7 @@ describe('convertSimulate', () => {
         const component = render(<Component />);
         component.getByText('Button').simulate('${fakeSimulateEvent}');
         expect(component.getByText('Updated').toBeInTheDocument());
-    `;
+        `;
 
         // Transform the source code
         const root = j(source);
@@ -59,14 +59,11 @@ describe('convertSimulate', () => {
 
         const expectedSource = `
         import userEvent from "@testing-library/user-event";
-
-        /* SUGGESTION: .simulate('<method>') --> userEvent.<method>(<DOM_element>);
-         See: https://testing-library.com/docs/user-event/intro/ */
-
+        /* SUGGESTION: .simulate('<method>') --> userEvent.<method>(<DOM_element>); */
         const component = render(<Component />);
         component.getByText('Button').simulate('holding');
         expect(component.getByText('Updated').toBeInTheDocument());
-    `;
+        `;
 
         // Check if the transformed source matches the expected source
         expect(transformedSource).toBe(expectedSource);

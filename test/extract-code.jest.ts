@@ -9,9 +9,6 @@ import * as config from '../src/utils/config';
 jest.mock('../src/utils/config', () => ({
     getConfigProperty: jest.fn(),
 }));
-// jest.mock('../src/utils/code-extractor/extract-code', () => ({
-//     codeExtractorLogger: jest.fn(),
-// }));
 
 // Mock fs.writeFileSync
 jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
@@ -67,48 +64,37 @@ describe('extractCodeContentToFile', () => {
         expect(() => extractCodeContentToFile(LLMresponse)).toThrow(
             'Could not extract code from the LLM response',
         );
-
-        // const consoleLogSpy = jest.spyOn(console, 'log');
-        // expect(consoleLogSpy).toHaveBeenCalledWith(
-        //     '\nCheck why code was not extracted',
-        // );
-        // expect(consoleLogSpy).toHaveBeenCalledWith('LLMresponse:', LLMresponse);
-
-        // consoleLogSpy.mockRestore();
     });
 
-    it.only('should throw an error if code is not extracted due to LLM response cut off', () => {
+    it('should throw an error if code is not extracted due to LLM response cut off', () => {
         const LLMresponse = `Here is the converted test code
         <rtl_code>
         console.log("te`;
-
+    
         const spyWarn = jest.spyOn(codeExtractorLogger, 'warn');
         const spyError = jest.spyOn(codeExtractorLogger, 'error');
-
+    
         expect(() => extractCodeContentToFile(LLMresponse)).toThrow(
             'Could not extract code from the LLM response',
         );
-
+    
         expect(spyWarn).toHaveBeenNthCalledWith(
             1,
             'Extracting code between <rtl_test_code> and </rtl_test_code> failed!'
-          );
-          expect(spyError).toHaveBeenNthCalledWith(
+        );
+        expect(spyError).toHaveBeenNthCalledWith(
             1,
             'Could not extract code from the LLM response'
-          );
-        //   expect(spyError).toHaveBeenNthCalledWith(
-        //     2,
-        //     `LLM response: Here is the converted test code
-        //     <rtl_code>
-        //     console.log("te`
-        //   );
-          expect(spyError).toHaveBeenNthCalledWith(
+        );
+        expect(spyError).toHaveBeenNthCalledWith(
+            2,
+            `LLM response: Here is the converted test code
+        <rtl_code>
+        console.log("te`
+        );
+        expect(spyError).toHaveBeenNthCalledWith(
             3,
-            `Possible reasons: 
-      1. No LLM response was passed
-      2. LLM did not return the code enclosed in <rtl_test_code>...</rtl_test_code> xml tags.
-      3. Check if LLM is returning the response with the expected text`
-          );
+            'Possible reasons: \n1. No LLM response was passed\n2. LLM did not return the code enclosed in <rtl_test_code>...</rtl_test_code> xml tags.\n3. Check if LLM is returning the response with the expected text'
+        );
     });
 });

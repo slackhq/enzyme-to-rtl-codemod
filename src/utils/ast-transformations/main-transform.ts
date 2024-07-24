@@ -5,6 +5,7 @@ import { convertHostNodes } from './individual-transformations/remove-enzyme-hos
 import { convertMountShallowMethods } from './individual-transformations/convert-mount-shallow-methods';
 import { convertMountShallowVars } from './individual-transformations/convert-mount-shallow-vars';
 import { convertSimulate } from './individual-transformations/convert-simulate';
+import { convertText } from './individual-transformations/convert-enzyme-text-method';
 import { convertUpdate } from './individual-transformations/remove-enzyme-update-method';
 
 /**
@@ -43,7 +44,7 @@ const transform: Transform = (fileInfo, api, options) => {
     convertFind(j, root);
 
     // Convert text()
-    // convertText(j, root);
+    convertText(j, root);
 
     // Convert simulate()
     convertSimulate(j, root);

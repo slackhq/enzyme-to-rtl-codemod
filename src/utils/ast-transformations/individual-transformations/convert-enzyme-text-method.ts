@@ -3,12 +3,7 @@
  * Ex. expect(wrapper.find('selector').text()).toEqual('Expected text'); -> expect(wrapper.find('selector')).toHaveTextContent('Expected text');
  */
 
-import type {
-    Collection,
-    JSCodeshift,
-    CallExpression,
-    MemberExpression,
-} from 'jscodeshift';
+import type { Collection, JSCodeshift, CallExpression } from 'jscodeshift';
 import { astLogger } from '../utils/ast-logger';
 
 /**
@@ -98,7 +93,7 @@ export const convertText = (j: JSCodeshift, root: Collection): void => {
                     }
                 }
             } else {
-                astLogger.error('Check this conversion');
+                astLogger.error('Check this conversion.');
             }
             // Return the node unmodified if any conditions fail
             return node;

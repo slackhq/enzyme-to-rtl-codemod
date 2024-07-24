@@ -55,30 +55,30 @@ export const convertText = (j: JSCodeshift, root: Collection): void => {
     textCallExpressions.replaceWith(
         ({ node }: { node: CallExpression }): CallExpression => {
             // First, check if the callee is a MemberExpression
-            if (node.callee.type === 'MemberExpression') {
-                const memberCallee = node.callee as MemberExpression;
+            if (j.MemberExpression.check(node.callee)) {
+                const memberCallee = node.callee;
 
                 // Next, check if the memberCallee.object is a CallExpression
-                if (memberCallee.object.type === 'CallExpression') {
-                    const objectCallExpression =
-                        memberCallee.object as CallExpression;
+                if (j.CallExpression.check(memberCallee.object)) {
+                    const objectCallExpression = memberCallee.object;
 
                     // Further, check if the first argument of the object call is itself a CallExpression
                     if (
-                        objectCallExpression.arguments[0] &&
-                        objectCallExpression.arguments[0].type ===
-                            'CallExpression'
+                        j.CallExpression.check(
+                            objectCallExpression.arguments[0],
+                        )
                     ) {
-                        const firstArgCallExpression = objectCallExpression
-                            .arguments[0] as CallExpression;
+                        const firstArgCallExpression =
+                            objectCallExpression.arguments[0];
 
                         // Finally, check if the callee of the first argument is a MemberExpression
                         if (
-                            firstArgCallExpression.callee.type ===
-                            'MemberExpression'
+                            j.MemberExpression.check(
+                                firstArgCallExpression.callee,
+                            )
                         ) {
                             const innerMemberExpression =
-                                firstArgCallExpression.callee as MemberExpression;
+                                firstArgCallExpression.callee;
                             const resultIdentifier =
                                 innerMemberExpression.object; // Safely access the nested object
 
@@ -97,6 +97,8 @@ export const convertText = (j: JSCodeshift, root: Collection): void => {
                         }
                     }
                 }
+            } else {
+                astLogger.error('Check this conversion');
             }
             // Return the node unmodified if any conditions fail
             return node;

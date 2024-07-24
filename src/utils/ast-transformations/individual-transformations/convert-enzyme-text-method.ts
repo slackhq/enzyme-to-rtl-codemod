@@ -47,56 +47,45 @@ const getAllTextConversion = (
 export const convertText = (j: JSCodeshift, root: Collection): void => {
     const textCallExpressions = getAllTextConversion(j, root);
 
-    textCallExpressions.replaceWith(
-        ({ node }: { node: CallExpression }): CallExpression => {
-            // First, check if the callee is a MemberExpression
-            if (j.MemberExpression.check(node.callee)) {
-                const memberCallee = node.callee;
+    textCallExpressions.replaceWith(({ node }: { node: CallExpression }) => {
+        // First, check if the callee is a MemberExpression
+        if (j.MemberExpression.check(node.callee)) {
+            const memberCallee = node.callee;
 
-                // Next, check if the memberCallee.object is a CallExpression
-                if (j.CallExpression.check(memberCallee.object)) {
-                    const objectCallExpression = memberCallee.object;
+            // Next, check if the memberCallee.object is a CallExpression
+            if (j.CallExpression.check(memberCallee.object)) {
+                const objectCallExpression = memberCallee.object;
 
-                    // Further, check if the first argument of the object call is itself a CallExpression
+                // Further, check if the first argument of the object call is itself a CallExpression
+                if (j.CallExpression.check(objectCallExpression.arguments[0])) {
+                    const firstArgCallExpression =
+                        objectCallExpression.arguments[0];
+
+                    // Finally, check if the callee of the first argument is a MemberExpression
                     if (
-                        j.CallExpression.check(
-                            objectCallExpression.arguments[0],
-                        )
+                        j.MemberExpression.check(firstArgCallExpression.callee)
                     ) {
-                        const firstArgCallExpression =
-                            objectCallExpression.arguments[0];
+                        const innerMemberExpression =
+                            firstArgCallExpression.callee;
+                        const resultIdentifier = innerMemberExpression.object; // Safely access the nested object
 
-                        // Finally, check if the callee of the first argument is a MemberExpression
-                        if (
-                            j.MemberExpression.check(
-                                firstArgCallExpression.callee,
-                            )
-                        ) {
-                            const innerMemberExpression =
-                                firstArgCallExpression.callee;
-                            const resultIdentifier =
-                                innerMemberExpression.object; // Safely access the nested object
-
-                            astLogger.verbose(
-                                'Transforms toHaveTextContent within the expect assertion',
-                            );
-                            return j.callExpression(
-                                j.memberExpression(
-                                    j.callExpression(j.identifier('expect'), [
-                                        resultIdentifier,
-                                    ]),
-                                    j.identifier('toHaveTextContent'),
-                                ),
-                                [node.arguments[0]],
-                            );
-                        }
+                        astLogger.verbose(
+                            'Transforms toHaveTextContent within the expect assertion',
+                        );
+                        return j.callExpression(
+                            j.memberExpression(
+                                j.callExpression(j.identifier('expect'), [
+                                    resultIdentifier,
+                                ]),
+                                j.identifier('toHaveTextContent'),
+                            ),
+                            [node.arguments[0]],
+                        );
                     }
                 }
-            } else {
-                astLogger.error('Check this conversion.');
             }
-            // Return the node unmodified if any conditions fail
-            return node;
-        },
-    );
+        } else {
+            astLogger.error('Check this conversion.');
+        }
+    });
 };

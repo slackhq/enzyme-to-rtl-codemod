@@ -27,7 +27,7 @@ export const addComment = (currentPath: ASTPath<any>, comment: string) => {
  * @returns
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const findParentNode = (currentPath: ASTPath<any>, types: string[]) => {
+const findParentNode = (currentPath: ASTPath<any>, types: string[]) => {
     let currentNode = currentPath;
 
     // while (currentNode && currentNode.getValueProperty('type') !== type) {

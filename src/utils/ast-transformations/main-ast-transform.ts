@@ -1,23 +1,31 @@
 import fs from 'fs';
-import type { Transform } from 'jscodeshift';
+import jscodeshift from 'jscodeshift';
 import { convertFind } from './individual-transformations/convert-find';
 import { convertHostNodes } from './individual-transformations/remove-enzyme-hostNodes-method';
 import { convertMountShallowMethods } from './individual-transformations/convert-mount-shallow-methods';
 import { convertMountShallowVars } from './individual-transformations/convert-mount-shallow-vars';
 import { convertSimulate } from './individual-transformations/convert-simulate';
+import { convertText } from './individual-transformations/convert-enzyme-text-method';
 import { convertUpdate } from './individual-transformations/remove-enzyme-update-method';
+import { astLogger } from './utils/ast-logger';
 
 /**
  * Main tranformation function for jscodeshift
- * @param fileInfo
- * @param api
+ * @param filePath
+ * @returns
  */
-const transform: Transform = (fileInfo, api, options) => {
-    // Get jscodeshift api
-    const j = api.jscodeshift;
+export const mainASTtransform = (filePath: string): string => {
+    // Read the file content
+    astLogger.verbose('Reading Enzyme source file');
+    const source = fs.readFileSync(filePath, 'utf-8');
 
-    // Read file
-    const root = j(fileInfo.source);
+    // Use jscodeshift to parse the source
+    astLogger.verbose('Parse code with jscodeshift');
+    const j = jscodeshift;
+    const root = j(source);
+
+    // Set tsx flag
+    j.withParser('tsx');
 
     // Convert enzyme imports
     // convertImports(j, root);
@@ -27,12 +35,14 @@ const transform: Transform = (fileInfo, api, options) => {
      * Step 1: Find all instances of mount and wrapper abstractions
      * Step 1.1: Convert .shallow(args), .mount(args) calls to render(args)
      */
+    astLogger.verbose('Convert mount/shallow methods');
     const abstractedFunctionName = convertMountShallowMethods(j, root);
 
     /**
      * Convert mount and shallow to render
      * Step 2: Collect variable names that reference shallow and mount calls
      */
+    astLogger.verbose('Convert mount/shallow vars');
     const renderFunctionVarNames = convertMountShallowVars(
         j,
         root,
@@ -40,38 +50,42 @@ const transform: Transform = (fileInfo, api, options) => {
     );
 
     // Convert find()
+    astLogger.verbose('Convert find()');
     convertFind(j, root);
 
     // Convert text()
-    // convertText(j, root);
+    convertText(j, root);
 
     // Convert simulate()
+    astLogger.verbose('Convert simulate()');
     convertSimulate(j, root);
-    // TODO: figure out if there are any simulate calls are left and add suggestions
-    // Add suggestions
-    // addSuggestionsSimulate(j, root);
 
-    // Remove update()
+    // Convert update()
+    astLogger.verbose('Convert update()');
     convertUpdate(j, root);
 
-    // Remove hostNodes()
+    // Convert hostNodes()
+    astLogger.verbose('Convert hostNodes()');
     convertHostNodes(j, root);
 
     // Remove first()
+    // astLogger.verbose('Convert first()');
     // convertFirst(j, root);
 
     // Remove Wrapper ShallowWrapper and ReactWrapper Declaration
+    // astLogger.verbose('Convert convertWrapperDeclarations()');
     // convertWrapperDeclarations(j, root);
 
     // Convert exists()
+    // astLogger.verbose('Convert exists()');
     // convertExists(j, root);
 
-    // Add suggestions for any other instances of Enzyme methods based on renderFunctionVarNames
-
-    // Output file to a temp folder
+    // Generate the transformed code
+    astLogger.verbose('Generating transformed code');
     const transformedCode = root.toSource();
-    const outputFilePath = options.outputFile;
-    fs.writeFileSync(outputFilePath, transformedCode, 'utf8');
+
+    return transformedCode;
 };
 
-export default transform;
+// const code = mainASTtransform('test/data/ast-conversion-test-file-no-enzyme.tsx')
+// console.log('code:', code)

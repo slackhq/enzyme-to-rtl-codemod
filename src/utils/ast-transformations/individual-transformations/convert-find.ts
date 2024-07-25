@@ -5,7 +5,6 @@
  * 1.2. if selector is a role, getByRole
  * 1.3. if selector is a component, annotation
  */
-
 import { JSCodeshift, Collection, CallExpression, ASTPath } from 'jscodeshift';
 import { addComment } from '../utils/add-comment';
 import { astLogger } from '../utils/ast-logger';

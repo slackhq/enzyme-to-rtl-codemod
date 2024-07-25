@@ -30,8 +30,15 @@ jobs:
       - name: Run Prettier
         run: npm run prettier:check
 
-      - name: Run Jest tests
-        run: npm test
+      - name: Run Jest tests with coverage
+        run: npm test -- --coverage
 
-      # TODO: copy from https://github.com/slackapi/node-slack-sdk/blob/main/.github/workflows/ci-build.yml
-      # - name: Upload coverage
+      - name: Show coverage report
+        run: |
+          # Check if coverage directory exists
+          if [ -d "coverage" ]; then
+            # Print the coverage report summary
+            npx nyc report --reporter=text
+          else
+            echo "No coverage directory found"
+          fi

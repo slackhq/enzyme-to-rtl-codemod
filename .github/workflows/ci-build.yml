@@ -33,30 +33,5 @@ jobs:
       - name: Run Jest tests with coverage
         run: npm run test:coverage
 
-      - name: Extract coverage summary
-        id: extract_coverage
-        run: cat coverage/coverage-summary.json
-
-      - name: Create coverage report comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const coverageSummary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
-            const total = coverageSummary.total;
-
-            const coverageReport = `
-            ### Coverage Report
-            - **Lines:** ${total.lines.pct}%
-            - **Statements:** ${total.statements.pct}%
-            - **Functions:** ${total.functions.pct}%
-            - **Branches:** ${total.branches.pct}%
-            `;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: coverageReport
-            });
+      # Replicate this https://github.com/slackapi/node-slack-sdk/blob/main/.github/workflows/ci-build.yml#L54
+      # - name: upload test coverage 

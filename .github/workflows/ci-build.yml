@@ -35,7 +35,7 @@ jobs:
 
       - name: Extract coverage summary
         id: extract_coverage
-        run: cat coverage/coverage-final.json
+        run: cat coverage/coverage-summary.json
 
       - name: Create coverage report comment
         if: github.event_name == 'pull_request'
@@ -43,28 +43,17 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const coverageSummary = JSON.parse(fs.readFileSync('coverage/coverage-final.json', 'utf8'));
-            const total = {
-              statements: 0,
-              branches: 0,
-              functions: 0,
-              lines: 0,
-              files: 0
-            };
-            for (const file of Object.values(coverageSummary)) {
-              total.statements += file.s[0];
-              total.branches += file.b[0];
-              total.functions += file.f[0];
-              total.lines += file.l[0];
-              total.files += 1;
-            }
+            const coverageSummary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+            const total = coverageSummary.total;
+
             const coverageReport = `
             ### Coverage Report
-            - **Statements:** ${total.statements / total.files}%
-            - **Branches:** ${total.branches / total.files}%
-            - **Functions:** ${total.functions / total.files}%
-            - **Lines:** ${total.lines / total.files}%
+            - **Lines:** ${total.lines.pct}%
+            - **Statements:** ${total.statements.pct}%
+            - **Functions:** ${total.functions.pct}%
+            - **Branches:** ${total.branches.pct}%
             `;
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

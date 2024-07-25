@@ -31,14 +31,4 @@ jobs:
         run: npm run prettier:check
 
       - name: Run Jest tests with coverage
-        run: npm test -- --coverage
-
-      - name: Show coverage report
-        run: |
-          # Check if coverage directory exists
-          if [ -d "coverage" ]; then
-            # Print the coverage report summary
-            npx nyc report --reporter=text
-          else
-            echo "No coverage directory found"
-          fi
+        run: npm run test:coverage

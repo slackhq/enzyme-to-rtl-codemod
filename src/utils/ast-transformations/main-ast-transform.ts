@@ -5,6 +5,7 @@ import { convertHostNodes } from './individual-transformations/remove-enzyme-hos
 import { convertMountShallowMethods } from './individual-transformations/convert-mount-shallow-methods';
 import { convertMountShallowVars } from './individual-transformations/convert-mount-shallow-vars';
 import { convertSimulate } from './individual-transformations/convert-simulate';
+import { convertText } from './individual-transformations/convert-enzyme-text-method';
 import { convertUpdate } from './individual-transformations/remove-enzyme-update-method';
 import { astLogger } from './utils/ast-logger';
 
@@ -53,8 +54,7 @@ export const mainASTtransform = (filePath: string): string => {
     convertFind(j, root);
 
     // Convert text()
-    // astLogger.verbose('Convert text()');
-    // convertText(j, root);
+    convertText(j, root);
 
     // Convert simulate()
     astLogger.verbose('Convert simulate()');

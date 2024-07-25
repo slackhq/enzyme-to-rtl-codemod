@@ -67,5 +67,3 @@ describe('genPrompt', () => {
   });
 
 });
-
-// should generate promp

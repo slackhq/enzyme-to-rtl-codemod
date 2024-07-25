@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { config as winstonConfig } from 'winston';
 // TODO: move count test case to generic utils maybe
-import { countTestCases } from './prompt-generation/generate-prompt';
+import { countTestCases } from './prompt-generation/utils/utils';
 
 // Define the union type for valid log level strings
 type LogLevel = keyof typeof winstonConfig.npm.levels;
@@ -81,10 +81,12 @@ export const checkConfiguration = (filePath: string): void => {
         const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         if (!importStatementRegex.test(fileContent)) {
+            // TODO: should not error out. But warn
             throw new Error(
                 'Provided file is either not an Enzyme or does not import mounting method directly from Enzyme package',
             );
         }
+        // TODO: add check to see if there any test cases
     }
 
     // Check if jestBinaryPath is set and can be found

@@ -3,7 +3,6 @@ import createCustomLogger from '../logger/logger';
 
 export const promptLogger = createCustomLogger('Prompt');
 
-
 /**
  * Generate prompt for LLM
  * @param filePath
@@ -25,8 +24,9 @@ export const genPrompt = (
     promptLogger.verbose(`Getting number of test cases from ${filePath}`);
     const numTestCases = countTestCases(filePath);
     if (numTestCases > 0) {
-        promptLogger.warn(`No test cases has been found in ${filePath}`);
         numTestCasesString = `In the original file there are ${numTestCases.toString()} test cases.`;
+    } else {
+        promptLogger.warn(`No test cases have been found in ${filePath}`);
     }
 
     const contextSetting = `I need assistance converting an Enzyme test case to the React Testing Library framework.
@@ -76,6 +76,8 @@ export const genPrompt = (
         testCaseCodePrompt +
         convertedCodemodPrompt +
         renderedCompCodePrompt;
+
+    promptLogger.info('Done: generating prompt');
     return finalPrompt;
 };
 
@@ -85,17 +87,10 @@ export const genPrompt = (
  * @returns
  */
 export const countTestCases = (filePath: string): number => {
-    promptLogger.verbose('Counting test cases')
+    promptLogger.verbose('Counting test cases');
     const fileContent = fs.readFileSync(filePath, 'utf-8');
     const testCasePattern =
         /(?<=(^|\t|\s))(it\s*\(|it.each\s*\(|it.each\s*`|test\s*\(|test.each\s*\(|test.each\s*`)/g;
     const testCaseMatches = fileContent.match(testCasePattern);
     return testCaseMatches ? testCaseMatches.length : 0;
 };
-
-// genPrompt(
-//     'temp/ast-converted-test-file.tsx',
-//     'data-test-id',
-//     'codemod',
-//     'component',
-// );

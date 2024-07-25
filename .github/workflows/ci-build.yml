@@ -32,3 +32,27 @@ jobs:
 
       - name: Run Jest tests with coverage
         run: npm run test:coverage
+
+      - name: Extract coverage summary
+      id: coverage
+      run: cat coverage/coverage-summary.json
+
+      - name: Create coverage report comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const summary = JSON.parse(`{${steps.coverage.outputs.stdout}}`);
+          const coverageReport = `
+          ### Coverage Report
+          - **Statements:** ${summary.total.statements.pct}%
+          - **Branches:** ${summary.total.branches.pct}%
+          - **Functions:** ${summary.total.functions.pct}%
+          - **Lines:** ${summary.total.lines.pct}%
+          `;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: coverageReport
+          });

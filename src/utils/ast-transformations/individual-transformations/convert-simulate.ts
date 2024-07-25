@@ -104,19 +104,17 @@ export const convertSimulate = (j: JSCodeshift, root: Collection) => {
                         j(path).replaceWith(userEventAction);
                         astLogger.verbose('Transformation complete.');
                     }
-                    // If simulate event does not exist provides a suggestion
-                    else {
-                        // Iterate over each simulate call expression path and annotate
-                        simulateCalls.forEach(
-                            (path: ASTPath<CallExpression>) => {
-                                addComment(
-                                    path,
-                                    "/* SUGGESTION: .simulate('<method>') --> userEvent.<method>(<DOM_element>); */",
-                                );
-                            },
-                        );
-                    }
                 }
+            }
+            // If simulate event does not exist provides a suggestion
+            else {
+                // Iterate over each simulate call expression path and annotate
+                simulateCalls.forEach((path: ASTPath<CallExpression>) => {
+                    addComment(
+                        path,
+                        "/* SUGGESTION: .simulate('<method>') --> userEvent.<method>(<DOM_element>); */",
+                    );
+                });
             }
         });
     }

@@ -61,7 +61,7 @@ describe('genPrompt', () => {
     expect(result).toBe(4);
   });
 
-  it('should return 0 if no test cases are found', () => {
+  it('should return 0 if no test cases are found in the test file code', () => {
     const result = countTestCases(enzymeFilePathNoTests);
     expect(result).toBe(0);
   });

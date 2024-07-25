@@ -1,3 +1,3 @@
-describe('Test suite', () => {
-    // No tests
+describe('Test suite that has no test cases', () => {
+    // No test
 });

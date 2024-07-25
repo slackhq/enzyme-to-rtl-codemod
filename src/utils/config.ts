@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { config as winstonConfig } from 'winston';
 // TODO: move count test case to generic utils maybe
-import { countTestCases } from './prompt-generation/generate-prompt';
+import { countTestCases } from './prompt-generation/utils/utils';
 
 // Define the union type for valid log level strings
 type LogLevel = keyof typeof winstonConfig.npm.levels;

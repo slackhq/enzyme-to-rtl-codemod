@@ -1,5 +1,6 @@
 import fs from 'fs';
 import createCustomLogger from '../logger/logger';
+import { countTestCases } from './utils/utils';
 
 export const promptLogger = createCustomLogger('Prompt');
 
@@ -79,18 +80,4 @@ export const genPrompt = (
 
     promptLogger.info('Done: generating prompt');
     return finalPrompt;
-};
-
-/**
- * Count number of it blocks in a file
- * @param filePath
- * @returns
- */
-export const countTestCases = (filePath: string): number => {
-    promptLogger.verbose('Counting test cases');
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const testCasePattern =
-        /(?<=(^|\t|\s))(it\s*\(|it.each\s*\(|it.each\s*`|test\s*\(|test.each\s*\(|test.each\s*`)/g;
-    const testCaseMatches = fileContent.match(testCasePattern);
-    return testCaseMatches ? testCaseMatches.length : 0;
 };

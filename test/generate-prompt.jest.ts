@@ -1,5 +1,5 @@
-import { genPrompt, countTestCases } from '../src/utils/prompt-generation/generate-prompt';
-import fs from 'fs';
+import { genPrompt } from '../src/utils/prompt-generation/generate-prompt';
+import { countTestCases } from '../src/utils/prompt-generation/utils/utils';
 
 describe('genPrompt', () => {
   const enzymeFilePath = 'test/data/gen-prompt-test-file.jest.tsx';

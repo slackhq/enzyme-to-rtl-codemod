@@ -30,8 +30,8 @@ jobs:
       - name: Run Prettier
         run: npm run prettier:check
 
-      - name: Run Jest tests
-        run: npm test
+      - name: Run Jest tests with coverage
+        run: npm run test:coverage
 
-      # TODO: copy from https://github.com/slackapi/node-slack-sdk/blob/main/.github/workflows/ci-build.yml
-      # - name: Upload coverage
+      # Replicate this https://github.com/slackapi/node-slack-sdk/blob/main/.github/workflows/ci-build.yml#L54
+      # - name: upload test coverage 

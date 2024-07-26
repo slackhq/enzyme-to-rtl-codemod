@@ -1,6 +1,6 @@
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty, getJestBinaryPath } from '../config';
-import { countTestCases } from '../prompt-generation/generate-prompt';
+import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 
 export interface RTLTestResult {

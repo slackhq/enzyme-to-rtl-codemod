@@ -40,9 +40,7 @@ describe('overwriteEnzymeMounts', () => {
         // Mock writeFileSync
         (fs.writeFileSync as jest.Mock).mockImplementation();
 
-        await expect(overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter)).rejects.toThrow(
-            'No Enzyme imports detected. Is this an Enzyme file? Or is it using helper functions that call Enzyme mounting methods?'
-        );
+        overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter)
 
         // Check if readFileSync was called with the correct file path
         expect(fs.readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');

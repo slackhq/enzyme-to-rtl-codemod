@@ -71,7 +71,12 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
         );
         await runCommand(jestCommand);
     } catch (error) {
-        console.log(`Did not work jestCommand. Error: ${error}`);
+        getDomEnzymeLogger.warn(
+            `Could not run jest command command: ${jestCommand}`,
+        );
+        getDomEnzymeLogger.warn(
+            `Error: ${error}`,
+        );
     }
 
     // Return output

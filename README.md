@@ -1,5 +1,5 @@
 # Enzyme to RTL codemod
-This package is designed to help with automated conversion of jest tests from Enzyme to RTL. It's intended to be used with your version of the LLM
+This package is designed to help with automated conversion of jest tests from Enzyme to RTL. It's intended to be used with your version of the LLM.
 
 # Requirements 
 1. Jest

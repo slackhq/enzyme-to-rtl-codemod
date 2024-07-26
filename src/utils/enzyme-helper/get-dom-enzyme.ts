@@ -5,7 +5,6 @@ import createCustomLogger from '../logger/logger';
 
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
 
-// TODO: add logs everywhere
 // TODO: remove child process and try running directly with jest apis
 
 /**

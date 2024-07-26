@@ -74,9 +74,7 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
         getDomEnzymeLogger.warn(
             `Could not run jest command command: ${jestCommand}`,
         );
-        getDomEnzymeLogger.warn(
-            `Error: ${error}`,
-        );
+        getDomEnzymeLogger.warn(`Error: ${error}`);
     }
 
     // Return output

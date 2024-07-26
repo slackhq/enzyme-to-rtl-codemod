@@ -75,6 +75,7 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
             `Could not run jest command command: ${jestCommand}`,
         );
         getDomEnzymeLogger.warn(`Error: ${error}`);
+        return 'Could not collect DOM for test cases. Proceed without DOM';
     }
 
     // Return output

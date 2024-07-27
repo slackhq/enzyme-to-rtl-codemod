@@ -1,6 +1,6 @@
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty, getJestBinaryPath } from '../config';
-import { countTestCases } from '../prompt-generation/generate-prompt';
+import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 
 export interface RTLTestResult {
@@ -85,7 +85,7 @@ export const runTestAndAnalyzeFile = async (
  * @param input
  * @returns
  */
-const removeANSIEscapeCodes = (input: string): string => {
+export const removeANSIEscapeCodes = (input: string): string => {
     // Regular expression to match ANSI escape codes
     // eslint-disable-next-line no-control-regex
     const ansiEscapeCodeRegex = /\u001b\[[0-9;]*m/g;

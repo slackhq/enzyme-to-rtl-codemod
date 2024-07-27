@@ -3,6 +3,7 @@ import { getConfigProperty, getJestBinaryPath } from '../config';
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 
+// TODO: add logs
 export interface RTLTestResult {
     testPass: boolean | null;
     testrunLogs: string;

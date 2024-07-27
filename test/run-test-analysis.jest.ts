@@ -74,12 +74,15 @@ describe('runTestAndAnalyzeFile', () => {
 
         // expect(mockedgetConfigProperty).toHaveBeenCalledTimes(1);
 
-
-        
-        
-        
-
-
-
+        // TODO:
+        // analyzeLogsForErrors
+        // results announcement logic + add logger
+        // extractTestResults
+        // return value
     });
 });
+
+// More tests:
+// removeANSIEscapeCodes
+// analyzeLogsForErrors
+// extractTestResults

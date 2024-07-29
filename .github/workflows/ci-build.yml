@@ -1,4 +1,4 @@
-name: Node.js
+name: Unit tests and linter
 
 on:
   push:

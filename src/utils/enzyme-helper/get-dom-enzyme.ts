@@ -1,6 +1,11 @@
 import fs from 'fs';
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty, getJestBinaryPath } from '../config';
+import createCustomLogger from '../logger/logger';
+
+export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
+
+// TODO: remove child process and try running directly with jest apis
 
 /**
  * Get React component DOM for test cases
@@ -8,57 +13,98 @@ import { getConfigProperty, getJestBinaryPath } from '../config';
  * @returns
  */
 export const getReactCompDom = async (filePath: string): Promise<string> => {
-    console.log('\nGetting rendered component code');
+    getDomEnzymeLogger.info('Start: getting rendered component code');
+
+    // Check if file has Enzyme imports for mount/shallow
+    if (!getConfigProperty('enzymeImportsPresent')) {
+        getDomEnzymeLogger.warn(
+            'No Enzyme imports present. Cannot collect logs. Continue...',
+        );
+        // TODO: when testing. Check what the best return string should be
+        // Maybe return null and do not include this as part of the prompt
+        return 'Could not collect DOM for test cases. Proceed without DOM';
+    }
+
     /**
      * Copy mount adapters file collecting DOM tree to host project
      * Write the string to a file
      */
-    // Create a csv file path with DOM for test cases
+    // Get a csv file path with DOM for test cases
+    getDomEnzymeLogger.verbose('Get domTreeFilePath');
     const domTreeFilePath = getConfigProperty('collectedDomTreeFilePath');
-    const enzymeRenderAdapterFilePath = getConfigProperty('enzymeMountAdapter');
+
+    // Create a string with enzyme shallow/mount adapters wih the path to csv for DOM tree
+    getDomEnzymeLogger.verbose('Get enzymeRenderAdapterCode');
     const enzymeRenderAdapterCode = getenzymeRenderAdapterCode(domTreeFilePath);
+
+    // Get the path to the file for enzymeRenderAdapterCode
+    getDomEnzymeLogger.verbose('Get enzymeRenderAdapterFilePath');
+    const enzymeMountAdapterFilePath = getConfigProperty(
+        'enzymeMountAdapterFilePath',
+    );
+
+    // Create a file with shallow/enzyme adapter that collects DOM
+    getDomEnzymeLogger.verbose('Create shallow/enzyme adapter to collect DOM');
     fs.writeFileSync(
-        enzymeRenderAdapterFilePath,
+        enzymeMountAdapterFilePath,
         enzymeRenderAdapterCode,
         'utf8',
     );
 
     // Create new Enzyme file with Enzyme mounts overwrite
+    getDomEnzymeLogger.verbose('Get filePathWithEnzymeAdapter');
     const filePathWithEnzymeAdapter = getConfigProperty(
         'filePathWithEnzymeAdapter',
     );
+
+    getDomEnzymeLogger.verbose('Overwrite enzyme shallow/mount import methods');
     await overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter);
 
     // Create jest command to run tests
+    getDomEnzymeLogger.verbose('Generate jest command');
     const jestCommand = `${getJestBinaryPath()} ${filePathWithEnzymeAdapter}`;
 
     // Run jest command
     try {
+        getDomEnzymeLogger.verbose(
+            `Run jest file with command: ${jestCommand}`,
+        );
         await runCommand(jestCommand);
     } catch (error) {
-        console.log(`Did not work jestCommand. Error: ${error}`);
+        getDomEnzymeLogger.warn(
+            `Could not run jest command command: ${jestCommand}`,
+        );
+        getDomEnzymeLogger.warn(`Error: ${error}`);
+        return 'Could not collect DOM for test cases. Proceed without DOM';
     }
 
     // Return output
     let domTreeOutput =
         'Could not collect DOM for test cases. Proceed without DOM';
     try {
+        getDomEnzymeLogger.verbose(
+            `Getting collected DOM from ${domTreeFilePath}`,
+        );
         domTreeOutput = fs.readFileSync(domTreeFilePath, 'utf-8');
     } catch (error) {
-        console.log(
-            `Could not open the file. Error in outputting file ${error}`,
+        getDomEnzymeLogger.warn(
+            `Could not collect DOM logs from ${domTreeFilePath}.\nError: ${error}`,
         );
     }
-    console.log('Getting rendered component code: DONE');
+    getDomEnzymeLogger.info('Done: getting rendered component code');
     return domTreeOutput;
 };
+
 /**
  * Overwrite enzyme methods to collect DOM for test case renders
+ * import { mount } from 'enzyme';
+ * to
+ * import { mount, shallow } from './enzyme-mount-adapter';
  * @param filePath
  * @param filePathWithEnzymeAdapter
  * @returns
  */
-const overwriteEnzymeMounts = async (
+export const overwriteEnzymeMounts = async (
     filePath: string,
     filePathWithEnzymeAdapter: string,
 ): Promise<void> => {
@@ -78,12 +124,7 @@ const overwriteEnzymeMounts = async (
             matchedImportString,
             "import { mount, shallow } from './enzyme-mount-adapter';",
         );
-
         fs.writeFileSync(filePathWithEnzymeAdapter, updatedContent, 'utf-8');
-    } else {
-        throw new Error(
-            'No Enzyme imports detected. Is this an Enzyme file? Or is it using helper functions that call Enzyme mounting methods?',
-        );
     }
 };
 
@@ -92,7 +133,7 @@ const overwriteEnzymeMounts = async (
  * @param collectedDomTreeFilePath
  * @returns
  */
-const getenzymeRenderAdapterCode = (
+export const getenzymeRenderAdapterCode = (
     collectedDomTreeFilePath: string,
 ): string => {
     // TODO: if file is in ts use TS adapter. If not, use JS

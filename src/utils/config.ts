@@ -16,9 +16,10 @@ interface Config {
     collectedDomTreeFilePath: string;
     rtlConvertedFilePath: string;
     jestRunLogsFilePath: string;
-    enzymeMountAdapter: string;
+    enzymeMountAdapterFilePath: string;
     filePathWithEnzymeAdapter: string;
     logLevel: keyof typeof winstonConfig.npm.levels;
+    enzymeImportsPresent: boolean;
 }
 
 const config: Config = {
@@ -30,9 +31,10 @@ const config: Config = {
     collectedDomTreeFilePath: '',
     rtlConvertedFilePath: '',
     jestRunLogsFilePath: '',
-    enzymeMountAdapter: '',
+    enzymeMountAdapterFilePath: '',
     filePathWithEnzymeAdapter: '',
     logLevel: 'info',
+    enzymeImportsPresent: false,
 };
 
 /**
@@ -80,11 +82,10 @@ export const checkConfiguration = (filePath: string): void => {
         // Check if it is an Enzyme file
         const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
         const fileContent = fs.readFileSync(filePath, 'utf-8');
-        if (!importStatementRegex.test(fileContent)) {
+        if (importStatementRegex.test(fileContent)) {
+            config.enzymeImportsPresent = true;
             // TODO: should not error out. But warn
-            throw new Error(
-                'Provided file is either not an Enzyme or does not import mounting method directly from Enzyme package',
-            );
+            // TOOD: add config logger and warn that we can't collect logs for this
         }
         // TODO: add check to see if there any test cases
     }
@@ -162,7 +163,7 @@ export const addPathsToConfig = (filePath: string): void => {
     config.collectedDomTreeFilePath = `${config.outputResultsPath}/dom-tree-${config.filePathTitle}.csv`;
     config.rtlConvertedFilePath = `${getConfigProperty('outputResultsPath')}/rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
     config.jestRunLogsFilePath = `${getConfigProperty('outputResultsPath')}/jest-run-logs-${config.filePathTitle}.md`;
-    config.enzymeMountAdapter = `${getConfigProperty('outputResultsPath')}/enzyme-mount-adapter.js`;
+    config.enzymeMountAdapterFilePath = `${getConfigProperty('outputResultsPath')}/enzyme-mount-adapter.js`;
     config.filePathWithEnzymeAdapter = `${getConfigProperty('outputResultsPath')}/enzyme-mount-overwritten-${config.filePathTitle}${config.filePathExtension}`;
 };
 

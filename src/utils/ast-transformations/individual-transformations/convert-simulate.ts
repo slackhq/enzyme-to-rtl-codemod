@@ -20,7 +20,7 @@ import { addComment } from '../utils/add-comment';
  * @param root - The root AST node
  * @returns - Returns imported userEvent Library
  */
-export const convertSimulate = (j: JSCodeshift, root: Collection) => {
+export const convertSimulate = (j: JSCodeshift, root: Collection): void => {
     // Find all call expressions with the callee property name '.simulate'
     astLogger.verbose('Query for simulate');
     const simulateCalls = root.find(j.CallExpression, {

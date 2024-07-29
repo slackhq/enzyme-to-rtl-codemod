@@ -14,7 +14,7 @@ import { astLogger } from '../utils/ast-logger';
  * @param j
  * @param root
  */
-export const convertFind = (j: JSCodeshift, root: Collection) => {
+export const convertFind = (j: JSCodeshift, root: Collection): void => {
     astLogger.verbose('Querying for .find');
     // Find all call expressions with the callee property name 'find'
     const findCalls = root.find(j.CallExpression, {

@@ -127,7 +127,7 @@ export const convertMountShallowMethods = (
      * Sometimes the function that calls mount or shallow method is called render
      * To avoid any conflicts with RTL we need to rename it to something else than render
      */
-    function changeRenderFuncName() {
+    function changeRenderFuncName(): void {
         // Find all calls to that function and change to the new value
         const renderFuncReferenceDeclarations = root.find(j.CallExpression, {
             callee: {

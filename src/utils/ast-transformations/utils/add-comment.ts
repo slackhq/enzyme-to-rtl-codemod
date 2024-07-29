@@ -6,7 +6,7 @@ import type { ASTPath } from 'jscodeshift';
  * @param comment
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const addComment = (currentPath: ASTPath<any>, comment: string) => {
+export const addComment = (currentPath: ASTPath, comment: string): void => {
     // Get needed parent node
     // TODO: check on more Enzyme files
     const commonTopLevelNodeTypes = [
@@ -27,12 +27,9 @@ export const addComment = (currentPath: ASTPath<any>, comment: string) => {
  * @returns
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const findParentNode = (currentPath: ASTPath<any>, types: string[]) => {
+const findParentNode = (currentPath: ASTPath, types: string[]): ASTPath => {
     let currentNode = currentPath;
 
-    // while (currentNode && currentNode.getValueProperty('type') !== type) {
-    // 	currentNode = currentNode.parent;
-    // }
     while (currentNode) {
         const parent = currentNode.parent;
         if (!parent) {

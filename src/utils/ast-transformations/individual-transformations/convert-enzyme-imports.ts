@@ -11,9 +11,9 @@ import { astLogger } from '../utils/ast-logger';
  * Transforms the provided AST by converting all Enzyme imports to RTL imports.
  * @param j - JSCodeshift library
  * @param root - The root AST node
- * @returns - Returns imported RTL Library
+ * @returns {void} - The function does not return a value but mutates the AST directly.
  */
-export const convertImports = (j: JSCodeshift, root: Collection) => {
+export const convertImports = (j: JSCodeshift, root: Collection): void => {
     // Find all import declarations matching `import { shallow } from 'enzyme';`
     astLogger.verbose('Query for enzyme import declarations');
     const enzymeImportDeclaration = root.find(j.ImportDeclaration, {
@@ -41,15 +41,7 @@ export const convertImports = (j: JSCodeshift, root: Collection) => {
         // remove enzyme imports
         enzymeImportDeclaration.remove();
     } else {
-        /**
-         * Import screen only by default
-         * If explicit shallow and mount imports are not found, the tests case uses store.mount()
-         * But we still need to import screen
-         */
-        newImportDeclaration = j.importDeclaration(
-            [j.importSpecifier(j.identifier('screen'))],
-            j.literal('@testing-library/react'),
-        );
+        astLogger.verbose('No enzyme imports found');
     }
 
     // Get the top file node

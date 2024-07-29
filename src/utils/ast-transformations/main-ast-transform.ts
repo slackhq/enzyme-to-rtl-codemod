@@ -29,6 +29,7 @@ export const mainASTtransform = (filePath: string): string => {
     j.withParser('tsx');
 
     // Convert enzyme imports
+    astLogger.verbose('Convert imports');
     convertImports(j, root);
 
     /**
@@ -55,6 +56,7 @@ export const mainASTtransform = (filePath: string): string => {
     convertFind(j, root);
 
     // Convert text()
+    astLogger.verbose('Convert text()');
     convertText(j, root);
 
     // Convert simulate()

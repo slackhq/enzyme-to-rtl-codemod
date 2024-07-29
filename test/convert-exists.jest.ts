@@ -1,7 +1,7 @@
 import { convertExists } from '../src/utils/ast-transformations/individual-transformations/convert-exists';
 import jscodeshift from 'jscodeshift';
 
-describe('convertText', () => {
+describe('convertExists', () => {
     let j: jscodeshift.JSCodeshift;
 
     beforeEach(() => {

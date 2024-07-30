@@ -24,6 +24,7 @@ const createCustomLogger = (label: string): Logger => {
             format.colorize(),
             logPrintFormat,
         ),
+        silent: process.env.NODE_ENV === 'test',
         transports: [new transports.Console()],
     });
 };

@@ -1,12 +1,11 @@
 import { Logger, createLogger, format, transports } from 'winston';
-import { getConfigProperty } from '../config';
 
 /**
  * Configure log level
  * Winston logging levels, see: https://github.com/winstonjs/winston#logging
  *
  */
-const loggerLevel = getConfigProperty('logLevel') as string;
+const loggerLevel = process.env.LOG_LEVEL || 'info';
 
 // Create custom logging format
 const logPrintFormat = format.printf(

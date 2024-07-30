@@ -6,7 +6,7 @@ import {
     setOutputResultsPath,
     checkConfiguration,
     getConfigProperty,
-    addPathsToConfig,
+    addPathsToConfig
 } from '../src/utils/config';
 
 // Mock the modules
@@ -18,7 +18,6 @@ const resetConfig = () => {
     (path.resolve as jest.Mock).mockReturnValue('');
     setOutputResultsPath('');
     setJestBinaryPath('');
-    configureLogLevel('info');
 };
 
 describe('Configuration Functions', () => {
@@ -36,8 +35,8 @@ describe('Configuration Functions', () => {
 
     describe('configureLogLevel', () => {
         it('should set the log level', () => {
-            configureLogLevel('debug');
-            expect(getConfigProperty('logLevel')).toBe('debug');
+            configureLogLevel('verbose');
+            expect(process.env.LOG_LEVEL).toBe('verbose');
         });
     });
 

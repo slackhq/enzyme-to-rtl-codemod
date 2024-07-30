@@ -3,6 +3,7 @@ import fs from 'fs';
 import { config as winstonConfig } from 'winston';
 // TODO: move count test case to generic utils maybe
 import { countTestCases } from './prompt-generation/utils/utils';
+import createCustomLogger from './logger/logger';
 
 // Define the union type for valid log level strings
 type LogLevel = keyof typeof winstonConfig.npm.levels;
@@ -53,12 +54,6 @@ export const configureLogLevel = (logLevel: LogLevel): void => {
 export const setJestBinaryPath = (newJestBinaryPath: string): void => {
     config.jestBinaryPath = newJestBinaryPath;
 };
-
-/**
- * Get jest path
- * @returns
- */
-export const getJestBinaryPath = (): string => config.jestBinaryPath;
 
 /**
  * Provide path in your project to output generated files

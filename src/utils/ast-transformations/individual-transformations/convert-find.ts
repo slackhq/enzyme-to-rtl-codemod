@@ -8,11 +8,12 @@
 import { JSCodeshift, Collection, CallExpression, ASTPath } from 'jscodeshift';
 import { addComment } from '../utils/add-comment';
 import { astLogger } from '../utils/ast-logger';
-
+import { extractDataQaValue, getQueryMethod } from '../utils/selectors-logic';
 /**
  * Convert Enzyme find method
- * @param j
- * @param root
+ * @param j - JSCodeshift library
+ * @param root  - root AST node
+ * @returns {void} - The function does not return a value but mutates the AST directly.
  */
 export const convertFind = (j: JSCodeshift, root: Collection): void => {
     astLogger.verbose('Querying for .find');
@@ -28,9 +29,77 @@ export const convertFind = (j: JSCodeshift, root: Collection): void => {
     astLogger.verbose('Converting .find');
     // Iterate over each found call expression path and convert/annotate
     findCalls.forEach((path: ASTPath<CallExpression>) => {
+        const arg = path.value.arguments[0];
         addComment(
             path,
             '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
         );
+        // Data QA (call expression) .find('[data-qa="element"]')
+        astLogger.verbose(
+            'Converting Data QA (call expression) - [data-qa="element"] ',
+        );
+        if (j.Literal.check(arg)) {
+            const value = arg.value;
+            if (typeof value === 'string' && value.includes('data-qa')) {
+                const dataQaValue = extractDataQaValue(value);
+                const queryMethod = getQueryMethod(path);
+
+                const testIdReplacement = j.callExpression(
+                    j.memberExpression(
+                        j.identifier('screen'),
+                        j.identifier(`${queryMethod}TestId`),
+                    ),
+                    [j.literal(dataQaValue)],
+                );
+
+                j(path).replaceWith(testIdReplacement);
+            }
+        }
+        // Data QA (object expression) find({ 'data-qa': 'element' })
+        astLogger.verbose(
+            'Converting Data QA (object expression) - { "data-qa": "element" }',
+        );
+        if (j.ObjectExpression.check(arg)) {
+            const dataQaProperty = arg.properties.find(
+                (property: any) => property.key.value === 'data-qa',
+            );
+
+            if (dataQaProperty) {
+                if (j.ObjectProperty.check(dataQaProperty)) {
+                    if (j.StringLiteral.check(dataQaProperty.value)) {
+                        const dataQaValue = dataQaProperty.value.value;
+                        const queryMethod = getQueryMethod(path);
+                        const testIdReplacement = j.callExpression(
+                            j.memberExpression(
+                                j.identifier('screen'),
+                                j.identifier(`${queryMethod}TestId`),
+                            ),
+                            [j.literal(dataQaValue)],
+                        );
+
+                        j(path).replaceWith(testIdReplacement);
+                    }
+                }
+            }
+        }
+
+        // Role (call expression) .find('[role="<role>"]')
+        astLogger.verbose('Converting role expressions - [role="<role>"]');
+        if (j.Literal.check(arg)) {
+            const value = arg.value;
+            if (typeof value === 'string' && value.includes('[role=')) {
+                const roleValue = value
+                    .replace('[role="', '')
+                    .replace('"]', '');
+                const roleReplacement = j.callExpression(
+                    j.memberExpression(
+                        j.identifier('screen'),
+                        j.identifier('getByRole'),
+                    ),
+                    [j.literal(roleValue)],
+                );
+                j(path).replaceWith(roleReplacement);
+            }
+        }
     });
 };

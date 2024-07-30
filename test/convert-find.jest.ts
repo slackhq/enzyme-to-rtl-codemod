@@ -26,9 +26,69 @@ describe('convertFind', () => {
         expect(addComment).toHaveBeenCalledTimes(1);
         expect(addComment).toHaveBeenCalledWith(
             expect.anything(),
-            '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/'
+            '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
         );
     });
 
-    // Add more tests here
+    it('Should convert data-qa attribute to correct ByTestId query based on expect expression', () => {
+        const source = `
+        expect(wrapper.find('[data-qa="element"]')).toBeInTheDocument();
+        expect(wrapper.find({'data-qa':'element'})).not.toBeInTheDocument();
+        `;
+
+        // Transform the source code
+        const root = j(source);
+        convertFind(j, root);
+
+        // Generate the transformed source code
+        const transformedSource = root.toSource();
+
+        const expectedSource = `
+        expect(screen.getByTestId("element")).toBeInTheDocument();
+        expect(screen.queryByTestId("element")).not.toBeInTheDocument();
+        `;
+
+        // Check if the transformed source matches the expected source
+        expect(transformedSource).toBe(expectedSource);
+    });
+
+    it('Should convert all .find Data QA object expressions', () => {
+        const source = `
+        expect(wrapper.find({'data-qa':'element'})).toBeInTheDocument();
+        `;
+
+        // Transform the source code
+        const root = j(source);
+        convertFind(j, root);
+
+        // Generate the transformed source code
+        const transformedSource = root.toSource();
+
+        const expectedSource = `
+        expect(screen.getByTestId("element")).toBeInTheDocument();
+        `;
+
+        // Check if the transformed source matches the expected source
+        expect(transformedSource).toBe(expectedSource);
+    });
+
+    it(`Should add convert 'role' expression to getByRole() query`, () => {
+        const source = `
+        expect(wrapper.find('[role="img"]')).toBeInTheDocument();
+        `;
+
+        // Transform the source code
+        const root = j(source);
+        convertFind(j, root);
+
+        // Generate the transformed source code
+        const transformedSource = root.toSource();
+
+        const expectedSource = `
+        expect(screen.getByRole("img")).toBeInTheDocument();
+        `;
+
+        // Check if the transformed source matches the expected source
+        expect(transformedSource).toBe(expectedSource);
+    });
 });

@@ -61,6 +61,7 @@ export const convertFind = (j: JSCodeshift, root: Collection): void => {
         );
         if (j.ObjectExpression.check(arg)) {
             const dataQaProperty = arg.properties.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (property: any) => property.key.value === 'data-qa',
             );
 

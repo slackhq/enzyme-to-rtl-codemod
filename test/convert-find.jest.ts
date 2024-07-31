@@ -31,7 +31,7 @@ describe('convertFind', () => {
         );
     });
 
-    it('Should convert data-qa attribute to correct ByTestId query based on expect expression', () => {
+    it('Should convert test-id attribute to correct ByTestId query based on expect expression', () => {
         const source = `
         expect(wrapper.find('[data-id="element"]')).toBeInTheDocument();
         expect(wrapper.find({'data-id':'element'})).not.toBeInTheDocument();

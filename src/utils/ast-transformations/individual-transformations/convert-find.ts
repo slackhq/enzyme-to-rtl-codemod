@@ -35,9 +35,9 @@ export const convertFind = (
     // Iterate over each found call expression path and convert/annotate
     findCalls.forEach((path: ASTPath<CallExpression>) => {
         const arg = path.value.arguments[0];
-        // Data QA (call expression) .find('[data-qa="element"]')
+        // Data QA (call expression) .find('[data-id="element"]')
         astLogger.verbose(
-            'Converting Data QA (call expression) - [data-qa="element"] ',
+            'Converting Data QA (call expression) - [data-id="element"] ',
         );
         if (j.Literal.check(arg)) {
             const value = arg.value;
@@ -74,9 +74,9 @@ export const convertFind = (
             }
         }
         if (j.ObjectExpression.check(arg)) {
-            // Data QA (object expression) find({ 'data-qa': 'element' })
+            // Data QA (object expression) find({ 'data-id': 'element' })
             astLogger.verbose(
-                'Converting Data QA (object expression) - { "data-qa": "element" }',
+                'Converting Data QA (object expression) - { "data-id": "element" }',
             );
             const dataQaProperty = arg.properties.find(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -62,11 +62,11 @@ export const convertSelector = (
 
     // Select screen method and argument
     if (selector.includes(testid)) {
-        astLogger.verbose('Query selectors including data-qa');
+        astLogger.verbose('Query selectors including data-id attributes');
         // Set screen method
         screenMethod = 'getByTestId';
 
-        // Get data-qa value
+        // Get test-id value
         screenMethodArg = extractDataQaValue(selector, testid);
     } else {
         // Default to getByRole
@@ -137,10 +137,10 @@ export const convertSelector = (
         suggestionSuffix = `screen.${screenMethod}('${extractDataQaValue(selector, testid)}')`;
     } else if (selector.match(regexClassName)) {
         astLogger.verbose('Providing default suggestion');
-        suggestionSuffix = `Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-qa=...>'}`;
+        suggestionSuffix = `Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-id=...>'}`;
     } else if (selector.match(regexComponentName)) {
         astLogger.verbose('Providing default suggestion');
-        suggestionSuffix = `Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-qa=...>'}`;
+        suggestionSuffix = `Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-id=...>'}`;
     }
 
     astLogger.verbose('Transformation complete');

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import jscodeshift from 'jscodeshift';
+import { convertExists } from './individual-transformations/convert-exists';
 import { convertFind } from './individual-transformations/convert-find';
 import { convertHostNodes } from './individual-transformations/remove-enzyme-hostNodes-method';
 import { convertImports } from './individual-transformations/convert-enzyme-imports';
@@ -80,8 +81,8 @@ export const mainASTtransform = (filePath: string): string => {
     // convertWrapperDeclarations(j, root);
 
     // Convert exists()
-    // astLogger.verbose('Convert exists()');
-    // convertExists(j, root);
+    astLogger.verbose('Convert exists()');
+    convertExists(j, root);
 
     // Generate the transformed code
     astLogger.verbose('Generating transformed code');

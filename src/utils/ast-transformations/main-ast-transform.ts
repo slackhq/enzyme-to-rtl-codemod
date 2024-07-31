@@ -90,6 +90,3 @@ export const mainASTtransform = (filePath: string): string => {
 
     return transformedCode;
 };
-
-// const code = mainASTtransform('test/data/ast-conversion-test-file-no-enzyme.tsx')
-// console.log('code:', code)

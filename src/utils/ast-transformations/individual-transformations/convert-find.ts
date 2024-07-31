@@ -13,9 +13,14 @@ import { extractDataQaValue, getQueryMethod } from '../utils/selectors-logic';
  * Convert Enzyme find method
  * @param j - JSCodeshift library
  * @param root  - root AST node
+ * @param testId - This unique identifier which matches the 'data-testid' attribute.
  * @returns {void} - The function does not return a value but mutates the AST directly.
  */
-export const convertFind = (j: JSCodeshift, root: Collection): void => {
+export const convertFind = (
+    j: JSCodeshift,
+    root: Collection,
+    testId: string,
+): void => {
     astLogger.verbose('Querying for .find');
     // Find all call expressions with the callee property name 'find'
     const findCalls = root.find(j.CallExpression, {
@@ -30,18 +35,14 @@ export const convertFind = (j: JSCodeshift, root: Collection): void => {
     // Iterate over each found call expression path and convert/annotate
     findCalls.forEach((path: ASTPath<CallExpression>) => {
         const arg = path.value.arguments[0];
-        addComment(
-            path,
-            '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
-        );
         // Data QA (call expression) .find('[data-qa="element"]')
         astLogger.verbose(
             'Converting Data QA (call expression) - [data-qa="element"] ',
         );
         if (j.Literal.check(arg)) {
             const value = arg.value;
-            if (typeof value === 'string' && value.includes('data-qa')) {
-                const dataQaValue = extractDataQaValue(value);
+            if (typeof value === 'string' && value.includes(testId)) {
+                const dataQaValue = extractDataQaValue(value, testId);
                 const queryMethod = getQueryMethod(path);
 
                 const testIdReplacement = j.callExpression(
@@ -54,15 +55,32 @@ export const convertFind = (j: JSCodeshift, root: Collection): void => {
 
                 j(path).replaceWith(testIdReplacement);
             }
+            if (typeof value === 'string' && value.includes('[role=')) {
+                // Role (call expression) .find('[role="<role>"]')
+                astLogger.verbose(
+                    'Converting role expressions - [role="<role>"]',
+                );
+                const roleValue = value
+                    .replace('[role="', '')
+                    .replace('"]', '');
+                const roleReplacement = j.callExpression(
+                    j.memberExpression(
+                        j.identifier('screen'),
+                        j.identifier('getByRole'),
+                    ),
+                    [j.literal(roleValue)],
+                );
+                j(path).replaceWith(roleReplacement);
+            }
         }
-        // Data QA (object expression) find({ 'data-qa': 'element' })
-        astLogger.verbose(
-            'Converting Data QA (object expression) - { "data-qa": "element" }',
-        );
         if (j.ObjectExpression.check(arg)) {
+            // Data QA (object expression) find({ 'data-qa': 'element' })
+            astLogger.verbose(
+                'Converting Data QA (object expression) - { "data-qa": "element" }',
+            );
             const dataQaProperty = arg.properties.find(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (property: any) => property.key.value === 'data-qa',
+                (property: any) => property.key.value === testId,
             );
 
             if (dataQaProperty) {
@@ -82,25 +100,11 @@ export const convertFind = (j: JSCodeshift, root: Collection): void => {
                     }
                 }
             }
-        }
-
-        // Role (call expression) .find('[role="<role>"]')
-        astLogger.verbose('Converting role expressions - [role="<role>"]');
-        if (j.Literal.check(arg)) {
-            const value = arg.value;
-            if (typeof value === 'string' && value.includes('[role=')) {
-                const roleValue = value
-                    .replace('[role="', '')
-                    .replace('"]', '');
-                const roleReplacement = j.callExpression(
-                    j.memberExpression(
-                        j.identifier('screen'),
-                        j.identifier('getByRole'),
-                    ),
-                    [j.literal(roleValue)],
-                );
-                j(path).replaceWith(roleReplacement);
-            }
+        } else {
+            addComment(
+                path,
+                '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
+            );
         }
     });
 };

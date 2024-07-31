@@ -13,9 +13,11 @@ import { astLogger } from './utils/ast-logger';
 /**
  * Main tranformation function for jscodeshift
  * @param filePath
+ * @param testId - This unique identifier which matches the 'data-testid' attribute.
+
  * @returns
  */
-export const mainASTtransform = (filePath: string): string => {
+export const mainASTtransform = (filePath: string, testId: string): string => {
     // Read the file content
     astLogger.verbose('Reading Enzyme source file');
     const source = fs.readFileSync(filePath, 'utf-8');
@@ -52,8 +54,9 @@ export const mainASTtransform = (filePath: string): string => {
     );
 
     // Convert find()
+    const dummyTestId = 'data-qa';
     astLogger.verbose('Convert find()');
-    convertFind(j, root);
+    convertFind(j, root, dummyTestId);
 
     // Convert text()
     astLogger.verbose('Convert text()');

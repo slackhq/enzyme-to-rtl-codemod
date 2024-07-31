@@ -9,6 +9,7 @@ jest.mock('../src/utils/ast-transformations/utils/add-comment.ts', () => ({
 
 describe('convertFind', () => {
     let j: jscodeshift.JSCodeshift;
+    const testId = 'data-id';
 
     beforeEach(() => {
         j = jscodeshift.withParser('tsx');
@@ -21,7 +22,7 @@ describe('convertFind', () => {
         `;
 
         const root = j(source);
-        convertFind(j, root);
+        convertFind(j, root, testId);
 
         expect(addComment).toHaveBeenCalledTimes(1);
         expect(addComment).toHaveBeenCalledWith(
@@ -32,13 +33,13 @@ describe('convertFind', () => {
 
     it('Should convert data-qa attribute to correct ByTestId query based on expect expression', () => {
         const source = `
-        expect(wrapper.find('[data-qa="element"]')).toBeInTheDocument();
-        expect(wrapper.find({'data-qa':'element'})).not.toBeInTheDocument();
+        expect(wrapper.find('[data-id="element"]')).toBeInTheDocument();
+        expect(wrapper.find({'data-id':'element'})).not.toBeInTheDocument();
         `;
 
         // Transform the source code
         const root = j(source);
-        convertFind(j, root);
+        convertFind(j, root, testId);
 
         // Generate the transformed source code
         const transformedSource = root.toSource();
@@ -54,12 +55,12 @@ describe('convertFind', () => {
 
     it('Should convert all .find Data QA object expressions', () => {
         const source = `
-        expect(wrapper.find({'data-qa':'element'})).toBeInTheDocument();
+        expect(wrapper.find({'data-id':'element'})).toBeInTheDocument();
         `;
 
         // Transform the source code
         const root = j(source);
-        convertFind(j, root);
+        convertFind(j, root, testId);
 
         // Generate the transformed source code
         const transformedSource = root.toSource();
@@ -79,7 +80,7 @@ describe('convertFind', () => {
 
         // Transform the source code
         const root = j(source);
-        convertFind(j, root);
+        convertFind(j, root, '');
 
         // Generate the transformed source code
         const transformedSource = root.toSource();

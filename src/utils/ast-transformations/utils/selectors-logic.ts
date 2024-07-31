@@ -14,12 +14,12 @@ export const getQueryMethod = (path: ASTPath<any>): string => {
 };
 
 /**
- * Extracts the data-qa value from the selector
+ * Extracts the testId value from the selector
  * @param path
- * @returns - data-qa value
+ * @returns - testId value
  */
-export const extractDataQaValue = (input: string): string => {
-    const regex = /data-qa="([^"]+)"/;
+export const extractDataQaValue = (input: string, testid: string): string => {
+    const regex = new RegExp(`${testid}="([^"]+)"`);
     const match = input.match(regex);
 
     return match ? match[1] : '';
@@ -42,6 +42,7 @@ interface ScreenMethodInterface {
  */
 export const convertSelector = (
     selector: string | null,
+    testid: string,
 ): ScreenMethodInterface => {
     // Screen method and arg selection logic
     let screenMethod = 'getByRole';
@@ -60,13 +61,13 @@ export const convertSelector = (
     }
 
     // Select screen method and argument
-    if (selector.includes('data-qa')) {
+    if (selector.includes(testid)) {
         astLogger.verbose('Query selectors including data-qa');
         // Set screen method
         screenMethod = 'getByTestId';
 
         // Get data-qa value
-        screenMethodArg = extractDataQaValue(selector);
+        screenMethodArg = extractDataQaValue(selector, testid);
     } else {
         // Default to getByRole
         astLogger.verbose('Query for role attributes');
@@ -133,7 +134,7 @@ export const convertSelector = (
     // Sets the suggestion suffix string based on the function arguments, otherwise return the default suggestion
     if (selector.match(regexDataQA)) {
         astLogger.verbose('Providing suggestion suffix string');
-        suggestionSuffix = `screen.${screenMethod}('${extractDataQaValue(selector)}')`;
+        suggestionSuffix = `screen.${screenMethod}('${extractDataQaValue(selector, testid)}')`;
     } else if (selector.match(regexClassName)) {
         astLogger.verbose('Providing default suggestion');
         suggestionSuffix = `Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-qa=...>'}`;

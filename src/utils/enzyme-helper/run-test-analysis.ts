@@ -6,7 +6,6 @@ import createCustomLogger from '../logger/logger';
 
 export const testAnalysisLogger = createCustomLogger('Test Analysis');
 
-// TODO: add logs
 export interface RTLTestResult {
     testPass: boolean | null;
     testrunLogs: string;

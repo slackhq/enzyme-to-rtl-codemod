@@ -1,7 +1,9 @@
 import fs from 'fs';
 import jscodeshift from 'jscodeshift';
+import { convertExists } from './individual-transformations/convert-exists';
 import { convertFind } from './individual-transformations/convert-find';
 import { convertHostNodes } from './individual-transformations/remove-enzyme-hostNodes-method';
+import { convertImports } from './individual-transformations/convert-enzyme-imports';
 import { convertMountShallowMethods } from './individual-transformations/convert-mount-shallow-methods';
 import { convertMountShallowVars } from './individual-transformations/convert-mount-shallow-vars';
 import { convertSimulate } from './individual-transformations/convert-simulate';
@@ -28,7 +30,8 @@ export const mainASTtransform = (filePath: string): string => {
     j.withParser('tsx');
 
     // Convert enzyme imports
-    // convertImports(j, root);
+    astLogger.verbose('Convert imports');
+    convertImports(j, root);
 
     /**
      * Convert mount and shallow to render
@@ -54,6 +57,7 @@ export const mainASTtransform = (filePath: string): string => {
     convertFind(j, root);
 
     // Convert text()
+    astLogger.verbose('Convert text()');
     convertText(j, root);
 
     // Convert simulate()
@@ -77,8 +81,8 @@ export const mainASTtransform = (filePath: string): string => {
     // convertWrapperDeclarations(j, root);
 
     // Convert exists()
-    // astLogger.verbose('Convert exists()');
-    // convertExists(j, root);
+    astLogger.verbose('Convert exists()');
+    convertExists(j, root);
 
     // Generate the transformed code
     astLogger.verbose('Generating transformed code');

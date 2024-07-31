@@ -179,7 +179,7 @@ export const convertMountShallowVars = (
      * Construct and replace with new expression
      * @param path
      */
-    function replaceWithExpression(path: ASTPath) {
+    function replaceWithExpression(path: ASTPath): void {
         // Get the declaration and add to the variable refs
         const varDeclarationNode = path.get('declarations', 0, 'id').node;
         varsRenderRefs.push(varDeclarationNode.name);

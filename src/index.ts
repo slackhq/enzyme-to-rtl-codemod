@@ -2,8 +2,15 @@ import { getASTCodemodCode } from './utils/ast-transformations/run-ast-transform
 import { getReactCompDom } from './utils/enzyme-helper/get-dom-enzyme';
 import { genPrompt } from './utils/prompt-generation/generate-prompt';
 import { extractCodeContentToFile } from './utils/code-extractor/extract-code';
-import { runTestAndAnalyzeFile } from './utils/enzyme-helper/run-test-analysis';
-import { setJestBinaryPath, setOutputResultsPath } from './utils/config';
+import {
+    runTestAndAnalyzeFile,
+    RTLTestResult,
+} from './utils/enzyme-helper/run-test-analysis';
+import {
+    setJestBinaryPath,
+    setOutputResultsPath,
+    configureLogLevel,
+} from './utils/config';
 
 /**
  * TODO:
@@ -14,15 +21,17 @@ import { setJestBinaryPath, setOutputResultsPath } from './utils/config';
  * 5. Convert all functions to arrow functions
  * 6. Add finish message with % success rate - DONE
  * 7. Figure out if Provider with test store needs to be passed in
+ * 8. Test logger configuration
  */
 // Export configuration methods
-export { setJestBinaryPath, setOutputResultsPath };
+export { setJestBinaryPath, setOutputResultsPath, configureLogLevel };
 
 // Convert with AST
-export const converWithAST = (filePath: string) => getASTCodemodCode(filePath);
+export const converWithAST = (filePath: string): string =>
+    getASTCodemodCode(filePath);
 
 // Get rendered component DOM
-export const getReactComponentDOM = (filePath: string) =>
+export const getReactComponentDOM = async (filePath: string): Promise<string> =>
     getReactCompDom(filePath);
 
 // Generate prompt
@@ -31,7 +40,7 @@ export const generatePrompt = (
     getByTestIdAttribute = 'data-testid',
     astCodemodOutput: string,
     renderedCompCode: string,
-) =>
+): string =>
     genPrompt(
         filePath,
         getByTestIdAttribute,
@@ -40,9 +49,9 @@ export const generatePrompt = (
     );
 
 // Extract code
-export const extractCodeContent = (LLMresponse: string) =>
+export const extractCodeContent = (LLMresponse: string): string =>
     extractCodeContentToFile(LLMresponse);
 
 // Run generated file and announce result
-export const runTestAndAnalyze = (filePath: string) =>
+export const runTestAndAnalyze = (filePath: string): Promise<RTLTestResult> =>
     runTestAndAnalyzeFile(filePath);

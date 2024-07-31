@@ -3,6 +3,9 @@ import fs from 'fs';
 import { config as winstonConfig } from 'winston';
 // TODO: move count test case to generic utils maybe
 import { countTestCases } from './prompt-generation/utils/utils';
+import createCustomLogger from './logger/logger';
+
+export const configLogger = createCustomLogger('Config');
 
 // Define the union type for valid log level strings
 type LogLevel = keyof typeof winstonConfig.npm.levels;
@@ -16,9 +19,9 @@ interface Config {
     collectedDomTreeFilePath: string;
     rtlConvertedFilePath: string;
     jestRunLogsFilePath: string;
-    enzymeMountAdapter: string;
+    enzymeMountAdapterFilePath: string;
     filePathWithEnzymeAdapter: string;
-    logLevel: keyof typeof winstonConfig.npm.levels;
+    enzymeImportsPresent: boolean;
 }
 
 const config: Config = {
@@ -30,9 +33,9 @@ const config: Config = {
     collectedDomTreeFilePath: '',
     rtlConvertedFilePath: '',
     jestRunLogsFilePath: '',
-    enzymeMountAdapter: '',
+    enzymeMountAdapterFilePath: '',
     filePathWithEnzymeAdapter: '',
-    logLevel: 'info',
+    enzymeImportsPresent: false,
 };
 
 /**
@@ -41,7 +44,8 @@ const config: Config = {
  * @param logLevel
  */
 export const configureLogLevel = (logLevel: LogLevel): void => {
-    config.logLevel = logLevel;
+    configLogger.info(`Set log level to ${logLevel}`);
+    process.env.LOG_LEVEL = logLevel as string;
 };
 
 /**
@@ -49,20 +53,16 @@ export const configureLogLevel = (logLevel: LogLevel): void => {
  * @param newJestBinaryPath
  */
 export const setJestBinaryPath = (newJestBinaryPath: string): void => {
+    configLogger.info(`Set jest binary path to ${newJestBinaryPath}`);
     config.jestBinaryPath = newJestBinaryPath;
 };
-
-/**
- * Get jest path
- * @returns
- */
-export const getJestBinaryPath = (): string => config.jestBinaryPath;
 
 /**
  * Provide path in your project to output generated files
  * @param newOutputResultsPath
  */
 export const setOutputResultsPath = (newOutputResultsPath: string): void => {
+    configLogger.info(`Set output results path to ${newOutputResultsPath}`);
     config.outputResultsPath = path.resolve(newOutputResultsPath);
 };
 
@@ -72,25 +72,31 @@ export const setOutputResultsPath = (newOutputResultsPath: string): void => {
  */
 export const checkConfiguration = (filePath: string): void => {
     if (filePath) {
-        // Check if file exists
+        configLogger.verbose('Check if Enzyme file exists');
         if (!fs.existsSync(filePath)) {
+            configLogger.error('Enzyme file provided does not exist');
             throw new Error('Enzyme file provided does not exist');
         }
 
         // Check if it is an Enzyme file
+        configLogger.verbose('Check if Enzyme file has Enzyme imports');
         const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
         const fileContent = fs.readFileSync(filePath, 'utf-8');
-        if (!importStatementRegex.test(fileContent)) {
-            // TODO: should not error out. But warn
-            throw new Error(
-                'Provided file is either not an Enzyme or does not import mounting method directly from Enzyme package',
-            );
+        if (importStatementRegex.test(fileContent)) {
+            configLogger.verbose(`Found tests in ${filePath}`);
+            config.enzymeImportsPresent = true;
         }
-        // TODO: add check to see if there any test cases
+        configLogger.warn(
+            'Enzyme file provided does not have any tests. Cannot collect DOM tree for tests',
+        );
     }
 
     // Check if jestBinaryPath is set and can be found
+    configLogger.verbose('Check if jest binary path is set');
     if (!config.jestBinaryPath) {
+        configLogger.error(
+            'Jest binary path is not set. Please use setJestBinaryPath to set it.',
+        );
         throw new Error(
             'Jest binary path is not set. Please use setJestBinaryPath to set it.',
         );
@@ -98,8 +104,12 @@ export const checkConfiguration = (filePath: string): void => {
         // Check if jest installed
         // TODO: maybe actually run it to check
         try {
+            configLogger.verbose('Check if jest exists and can be resolved');
             require.resolve('jest');
         } catch {
+            configLogger.error(
+                'jest is not installed. Please ensure that jest is installed in the host project.',
+            );
             throw new Error(
                 'jest is not installed. Please ensure that jest is installed in the host project.',
             );
@@ -107,12 +117,20 @@ export const checkConfiguration = (filePath: string): void => {
     }
 
     // Check outputResultsPath is set and exists
+    configLogger.verbose('Check if jest exists and can be resolved');
     if (!config.outputResultsPath) {
+        configLogger.error(
+            'Output results path is not set. Please use setOutputResultsPath to set it.',
+        );
         throw new Error(
             'Output results path is not set. Please use setOutputResultsPath to set it.',
         );
     } else {
+        configLogger.verbose('Check if output results path exists');
         if (!fs.existsSync(config.outputResultsPath)) {
+            configLogger.error(
+                'Output results path is set but cannot be accessed. Please use setOutputResultsPath to set it.',
+            );
             throw new Error(
                 'Output results path is set but cannot be accessed. Please use setOutputResultsPath to set it.',
             );
@@ -121,8 +139,12 @@ export const checkConfiguration = (filePath: string): void => {
 
     // Check if jscodeshift is installed
     try {
+        configLogger.verbose('Check if jscodeshift exists and can be resolved');
         require.resolve('jscodeshift');
     } catch {
+        configLogger.error(
+            'jscodeshift is not installed. Please ensure that jscodeshift is installed in the host project.',
+        );
         throw new Error(
             'jscodeshift is not installed. Please ensure that jscodeshift is installed in the host project.',
         );
@@ -130,19 +152,24 @@ export const checkConfiguration = (filePath: string): void => {
 
     // Check if Enzyme is installed
     try {
+        configLogger.verbose('Check if enzyme exists and can be resolved');
         require.resolve('enzyme');
     } catch {
+        configLogger.error(
+            'Enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
+        );
         throw new Error(
-            'enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
+            'Enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
         );
     }
 
-    console.log('\nStarting conversion from Enzyme to RTL');
-    console.log('Jest binary path:', config.jestBinaryPath);
-    console.log('Results folder path:', config.outputResultsPath);
-    console.log('Enzyme file path to convert:', filePath);
-    console.log('Number of test cases in file:', countTestCases(filePath));
-    console.log('\n');
+    configLogger.info('Starting conversion from Enzyme to RTL');
+    configLogger.info(`Jest binary path: ${config.jestBinaryPath}`);
+    configLogger.info(`Results folder path: ${config.outputResultsPath}`);
+    configLogger.info(`Enzyme file path to convert: ${filePath}`);
+    configLogger.info(
+        `Number of test cases in file: ${countTestCases(filePath)}`,
+    );
 };
 
 /**
@@ -162,7 +189,7 @@ export const addPathsToConfig = (filePath: string): void => {
     config.collectedDomTreeFilePath = `${config.outputResultsPath}/dom-tree-${config.filePathTitle}.csv`;
     config.rtlConvertedFilePath = `${getConfigProperty('outputResultsPath')}/rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
     config.jestRunLogsFilePath = `${getConfigProperty('outputResultsPath')}/jest-run-logs-${config.filePathTitle}.md`;
-    config.enzymeMountAdapter = `${getConfigProperty('outputResultsPath')}/enzyme-mount-adapter.js`;
+    config.enzymeMountAdapterFilePath = `${getConfigProperty('outputResultsPath')}/enzyme-mount-adapter.js`;
     config.filePathWithEnzymeAdapter = `${getConfigProperty('outputResultsPath')}/enzyme-mount-overwritten-${config.filePathTitle}${config.filePathExtension}`;
 };
 

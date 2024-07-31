@@ -1,5 +1,5 @@
 import { runCommand } from '../shell-helper/shell-helper';
-import { getConfigProperty, getJestBinaryPath } from '../config';
+import { getConfigProperty } from '../config';
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 
@@ -32,7 +32,7 @@ export const runTestAndAnalyzeFile = async (
     };
 
     // Create jest run command for the test file
-    const rtlRunCommand = `${getJestBinaryPath()} ${filePath}`;
+    const rtlRunCommand = `${getConfigProperty('jestBinaryPath')} ${filePath}`;
     const generatedFileRunShellProcess = await runCommand(rtlRunCommand);
 
     // Collect test run logs

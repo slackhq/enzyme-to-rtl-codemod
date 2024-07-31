@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import React from 'react';
-import { mount } from 'enzyme';
 import Component from '../components/..';
 
 
@@ -21,6 +21,9 @@ describe('Test suite', () => {
 
         // hostNodes
         component.find('div').toHaveLength(1);
+
+        // convert exists
+        expect(dashboardCards).toBeInTheDocument();
     });
 
 	function renderComponent(props = {}) {

@@ -10,7 +10,7 @@ export const codeExtractorLogger = createCustomLogger('Extract Code');
  * @returns
  */
 export const extractCodeContentToFile = (LLMresponse: string): string => {
-    codeExtractorLogger.info('Extracting code from the LLM response');
+    codeExtractorLogger.info('Start: Extracting code from the LLM response');
 
     // Extract code between tags
     const testCaseCode = extractCodeBetweenStrings(
@@ -35,7 +35,7 @@ export const extractCodeContentToFile = (LLMresponse: string): string => {
     const rtlConvertedFilePath = getConfigProperty('rtlConvertedFilePath');
     fs.writeFileSync(`${rtlConvertedFilePath}`, testCaseCode, 'utf8');
 
-    console.log('Done: Extracting code');
+    codeExtractorLogger.info('Done: extracting code from the LLM response');
     return rtlConvertedFilePath;
 };
 

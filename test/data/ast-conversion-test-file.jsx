@@ -21,6 +21,9 @@ describe('Test suite', () => {
 
 		// hostNodes
 		component.find('div').hostNodes().toHaveLength(1);
+
+		// convert exists
+        expect(dashboardCards.exists()).toBe(true);
 	});
 
 	function renderComponent(props) {

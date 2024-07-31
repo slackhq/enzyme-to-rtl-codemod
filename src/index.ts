@@ -6,7 +6,11 @@ import {
     runTestAndAnalyzeFile,
     RTLTestResult,
 } from './utils/enzyme-helper/run-test-analysis';
-import { setJestBinaryPath, setOutputResultsPath } from './utils/config';
+import {
+    setJestBinaryPath,
+    setOutputResultsPath,
+    configureLogLevel,
+} from './utils/config';
 
 /**
  * TODO:
@@ -17,9 +21,10 @@ import { setJestBinaryPath, setOutputResultsPath } from './utils/config';
  * 5. Convert all functions to arrow functions
  * 6. Add finish message with % success rate - DONE
  * 7. Figure out if Provider with test store needs to be passed in
+ * 8. Test logger configuration
  */
 // Export configuration methods
-export { setJestBinaryPath, setOutputResultsPath };
+export { setJestBinaryPath, setOutputResultsPath, configureLogLevel };
 
 // Convert with AST
 export const converWithAST = (filePath: string): string =>

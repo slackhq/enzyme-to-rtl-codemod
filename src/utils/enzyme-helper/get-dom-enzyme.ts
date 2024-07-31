@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { runCommand } from '../shell-helper/shell-helper';
-import { getConfigProperty, getJestBinaryPath } from '../config';
+import { getConfigProperty } from '../config';
 import createCustomLogger from '../logger/logger';
 
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
@@ -62,7 +62,7 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
 
     // Create jest command to run tests
     getDomEnzymeLogger.verbose('Generate jest command');
-    const jestCommand = `${getJestBinaryPath()} ${filePathWithEnzymeAdapter}`;
+    const jestCommand = `${getConfigProperty('jestBinaryPath')} ${filePathWithEnzymeAdapter}`;
 
     // Run jest command
     try {

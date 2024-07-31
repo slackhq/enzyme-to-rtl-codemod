@@ -79,7 +79,7 @@ export const checkConfiguration = (filePath: string): void => {
         }
 
         // Check if it is an Enzyme file
-        configLogger.verbose('Check if Enzyme file exists has Enzyme imports');
+        configLogger.verbose('Check if Enzyme file has Enzyme imports');
         const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         if (importStatementRegex.test(fileContent)) {

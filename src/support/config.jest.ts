@@ -6,22 +6,21 @@ import {
     setOutputResultsPath,
     checkConfiguration,
     getConfigProperty,
-    addPathsToConfig
-} from '../src/utils/config';
+    addPathsToConfig,
+} from './config';
 
 // Mock the modules
 jest.mock('fs');
 jest.mock('path');
 
 // Reset config function
-const resetConfig = () => {
+const resetConfig = (): void => {
     (path.resolve as jest.Mock).mockReturnValue('');
     setOutputResultsPath('');
     setJestBinaryPath('');
 };
 
 describe('Configuration Functions', () => {
-
     beforeEach(() => {
         resetConfig();
         jest.clearAllMocks();
@@ -70,7 +69,6 @@ describe('Configuration Functions', () => {
         });
 
         it('should set enzymeImportsPresent to true if it is an Enzyme file', () => {
-            
             // Mock check if file exists
             (fs.existsSync as jest.Mock).mockReturnValue(true);
             const fileContent = "import { mount } from 'enzyme';\nconst a = 1;";

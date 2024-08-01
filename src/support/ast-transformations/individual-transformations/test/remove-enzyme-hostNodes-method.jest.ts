@@ -1,4 +1,4 @@
-import { convertHostNodes } from '../src/utils/ast-transformations/individual-transformations/remove-enzyme-hostNodes-method';
+import { convertHostNodes } from '../remove-enzyme-hostNodes-method';
 import jscodeshift from 'jscodeshift';
 
 describe('convertHostNodes', () => {

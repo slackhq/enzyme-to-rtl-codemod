@@ -1,8 +1,8 @@
 import fs from 'fs';
-import { mainASTtransform } from '../src/utils/ast-transformations/main-ast-transform';
-import { astLogger } from '../src/utils/ast-transformations/utils/ast-logger';
+import { mainASTtransform } from './main-ast-transform';
+import { astLogger } from './utils/ast-logger';
 
-jest.mock('../src/utils/ast-transformations/utils/ast-logger');
+jest.mock('./utils/ast-logger');
 
 describe('main AST transform method', () => {
     const testId = 'data-id';

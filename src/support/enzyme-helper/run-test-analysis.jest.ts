@@ -1,16 +1,13 @@
-import * as runTestAnalysis from '../src/utils/enzyme-helper/run-test-analysis';
-import {
-    runCommand,
-    ShellProcess,
-} from '../src/utils/shell-helper/shell-helper';
-import { getConfigProperty } from '../src/utils/config';
+import * as runTestAnalysis from './run-test-analysis';
+import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
+import { getConfigProperty } from '../config';
 import fs from 'fs';
 
 // Mock implementations
-jest.mock('../src/utils/config', () => ({
+jest.mock('../config', () => ({
     getConfigProperty: jest.fn(),
 }));
-jest.mock('../src/utils/shell-helper/shell-helper');
+jest.mock('../shell-helper/shell-helper');
 jest.mock('fs');
 
 describe('runTestAndAnalyzeFile', () => {
@@ -38,7 +35,7 @@ describe('runTestAndAnalyzeFile', () => {
 
         // Mock shell process
         const mockShellProcess: ShellProcess = {
-            process: {} as any,
+            process: {} as ShellProcess['process'],
             output: `
                 running jest without "--shard"
                 1
@@ -61,7 +58,7 @@ describe('runTestAndAnalyzeFile', () => {
             runTestAnalysis,
             'removeANSIEscapeCodes',
         );
-        spyRemoveANSIEscapeCodes.mockImplementation((input) => input);
+        spyRemoveANSIEscapeCodes.mockImplementation((input: string) => input);
 
         // Mock analyzeLogsForErrors
         const spyAnalyzeLogsForErrors = jest.spyOn(

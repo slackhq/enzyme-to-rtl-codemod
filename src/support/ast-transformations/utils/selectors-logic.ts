@@ -137,10 +137,12 @@ export const convertSelector = (
         suggestionSuffix = `screen.${screenMethod}('${extractDataQaValue(selector, testid)}')`;
     } else if (selector.match(regexClassName)) {
         astLogger.verbose('Providing default suggestion');
-        suggestionSuffix = `Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-id=...>'}`;
+        suggestionSuffix =
+            "Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-id=...>'}";
     } else if (selector.match(regexComponentName)) {
         astLogger.verbose('Providing default suggestion');
-        suggestionSuffix = `Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-id=...>'}`;
+        suggestionSuffix =
+            "Render the react component and then use an appropriate method: screen.getByRole('<role>'} or screen.getByTestId('<data-id=...>'}";
     }
 
     astLogger.verbose('Transformation complete');

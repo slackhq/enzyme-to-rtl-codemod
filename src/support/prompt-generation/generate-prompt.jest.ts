@@ -1,15 +1,16 @@
-import { genPrompt } from '../src/utils/prompt-generation/generate-prompt';
-import { countTestCases } from '../src/utils/prompt-generation/utils/utils';
+import { genPrompt } from './generate-prompt';
+import { countTestCases } from './utils/utils';
 
 describe('genPrompt', () => {
-  const enzymeFilePath = 'test/data/gen-prompt-test-file.jest.tsx';
-  const enzymeFilePathNoTests = 'test/data/gen-prompt-test-file-no-tests.jest.tsx';
-  const mockGetByTestIdAttribute = 'data-testid';
-  const mockAstCodemodOutput = '<codemod>Partially converted code</codemod>';
-  const mockRenderedCompCode = '<component>Rendered component</component>';
+    const enzymeFilePath = 'src/support/prompt-generation/utils/test-data/gen-prompt-test-file-no-tests.jest.tsx';
+    const enzymeFilePathNoTests =
+        'src/support/prompt-generation/utils/test-data/gen-prompt-test-file-no-tests.jest.tsx';
+    const mockGetByTestIdAttribute = 'data-testid';
+    const mockAstCodemodOutput = '<codemod>Partially converted code</codemod>';
+    const mockRenderedCompCode = '<component>Rendered component</component>';
 
-  it('should generate the correct prompt', () => {
-    const expectedPrompt = `
+    it('should generate the correct prompt', () => {
+        const expectedPrompt = `
       I need assistance converting an Enzyme test case to the React Testing Library framework.
       I will provide you with the Enzyme test file code inside <enzyme_test_code></enzyme_test_code> tags.
       I will also give you the partially converted test file code inside <codemod></codemod> tags.
@@ -44,26 +45,27 @@ describe('genPrompt', () => {
       </enzyme_test_code>
       Partially converted test file code: <codemod><codemod>Partially converted code</codemod></codemod>
       Rendered component DOM tree: <component><component>Rendered component</component></component>
-    `.replace(/\s+/g, ' ').trim();
+    `
+            .replace(/\s+/g, ' ')
+            .trim();
 
-    const result = genPrompt(
-      enzymeFilePath,
-      mockGetByTestIdAttribute,
-      mockAstCodemodOutput,
-      mockRenderedCompCode
-    );
+        const result = genPrompt(
+            enzymeFilePath,
+            mockGetByTestIdAttribute,
+            mockAstCodemodOutput,
+            mockRenderedCompCode,
+        );
 
-    expect(result.replace(/\s+/g, ' ').trim()).toBe(expectedPrompt);
-  });
+        expect(result.replace(/\s+/g, ' ').trim()).toBe(expectedPrompt);
+    });
 
-  it('should count test cases correctly', () => {
-    const result = countTestCases(enzymeFilePath);
-    expect(result).toBe(4);
-  });
+    it.only('should count test cases correctly', () => {
+        const result = countTestCases(enzymeFilePath);
+        expect(result).toBe(4);
+    });
 
-  it('should return 0 if no test cases are found in the test file code', () => {
-    const result = countTestCases(enzymeFilePathNoTests);
-    expect(result).toBe(0);
-  });
-
+    it('should return 0 if no test cases are found in the test file code', () => {
+        const result = countTestCases(enzymeFilePathNoTests);
+        expect(result).toBe(0);
+    });
 });

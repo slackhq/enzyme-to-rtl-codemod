@@ -1,4 +1,4 @@
-import { convertUpdate } from '../src/utils/ast-transformations/individual-transformations/remove-enzyme-update-method';
+import { convertUpdate } from '../remove-enzyme-update-method';
 import jscodeshift from 'jscodeshift';
 
 describe('convertUpdate', () => {

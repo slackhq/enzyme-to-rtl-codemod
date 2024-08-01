@@ -1,4 +1,4 @@
-import { convertImports } from '../src/utils/ast-transformations/individual-transformations/convert-enzyme-imports';
+import { convertText } from '../convert-enzyme-text-method';
 import jscodeshift from 'jscodeshift';
 
 describe('convertText', () => {
@@ -8,20 +8,20 @@ describe('convertText', () => {
         j = jscodeshift.withParser('tsx');
     });
 
-    it('Should convert Enzyme imports to RTL imports', () => {
+    it('Should convert text assertion calls to toHaveTextContent', () => {
         const source = `
-            import { mount } from 'enzyme';
+            expect(wrapper.find('selector').text()).toEqual('Expected text');
         `;
 
         // Transform the source code
         const root = j(source);
-        convertImports(j, root);
+        convertText(j, root);
 
         // Generate the transformed source code
         const transformedSource = root.toSource();
 
         const expectedSource = `
-            import { render, screen } from "@testing-library/react";
+            expect(wrapper.find('selector')).toHaveTextContent('Expected text');
         `;
 
         // Check if the transformed source matches the expected source

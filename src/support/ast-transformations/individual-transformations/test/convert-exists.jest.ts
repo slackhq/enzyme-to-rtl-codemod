@@ -1,4 +1,4 @@
-import { convertExists } from '../src/utils/ast-transformations/individual-transformations/convert-exists';
+import { convertExists } from '../convert-exists';
 import jscodeshift from 'jscodeshift';
 
 describe('convertExists', () => {

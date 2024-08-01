@@ -1,29 +1,27 @@
-import { removeFirst } from '../src/utils/ast-transformations/individual-transformations/remove-enzyme-first-method';
+import { convertImports } from '../convert-enzyme-imports';
 import jscodeshift from 'jscodeshift';
 
-describe('removeFirst', () => {
+describe('convertText', () => {
     let j: jscodeshift.JSCodeshift;
 
     beforeEach(() => {
         j = jscodeshift.withParser('tsx');
     });
 
-    it('Should remove .first() method calls', () => {
+    it('Should convert Enzyme imports to RTL imports', () => {
         const source = `
-            const wrapper = shallow(<Component />);
-            wrapper.find('div').first().text().toEqual('Hello');
+            import { mount } from 'enzyme';
         `;
 
         // Transform the source code
         const root = j(source);
-        removeFirst(j, root);
+        convertImports(j, root);
 
         // Generate the transformed source code
         const transformedSource = root.toSource();
 
         const expectedSource = `
-            const wrapper = shallow(<Component />);
-            wrapper.find('div').text().toEqual('Hello');
+            import { render, screen } from "@testing-library/react";
         `;
 
         // Check if the transformed source matches the expected source

@@ -1,6 +1,6 @@
-import createCustomLogger from '../src/utils/logger/logger';
+import createCustomLogger from './logger';
 
-describe('createCustomLogger', () => {  
+describe('createCustomLogger', () => {
     it('should use the default log level info', () => {
         const logger = createCustomLogger('test-label');
         expect(logger.level).toBe('info');
@@ -11,10 +11,7 @@ describe('createCustomLogger', () => {
         const logger = createCustomLogger(label);
         const spyInfo = jest.spyOn(logger, 'info');
 
-        logger.info('Test log')
-        expect(spyInfo).toHaveBeenNthCalledWith(
-            1,
-            'Test log'
-        );
+        logger.info('Test log');
+        expect(spyInfo).toHaveBeenNthCalledWith(1, 'Test log');
     });
 });

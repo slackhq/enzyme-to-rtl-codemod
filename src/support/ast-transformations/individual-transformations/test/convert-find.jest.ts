@@ -1,9 +1,9 @@
-import { convertFind } from '../src/utils/ast-transformations/individual-transformations/convert-find';
-import { addComment } from '../src/utils/ast-transformations/utils/add-comment';
+import { convertFind } from '../convert-find';
+import { addComment } from '../../utils/add-comment';
 import jscodeshift from 'jscodeshift';
 
 // Mock the addComment function
-jest.mock('../src/utils/ast-transformations/utils/add-comment.ts', () => ({
+jest.mock('../../utils/add-comment', () => ({
     addComment: jest.fn(),
 }));
 
@@ -73,7 +73,7 @@ describe('convertFind', () => {
         expect(transformedSource).toBe(expectedSource);
     });
 
-    it(`Should add convert 'role' expression to getByRole() query`, () => {
+    it("Should add convert 'role' expression to getByRole() query", () => {
         const source = `
         expect(wrapper.find('[role="img"]')).toBeInTheDocument();
         `;

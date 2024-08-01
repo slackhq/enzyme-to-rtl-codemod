@@ -1,4 +1,4 @@
-import { convertSimulate } from '../src/utils/ast-transformations/individual-transformations/convert-simulate';
+import { convertSimulate } from '../convert-simulate';
 import jscodeshift from 'jscodeshift';
 
 describe('convertSimulate', () => {

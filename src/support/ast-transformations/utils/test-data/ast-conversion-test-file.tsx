@@ -1,6 +1,6 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import Component from '../components/..';
+import Component from '..';
 
 
 describe('Test suite', () => {

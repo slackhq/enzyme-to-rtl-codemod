@@ -1,12 +1,9 @@
 import fs from 'fs';
-import {
-    extractCodeContentToFile,
-    codeExtractorLogger,
-} from '../src/utils/code-extractor/extract-code';
-import { getConfigProperty } from '../src/utils/config';
+import { extractCodeContentToFile, codeExtractorLogger } from './extract-code';
+import { getConfigProperty } from '../config';
 
 // Mock the getConfigProperty function
-jest.mock('../src/utils/config', () => ({
+jest.mock('../config', () => ({
     getConfigProperty: jest.fn(),
 }));
 
@@ -70,31 +67,31 @@ describe('extractCodeContentToFile', () => {
         const LLMresponse = `Here is the converted test code
         <rtl_code>
         console.log("te`;
-    
+
         const spyWarn = jest.spyOn(codeExtractorLogger, 'warn');
         const spyError = jest.spyOn(codeExtractorLogger, 'error');
-    
+
         expect(() => extractCodeContentToFile(LLMresponse)).toThrow(
             'Could not extract code from the LLM response',
         );
-    
+
         expect(spyWarn).toHaveBeenNthCalledWith(
             1,
-            'Extracting code between <rtl_test_code> and </rtl_test_code> failed!'
+            'Extracting code between <rtl_test_code> and </rtl_test_code> failed!',
         );
         expect(spyError).toHaveBeenNthCalledWith(
             1,
-            'Could not extract code from the LLM response'
+            'Could not extract code from the LLM response',
         );
         expect(spyError).toHaveBeenNthCalledWith(
             2,
             `LLM response: Here is the converted test code
         <rtl_code>
-        console.log("te`
+        console.log("te`,
         );
         expect(spyError).toHaveBeenNthCalledWith(
             3,
-            'Possible reasons: \n1. No LLM response was passed\n2. LLM did not return the code enclosed in <rtl_test_code>...</rtl_test_code> xml tags.\n3. Check if LLM is returning the response with the expected text'
+            'Possible reasons: \n1. No LLM response was passed\n2. LLM did not return the code enclosed in <rtl_test_code>...</rtl_test_code> xml tags.\n3. Check if LLM is returning the response with the expected text',
         );
     });
 });

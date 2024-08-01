@@ -2,13 +2,16 @@ import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
+import createCustomLogger from '../logger/logger';
+
+export const testAnalysisLogger = createCustomLogger('Test Analysis');
 
 export interface RTLTestResult {
     testPass: boolean | null;
     testrunLogs: string;
 }
 
-interface TestResults {
+export interface TestResults {
     failedTests: number;
     passedTests: number;
     totalTests: number;
@@ -23,7 +26,7 @@ interface TestResults {
 export const runTestAndAnalyzeFile = async (
     filePath: string,
 ): Promise<RTLTestResult> => {
-    console.log('\nStart: Run RTL test and analyze results');
+    testAnalysisLogger.info('Start: Run RTL test and analyze results');
 
     const result: RTLTestResult = {
         testPass: null,
@@ -32,9 +35,11 @@ export const runTestAndAnalyzeFile = async (
 
     // Create jest run command for the test file
     const rtlRunCommand = `${getConfigProperty('jestBinaryPath')} ${filePath}`;
+    testAnalysisLogger.verbose('Run converted tests');
     const generatedFileRunShellProcess = await runCommand(rtlRunCommand);
 
     // Collect test run logs
+    testAnalysisLogger.verbose('Clean output');
     result.testrunLogs = removeANSIEscapeCodes(
         generatedFileRunShellProcess.output +
             generatedFileRunShellProcess.stderr,
@@ -42,41 +47,40 @@ export const runTestAndAnalyzeFile = async (
 
     // Write logs to a file
     const jestRunLogsPath = getConfigProperty('jestRunLogsFilePath');
+    testAnalysisLogger.verbose(`Write jest run logs to ${jestRunLogsPath}`);
     fs.writeFileSync(jestRunLogsPath, result.testrunLogs, 'utf8');
 
     // Analyze logs for errors
-    result.testPass = analyzeLogsForErrors(result);
+    testAnalysisLogger.verbose('Analyze logs for errors');
+    result.testPass = analyzeLogsForErrors(result.testrunLogs);
 
     if (!result.testPass) {
-        console.log('\nTest failed');
-        console.log(
-            'Converted RTL file path:',
-            getConfigProperty('rtlConvertedFilePath'),
+        testAnalysisLogger.info('Test failed');
+        testAnalysisLogger.info(
+            `Converted RTL file path: ${getConfigProperty('rtlConvertedFilePath')}`,
         );
-        console.log(
-            'Jest run logs file path:',
-            getConfigProperty('jestRunLogsFilePath'),
+        testAnalysisLogger.info(
+            `Jest run logs file path: ${getConfigProperty('jestRunLogsFilePath')}`,
         );
-        console.log(
+        testAnalysisLogger.info(
             `See ${getConfigProperty('outputResultsPath')} for more info`,
         );
     } else {
         // TODO: add check if the converted file has fewer tests
-        console.log('\nTest passed!');
-        console.log(
-            'Converted RTL file path:',
-            getConfigProperty('rtlConvertedFilePath'),
+        testAnalysisLogger.info('Test passed!');
+        testAnalysisLogger.info(
+            `Converted RTL file path: ${getConfigProperty('rtlConvertedFilePath')}`,
         );
-        console.log(
-            'Jest run logs file path:',
-            getConfigProperty('jestRunLogsFilePath'),
+        testAnalysisLogger.info(
+            `Jest run logs file path: ${getConfigProperty('jestRunLogsFilePath')}`,
         );
     }
-
+    testAnalysisLogger.info('Extracting test results');
     const detailedResult = extractTestResults(result.testrunLogs);
-    console.log('\nDetailed result:', detailedResult);
+    testAnalysisLogger.info(`Detailed result: ${detailedResult}`);
 
-    console.log('\nDone: Run RTL test and analyze results');
+    testAnalysisLogger.info('Done: Run RTL test and analyze results');
+
     return result;
 };
 
@@ -85,8 +89,9 @@ export const runTestAndAnalyzeFile = async (
  * @param input
  * @returns
  */
-const removeANSIEscapeCodes = (input: string): string => {
+export const removeANSIEscapeCodes = (input: string): string => {
     // Regular expression to match ANSI escape codes
+    testAnalysisLogger.verbose('Cleaning up from ansi escape codes');
     // eslint-disable-next-line no-control-regex
     const ansiEscapeCodeRegex = /\u001b\[[0-9;]*m/g;
     // Remove ANSI escape codes from the input string
@@ -94,23 +99,24 @@ const removeANSIEscapeCodes = (input: string): string => {
 };
 
 /**
- * Check if the result has failed test cases
- * @param result
+ * Check if the jest run log has failed test cases
+ * @param jestRunLogs
  * @returns
  */
-const analyzeLogsForErrors = (result: RTLTestResult): boolean => {
-    console.log('\nStart: Analyze logs for errors');
+export const analyzeLogsForErrors = (jestRunLogs: string): boolean => {
+    testAnalysisLogger.verbose('Start: Analyze logs for errors');
     // Find errors in logs
     if (
-        result.testrunLogs.includes('FAIL modern') ||
-        result.testrunLogs.includes('No tests found') ||
-        result.testrunLogs.includes('Not run') ||
-        result.testrunLogs.includes('FATAL ERROR')
+        !jestRunLogs ||
+        jestRunLogs.includes('FAIL modern') ||
+        jestRunLogs.includes('No tests found') ||
+        jestRunLogs.includes('Not run') ||
+        jestRunLogs.includes('FATAL ERROR')
     ) {
-        console.log('Done: Analyze logs for errors');
+        testAnalysisLogger.verbose('Done: Analyze logs for errors');
         return false;
     } else {
-        console.log('Done: Analyze logs for errors');
+        testAnalysisLogger.verbose('Done: Analyze logs for errors');
         return true;
     }
 };
@@ -120,7 +126,7 @@ const analyzeLogsForErrors = (result: RTLTestResult): boolean => {
  * @param jestRunLogs
  * @returns
  */
-const extractTestResults = (jestRunLogs: string): TestResults => {
+export const extractTestResults = (jestRunLogs: string): TestResults => {
     const detailedResult: TestResults = {
         failedTests: 0,
         passedTests: 0,
@@ -142,7 +148,9 @@ const extractTestResults = (jestRunLogs: string): TestResults => {
         detailedResult.totalTests = total;
         detailedResult.successRate = (passed / total) * 100 || 0;
     } else {
-        console.log('Results were not parsed. Defaulting to 0...');
+        testAnalysisLogger.verbose(
+            'Results were not parsed. Defaulting to 0...',
+        );
     }
     return detailedResult;
 };

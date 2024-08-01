@@ -3,7 +3,7 @@ import {
     extractCodeContentToFile,
     codeExtractorLogger,
 } from '../src/utils/code-extractor/extract-code';
-import * as config from '../src/utils/config';
+import { getConfigProperty } from '../src/utils/config';
 
 // Mock the getConfigProperty function
 jest.mock('../src/utils/config', () => ({
@@ -14,7 +14,7 @@ jest.mock('../src/utils/config', () => ({
 jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
 
 describe('extractCodeContentToFile', () => {
-    const getConfigPropertyMock = config.getConfigProperty as jest.Mock;
+    const getConfigPropertyMock = getConfigProperty as jest.Mock;
     const rtlConvertedFilePathExpected = '/path/to/file';
 
     beforeEach(() => {

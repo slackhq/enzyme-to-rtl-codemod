@@ -54,9 +54,8 @@ export const mainASTtransform = (filePath: string, testId: string): string => {
     );
 
     // Convert find()
-    const dummyTestId = 'data-qa';
     astLogger.verbose('Convert find()');
-    convertFind(j, root, dummyTestId);
+    convertFind(j, root, testId);
 
     // Convert text()
     astLogger.verbose('Convert text()');

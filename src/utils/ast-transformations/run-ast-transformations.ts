@@ -10,9 +10,10 @@ import {
 /**
  * Run jscodeshift and make AST conversions
  * @param filePath
+ * @param testId - This unique identifier which matches the 'data-testid' attribute.
  * @returns
  */
-export const getASTCodemodCode = (filePath: string): string => {
+export const getASTCodemodCode = (filePath: string, testId: string): string => {
     // Check if config is set
     checkConfiguration(filePath);
 
@@ -21,7 +22,7 @@ export const getASTCodemodCode = (filePath: string): string => {
 
     // Run main transformation function in jscodeshift
     astLogger.info('Start: Running AST codemod');
-    const astTransformedCode = mainASTtransform(filePath);
+    const astTransformedCode = mainASTtransform(filePath, testId);
 
     // Get ast transformed file path
     const astConvertedFilePath = `${getConfigProperty('astTranformedFilePath')}`;

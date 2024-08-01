@@ -27,8 +27,8 @@ import {
 export { setJestBinaryPath, setOutputResultsPath, configureLogLevel };
 
 // Convert with AST
-export const converWithAST = (filePath: string): string =>
-    getASTCodemodCode(filePath);
+export const converWithAST = (filePath: string, testId: string): string =>
+    getASTCodemodCode(filePath, testId);
 
 // Get rendered component DOM
 export const getReactComponentDOM = async (filePath: string): Promise<string> =>

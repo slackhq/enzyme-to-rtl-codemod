@@ -1,8 +1,10 @@
+import fs from 'fs';
 import { genPrompt } from './generate-prompt';
 import { countTestCases } from './utils/utils';
 
 describe('genPrompt', () => {
-    const enzymeFilePath = 'src/support/prompt-generation/utils/test-data/gen-prompt-test-file.jest.tsx';
+    const enzymeFilePath =
+        'src/support/prompt-generation/utils/test-data/gen-prompt-test-file.jest.tsx';
     const enzymeFilePathNoTests =
         'src/support/prompt-generation/utils/test-data/gen-prompt-test-file-no-tests.jest.tsx';
     const mockGetByTestIdAttribute = 'data-testid';
@@ -65,7 +67,28 @@ describe('genPrompt', () => {
     });
 
     it('should return 0 if no test cases are found in the test file code', () => {
-        const result = countTestCases(enzymeFilePathNoTests);
+        // Use jest.spyOn to mock fs.readFileSync for this test
+        const readFileSyncMock = jest.spyOn(fs, 'readFileSync');
+
+        // Define the mock file content
+        const fileContent = `
+            describe('Test suite that has no test cases', () => {
+                // No test
+            });
+        `;
+
+        // Mock fs.readFileSync to return the specified file content
+        readFileSyncMock.mockReturnValue(fileContent);
+
+        // Call the function under test
+        const result = countTestCases('enzymeFilePathNoTests');
+
+        // Assert that the result is as expected
+        expect(result).toBe(0);
+
+        // Restore the original implementation after the test
+        readFileSyncMock.mockRestore();
+
         expect(result).toBe(0);
     });
 });

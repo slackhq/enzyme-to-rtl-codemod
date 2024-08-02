@@ -1,11 +1,10 @@
-import userEvent from "@testing-library/user-event";
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import Component from '../components/..';
 import { renderComponent } from '../enzyme-helper/..';
 
 describe('Test suite', () => {
-	
-	it('renders the component', () => {
+    it('renders the component', () => {
         // convert mount var
         const component = renderComponent();
 

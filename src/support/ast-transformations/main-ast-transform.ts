@@ -23,13 +23,11 @@ export const mainASTtransform = (filePath: string, testId: string): string => {
     astLogger.verbose('Reading Enzyme source file');
     const source = fs.readFileSync(filePath, 'utf-8');
 
-    // Use jscodeshift to parse the source
+    // Use jscodeshift to parse the source with tsx flag
     astLogger.verbose('Parse code with jscodeshift');
-    const j = jscodeshift;
-    const root = j(source);
+    const j = jscodeshift.withParser('tsx');
 
-    // Set tsx flag
-    j.withParser('tsx');
+    const root = j(source);
 
     // Convert enzyme imports
     astLogger.verbose('Convert imports');

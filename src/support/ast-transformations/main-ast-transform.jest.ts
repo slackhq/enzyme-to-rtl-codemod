@@ -7,10 +7,11 @@ jest.mock('./utils/ast-logger');
 describe('main AST transform method', () => {
     const testId = 'data-id';
 
-    it('should transform a tsx file with all conversion patterns', () => {
-        const inputFilePath = 'test/data/ast-conversion-test-file.tsx';
+    it.only('should transform a tsx file with all conversion patterns', () => {
+        const inputFilePath =
+            'src/support/ast-transformations/utils/test-data/ast-conversion-test-file.tsx';
         const expectedFilePath =
-            'test/data/ast-conversion-test-file-verify.tsx';
+            'src/support/ast-transformations/utils/test-data/ast-conversion-test-file-verify.tsx';
         const astTransformedCodeActual = mainASTtransform(
             inputFilePath,
             testId,
@@ -23,9 +24,10 @@ describe('main AST transform method', () => {
     });
 
     it('should transform a jsx file with all conversion patterns', () => {
-        const inputFilePath = 'test/data/ast-conversion-test-file.jsx';
+        const inputFilePath =
+            'src/support/ast-transformations/utils/test-data/ast-conversion-test-file.jsx';
         const expectedFilePath =
-            'test/data/ast-conversion-test-file-verify.jsx';
+            'src/support/ast-transformations/utils/test-data/ast-conversion-test-file-verify.jsx';
         const astTransformedCodeActual = mainASTtransform(
             inputFilePath,
             testId,
@@ -39,9 +41,9 @@ describe('main AST transform method', () => {
 
     it('should convert and not error out with no direct enzyme imports', () => {
         const inputFilePath =
-            'test/data/ast-conversion-test-file-no-enzyme.tsx';
+            'src/support/ast-transformations/utils/test-data/ast-conversion-test-file-no-enzyme.tsx';
         const expectedFilePath =
-            'test/data/ast-conversion-test-file-no-enzyme-verify.tsx';
+            'src/support/ast-transformations/utils/test-data/ast-conversion-test-file-no-enzyme-verify.tsx';
         const astTransformedCodeActual = mainASTtransform(
             inputFilePath,
             testId,

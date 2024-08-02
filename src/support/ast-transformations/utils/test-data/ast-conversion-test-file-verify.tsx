@@ -1,12 +1,10 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import React from 'react';
-import Component from '../components/..';
-
+import Component from '..';
 
 describe('Test suite', () => {
-	
-	it('renders the component', () => {
+    it('renders the component', () => {
         renderComponent();
         /* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/
 
@@ -26,8 +24,8 @@ describe('Test suite', () => {
         expect(dashboardCards).toBeInTheDocument();
     });
 
-	function renderComponent(props = {}) {
-		// convert mount method
-		return render(<Component {...props} />);
-	}
+    function renderComponent(props = {}): any {
+        // convert mount method
+        return render(<Component {...props} />);
+    }
 });

@@ -2,7 +2,7 @@ import { genPrompt } from './generate-prompt';
 import { countTestCases } from './utils/utils';
 
 describe('genPrompt', () => {
-    const enzymeFilePath = 'src/support/prompt-generation/utils/test-data/gen-prompt-test-file-no-tests.jest.tsx';
+    const enzymeFilePath = 'src/support/prompt-generation/utils/test-data/gen-prompt-test-file.jest.tsx';
     const enzymeFilePathNoTests =
         'src/support/prompt-generation/utils/test-data/gen-prompt-test-file-no-tests.jest.tsx';
     const mockGetByTestIdAttribute = 'data-testid';
@@ -59,7 +59,7 @@ describe('genPrompt', () => {
         expect(result.replace(/\s+/g, ' ').trim()).toBe(expectedPrompt);
     });
 
-    it.only('should count test cases correctly', () => {
+    it('should count test cases correctly', () => {
         const result = countTestCases(enzymeFilePath);
         expect(result).toBe(4);
     });

@@ -2,6 +2,9 @@ import fs from 'fs';
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import createCustomLogger from '../logger/logger';
+import { runCLI } from 'jest';
+import path from 'path';
+import { promisify } from 'util';
 
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
 
@@ -64,7 +67,6 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
     getDomEnzymeLogger.verbose('Generate jest command');
     const jestCommand = `${getConfigProperty('jestBinaryPath')} ${filePathWithEnzymeAdapter}`;
 
-    // Run jest command
     try {
         getDomEnzymeLogger.verbose(
             `Run jest file with command: ${jestCommand}`,
@@ -255,3 +257,81 @@ export const { shallow, mount } = enzyme;
 `;
     return enzymeRenderAdapterCodeJS;
 };
+
+const runJestTest = async (testFilePath: string) => {
+    const options = {
+        runInBand: true, // Run tests in a single process (useful for debugging)
+        silent: true, // Suppress output unless there's an error
+        _: [], // Required by Jest to represent positional args
+        $0: 'jest', // Simulate process name
+        testPathPattern: [testFilePath], // Use an array for test file patterns
+    };
+
+    try {
+        const result = await runCLI(options, [process.cwd()]);
+        if (result.results.success) {
+            console.log('Test ran successfully:', result.results);
+        } else {
+            console.warn('Some tests failed:', result.results);
+        }
+    } catch (error) {
+        console.error('Test execution failed:', error);
+    }
+};
+
+// Usage
+// const filePathWithEnzymeAdapter = 'src/enzyme-working-file.jest.tsx';
+// runJestTest(filePathWithEnzymeAdapter);
+
+const runJestTest2 = async (testFilePath: string, jestConfigPath: string) => {
+    try {
+        // Automatically use the current working directory as the host project root
+        const hostProjectRoot = process.cwd();
+
+        // Resolve the Jest CLI module from the host project's node_modules
+        const jestPath = require.resolve('jest', { paths: [hostProjectRoot] });
+
+        console.log('jestPath:', jestPath)
+
+        // Import the Jest CLI from the resolved path
+        const { runCLI } = require(jestPath);
+
+        // Read and parse the host project's Jest configuration
+        const hostJestConfig = require(jestConfigPath);
+
+        // TODO: add logic here to make sure it doesn't break
+        delete hostJestConfig.testRegex;
+
+        // const hostJestConfig = JSON.parse(fs.readFileSync(jestConfigPath, 'utf8'));
+
+        // Options for running Jest tests
+        const options = {
+            ...hostJestConfig, // Use the host project's Jest config
+            runInBand: true, // Run tests in a single process
+            silent: true, // Suppress output unless there's an error
+            testMatch: [testFilePath], // Match the specific test file
+        };
+
+        // Execute Jest tests using the host project's configuration
+        const { results } = await promisify(runCLI)(options as any, [
+            hostProjectRoot,
+        ]);
+        // if (results.success) {
+        //     console.log('Test ran successfully:', results);
+        // } else {
+        //     console.warn('Some tests failed:', results);
+        // }
+
+        console.log(results);
+    } catch (error) {
+        console.error('Test execution failed:', error);
+    }
+};
+
+// // Usage
+// const filePathWithEnzymeAdapter = path.join(
+//     process.cwd(),
+//     'src/enzyme-working-file.jest.tsx',
+// );
+// const jestConfigPath = path.join(process.cwd(), 'jest.config.js');
+// runJestTest2(filePathWithEnzymeAdapter, jestConfigPath);

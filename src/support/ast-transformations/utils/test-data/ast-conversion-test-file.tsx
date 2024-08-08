@@ -9,6 +9,8 @@ describe('Test suite', () => {
 
         // convert find
         const dashboardCards = component.find('selector');
+
+        // convert simulate
         dashboardCards.simulate('click');
 
         // update

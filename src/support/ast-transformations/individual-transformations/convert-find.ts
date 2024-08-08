@@ -100,11 +100,13 @@ export const convertFind = (
                     }
                 }
             }
-        } else {
-            addComment(
-                path,
-                '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
-            );
         }
+        // else {
+        //     // TODO: add this here by default. If find is found in the add suggestion, then ignore, because it's already done here
+        //     addComment(
+        //         path,
+        //         '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
+        //     );
+        // }
     });
 };

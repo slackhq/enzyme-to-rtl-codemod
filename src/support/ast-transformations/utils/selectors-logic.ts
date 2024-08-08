@@ -44,6 +44,22 @@ export const convertSelector = (
     selector: string | null,
     testid: string,
 ): ScreenMethodInterface => {
+
+    // if test id is present in selector
+    // getByTestID
+    // selector without testID
+
+    // if component name
+    // if class (?)
+
+    // Else
+    // getByRole
+        // selector with role in the selector
+        // that role
+        // else just the selector
+
+    
+
     // Screen method and arg selection logic
     let screenMethod = 'getByRole';
     let screenMethodArg = selector;

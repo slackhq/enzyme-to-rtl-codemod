@@ -10,9 +10,10 @@ describe('Test suite', () => {
 
         // convert find
         const dashboardCards = component.find('selector');
-        userEvent.click(dashboardCards);
 
         // convert simulate
+        userEvent.click(dashboardCards);
+
         expect(dashboardCards.length).toBe(11);
 
         /* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/

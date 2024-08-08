@@ -8,27 +8,11 @@ jest.mock('../../utils/add-comment', () => ({
 }));
 
 describe('convertFind', () => {
-    let j: jscodeshift.JSCodeshift;
+    const j = jscodeshift.withParser('tsx');
     const testId = 'data-id';
 
     beforeEach(() => {
-        j = jscodeshift.withParser('tsx');
-    });
-
-    it('should add a comment suggesting conversion for .find method calls', () => {
-        const source = `
-            const wrapper = shallow(<Component />);
-            wrapper.find('div');
-        `;
-
-        const root = j(source);
-        convertFind(j, root, testId);
-
-        expect(addComment).toHaveBeenCalledTimes(1);
-        expect(addComment).toHaveBeenCalledWith(
-            expect.anything(),
-            '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
-        );
+        jest.clearAllMocks();
     });
 
     it('Should convert test-id attribute to correct ByTestId query based on expect expression', () => {
@@ -53,7 +37,7 @@ describe('convertFind', () => {
         expect(transformedSource).toBe(expectedSource);
     });
 
-    it('Should convert all .find Data QA object expressions', () => {
+    it('Should convert all .find test id object expressions', () => {
         const source = `
         expect(wrapper.find({'data-id':'element'})).toBeInTheDocument();
         `;
@@ -73,7 +57,7 @@ describe('convertFind', () => {
         expect(transformedSource).toBe(expectedSource);
     });
 
-    it("Should add convert 'role' expression to getByRole() query", () => {
+    it("Should convert 'role' expression to getByRole() query", () => {
         const source = `
         expect(wrapper.find('[role="img"]')).toBeInTheDocument();
         `;
@@ -91,5 +75,52 @@ describe('convertFind', () => {
 
         // Check if the transformed source matches the expected source
         expect(transformedSource).toBe(expectedSource);
+    });
+
+    it('Should add comment with suggestion to render the component', () => {
+        const source = `
+            expect(wrapper.find(Component)).toBeInTheDocument();
+        `;
+
+        // Transform the source code
+        const root = j(source);
+        convertFind(j, root, testId);
+
+        expect(addComment).toHaveBeenCalledTimes(1);
+        expect(addComment).toHaveBeenCalledWith(
+            expect.anything(),
+            "// Conversion suggestion: .find(Component) --> Use component rendered DOM to get the appropriate selector and method: screen.getByRole('selector') or screen.getByTestId('<data-id=...>')",
+        );
+    });
+
+    it('should add a comment suggesting conversion for .find method calls if it has testID in it', () => {
+        const source = `
+            const wrapper = shallow(<Component />);
+            wrapper.find('selector that has ${testId} in it');
+        `;
+
+        const root = j(source);
+        convertFind(j, root, testId);
+
+        expect(addComment).toHaveBeenCalledTimes(1);
+        expect(addComment).toHaveBeenCalledWith(
+            expect.anything(),
+            "// Conversion suggestion: .find('selector that has data-id in it') --> screen.getByTestId('selector that has data-id in it')",
+        );
+    });
+
+    it('should add a comment suggesting conversion for .find method calls with getByRole(button)', () => {
+        const source = `
+            wrapper.find('button');
+        `;
+
+        const root = j(source);
+        convertFind(j, root, testId);
+
+        expect(addComment).toHaveBeenCalledTimes(1);
+        expect(addComment).toHaveBeenCalledWith(
+            expect.anything(),
+            "// Conversion suggestion: .find('button') --> screen.getByRole(button)",
+        );
     });
 });

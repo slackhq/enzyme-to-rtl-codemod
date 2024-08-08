@@ -18,9 +18,6 @@ describe('Test suite', () => {
 		// update
 		component.update()
 
-		// convert simulate
-		expect(dashboardCards.length).toBe(11);
-
 		// hostNodes
 		component.find('div').hostNodes().toHaveLength(1);
 

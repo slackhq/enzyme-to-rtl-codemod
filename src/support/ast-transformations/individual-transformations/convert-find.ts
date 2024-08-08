@@ -8,7 +8,11 @@
 import { JSCodeshift, Collection, CallExpression, ASTPath } from 'jscodeshift';
 import { addComment } from '../utils/add-comment';
 import { astLogger } from '../utils/ast-logger';
-import { extractDataQaValue, getQueryMethod } from '../utils/selectors-logic';
+import {
+    extractTestIdValue,
+    getQueryMethod,
+    suggestBySelector,
+} from '../utils/conversion-suggestions';
 /**
  * Convert Enzyme find method
  * @param j - JSCodeshift library
@@ -35,14 +39,14 @@ export const convertFind = (
     // Iterate over each found call expression path and convert/annotate
     findCalls.forEach((path: ASTPath<CallExpression>) => {
         const arg = path.value.arguments[0];
-        // Data QA (call expression) .find('[data-id="element"]')
+        // Test Id (call expression) .find('[data-id="element"]')
         astLogger.verbose(
-            'Converting Data QA (call expression) - [data-id="element"] ',
+            'Converting Test Id (call expression) - [data-id="element"] ',
         );
         if (j.Literal.check(arg)) {
             const value = arg.value;
             if (typeof value === 'string' && value.includes(testId)) {
-                const dataQaValue = extractDataQaValue(value, testId);
+                const testIdValue = extractTestIdValue(value, testId);
                 const queryMethod = getQueryMethod(path);
 
                 const testIdReplacement = j.callExpression(
@@ -50,7 +54,7 @@ export const convertFind = (
                         j.identifier('screen'),
                         j.identifier(`${queryMethod}TestId`),
                     ),
-                    [j.literal(dataQaValue)],
+                    [j.literal(testIdValue)],
                 );
 
                 j(path).replaceWith(testIdReplacement);
@@ -74,39 +78,38 @@ export const convertFind = (
             }
         }
         if (j.ObjectExpression.check(arg)) {
-            // Data QA (object expression) find({ 'data-id': 'element' })
+            // Test Id (object expression) find({ 'data-id': 'element' })
             astLogger.verbose(
-                'Converting Data QA (object expression) - { "data-id": "element" }',
+                'Converting Test Id (object expression) - { "test-id": "element" }',
             );
-            const dataQaProperty = arg.properties.find(
+            const testIdProperty = arg.properties.find(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (property: any) => property.key.value === testId,
             );
 
-            if (dataQaProperty) {
-                if (j.ObjectProperty.check(dataQaProperty)) {
-                    if (j.StringLiteral.check(dataQaProperty.value)) {
-                        const dataQaValue = dataQaProperty.value.value;
+            if (testIdProperty) {
+                if (j.ObjectProperty.check(testIdProperty)) {
+                    if (j.StringLiteral.check(testIdProperty.value)) {
+                        const testIdValue = testIdProperty.value.value;
                         const queryMethod = getQueryMethod(path);
                         const testIdReplacement = j.callExpression(
                             j.memberExpression(
                                 j.identifier('screen'),
                                 j.identifier(`${queryMethod}TestId`),
                             ),
-                            [j.literal(dataQaValue)],
+                            [j.literal(testIdValue)],
                         );
 
                         j(path).replaceWith(testIdReplacement);
                     }
                 }
             }
+        } else {
+            astLogger.verbose('Generating suggestion');
+            // Generate suggestion
+            const argsCodeString = j(arg).toSource();
+            const suggestion = suggestBySelector(argsCodeString, testId);
+            addComment(path, suggestion);
         }
-        // else {
-        //     // TODO: add this here by default. If find is found in the add suggestion, then ignore, because it's already done here
-        //     addComment(
-        //         path,
-        //         '/* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/',
-        //     );
-        // }
     });
 };

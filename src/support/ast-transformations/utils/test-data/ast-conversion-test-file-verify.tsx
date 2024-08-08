@@ -6,7 +6,7 @@ import Component from '..';
 describe('Test suite', () => {
     it('renders the component', () => {
         renderComponent();
-        /* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/
+        // Conversion suggestion: .find('selector') --> Use component rendered DOM to get the appropriate selector and method: screen.getByRole('selector') or screen.getByTestId('<data-id=...>')
 
         // convert find
         const dashboardCards = component.find('selector');
@@ -14,9 +14,7 @@ describe('Test suite', () => {
         // convert simulate
         userEvent.click(dashboardCards);
 
-        expect(dashboardCards.length).toBe(11);
-
-        /* SUGGESTION: .find("selector") --> getByRole("selector"), getByTestId("test-id-selector")*/
+        // Conversion suggestion: .find('div') --> Use component rendered DOM to get the appropriate selector and method: screen.getByRole('selector') or screen.getByTestId('<data-id=...>')
 
         // hostNodes
         component.find('div').toHaveLength(1);

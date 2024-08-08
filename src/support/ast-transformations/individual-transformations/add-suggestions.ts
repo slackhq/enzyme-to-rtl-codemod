@@ -37,9 +37,8 @@ export const addSuggestions = (
         });
     }
 
-    // Get all enzymeWrapperName calls
     /**
-     *
+     * Get all calls to enzyme wrapper
      * @param enzymeWrapperName
      * @returns
      */
@@ -55,7 +54,11 @@ export const addSuggestions = (
         });
     }
 
-    // Find all method instances and add suggestions
+    /**
+     * Add suggestions to all enzyme method calls
+     * @param collectionOfEnzymeMethodCalls 
+     * @param enzymeWrapperName 
+     */
     function getMethodAndSuggest(
         collectionOfEnzymeMethodCalls: Collection,
         enzymeWrapperName: string,

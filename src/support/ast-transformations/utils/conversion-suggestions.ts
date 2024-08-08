@@ -2,7 +2,7 @@ import type { ASTPath } from 'jscodeshift';
 import { astLogger } from './ast-logger';
 
 /**
- * Returns the correct query method, getBy or queryBy, depending on the expect expression
+ * Get correct query method, getBy or queryBy, depending on the expect expression
  * @param path
  * @returns
  */
@@ -15,7 +15,7 @@ export const getQueryMethod = (path: ASTPath<any>): string => {
 };
 
 /**
- * Extracts the testId value from the selector
+ * Extract the testId value from the selector
  * @param path
  * @returns - testId value
  */
@@ -24,15 +24,6 @@ export const extractTestIdValue = (input: string, testid: string): string => {
     const match = input.match(regex);
     return match ? match[1] : input;
 };
-
-/**
- * Interface defining the structure for the transformed selector
- */
-interface ScreenMethodInterface {
-    screenMethod: string;
-    screenMethodArg: string | null;
-    suggestionSuffix: string;
-}
 
 /**
  * Create suggestion based on selector
@@ -102,7 +93,7 @@ export const suggestBySelector = (selector: string, testid: string): string => {
 };
 
 /**
- * Generates suggestions for enzyme method conversion
+ * Generate suggestions for enzyme method conversion
  * @param enzymeWrapperName
  * @param wrapperMethod
  * @param wrapperMethodArgs

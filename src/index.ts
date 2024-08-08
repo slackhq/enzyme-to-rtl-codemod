@@ -1,16 +1,16 @@
-import { getASTCodemodCode } from './utils/ast-transformations/run-ast-transformations';
-import { getReactCompDom } from './utils/enzyme-helper/get-dom-enzyme';
-import { genPrompt } from './utils/prompt-generation/generate-prompt';
-import { extractCodeContentToFile } from './utils/code-extractor/extract-code';
+import { getASTCodemodCode } from './support/ast-transformations/run-ast-transformations';
+import { getReactCompDom } from './support/enzyme-helper/get-dom-enzyme';
+import { genPrompt } from './support/prompt-generation/generate-prompt';
+import { extractCodeContentToFile } from './support/code-extractor/extract-code';
 import {
     runTestAndAnalyzeFile,
     RTLTestResult,
-} from './utils/enzyme-helper/run-test-analysis';
+} from './support/enzyme-helper/run-test-analysis';
 import {
     setJestBinaryPath,
     setOutputResultsPath,
     configureLogLevel,
-} from './utils/config';
+} from './support/config';
 
 /**
  * TODO:

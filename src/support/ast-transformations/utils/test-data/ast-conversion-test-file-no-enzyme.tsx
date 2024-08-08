@@ -9,13 +9,12 @@ describe('Test suite', () => {
 
         // convert find
         const dashboardCards = component.find('selector');
+
+        // convert simulate
         dashboardCards.simulate('click');
 
         // update
         component.update();
-
-        // convert simulate
-        expect(dashboardCards.length).toBe(11);
 
         // hostNodes
         component.find('div').hostNodes().toHaveLength(1);

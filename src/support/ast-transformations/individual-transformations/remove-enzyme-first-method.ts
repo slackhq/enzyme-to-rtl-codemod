@@ -16,7 +16,7 @@ import type {
  * @param root - The root AST node
  * @returns {void} - The function does not return a value but mutates the AST directly.
  */
-export const removeFirst = (j: JSCodeshift, root: Collection): void => {
+export const convertFirst = (j: JSCodeshift, root: Collection): void => {
     // Find the first() call expression within the provided AST root
     root.find<CallExpression>(j.CallExpression, {
         callee: {

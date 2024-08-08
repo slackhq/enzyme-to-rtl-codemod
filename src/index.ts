@@ -14,14 +14,8 @@ import {
 
 /**
  * TODO:
- * 1. Logic to get file extension, e.g. .js or .ts - DONE
  * 2. Promisify node process in shell helper (?)
- * 3. Add better results output - DONE
- * 4. Add start of the process with all the info - DONE
- * 5. Convert all functions to arrow functions
- * 6. Add finish message with % success rate - DONE
  * 7. Figure out if Provider with test store needs to be passed in
- * 8. Test logger configuration
  */
 // Export configuration methods
 export { setJestBinaryPath, setOutputResultsPath, configureLogLevel };

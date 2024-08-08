@@ -56,8 +56,8 @@ export const addSuggestions = (
 
     /**
      * Add suggestions to all enzyme method calls
-     * @param collectionOfEnzymeMethodCalls 
-     * @param enzymeWrapperName 
+     * @param collectionOfEnzymeMethodCalls
+     * @param enzymeWrapperName
      */
     function getMethodAndSuggest(
         collectionOfEnzymeMethodCalls: Collection,

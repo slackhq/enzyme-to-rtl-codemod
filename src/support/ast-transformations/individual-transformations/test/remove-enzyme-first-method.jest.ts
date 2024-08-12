@@ -1,4 +1,4 @@
-import { removeFirst } from '../remove-enzyme-first-method';
+import { convertFirst } from '../remove-enzyme-first-method';
 import jscodeshift from 'jscodeshift';
 
 describe('removeFirst', () => {
@@ -16,7 +16,7 @@ describe('removeFirst', () => {
 
         // Transform the source code
         const root = j(source);
-        removeFirst(j, root);
+        convertFirst(j, root);
 
         // Generate the transformed source code
         const transformedSource = root.toSource();

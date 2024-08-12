@@ -9,6 +9,8 @@ import { convertMountShallowVars } from './individual-transformations/convert-mo
 import { convertSimulate } from './individual-transformations/convert-simulate';
 import { convertText } from './individual-transformations/convert-enzyme-text-method';
 import { convertUpdate } from './individual-transformations/remove-enzyme-update-method';
+import { convertFirst } from './individual-transformations/remove-enzyme-first-method';
+import { addSuggestions } from './individual-transformations/add-suggestions';
 import { astLogger } from './utils/ast-logger';
 
 /**
@@ -72,17 +74,17 @@ export const mainASTtransform = (filePath: string, testId: string): string => {
     astLogger.verbose('Convert hostNodes()');
     convertHostNodes(j, root);
 
-    // Remove first()
-    // astLogger.verbose('Convert first()');
-    // convertFirst(j, root);
-
-    // Remove Wrapper ShallowWrapper and ReactWrapper Declaration
-    // astLogger.verbose('Convert convertWrapperDeclarations()');
-    // convertWrapperDeclarations(j, root);
+    // Convert first()
+    astLogger.verbose('Convert first()');
+    convertFirst(j, root);
 
     // Convert exists()
     astLogger.verbose('Convert exists()');
     convertExists(j, root);
+
+    // Find remaining Enzyme methods and add suggestions
+    astLogger.verbose('Add suggestions for remanining methods');
+    addSuggestions(j, root, renderFunctionVarNames);
 
     // Generate the transformed code
     astLogger.verbose('Generating transformed code');

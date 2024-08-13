@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { Config } from '@jest/types';
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import createCustomLogger from '../logger/logger';
@@ -38,6 +39,7 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
     getDomEnzymeLogger.verbose('Overwrite enzyme shallow/mount import methods');
     await overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter);
 
+    // TODO: test if we can use jest api's directly
     // Run tests with child process
     getDomEnzymeLogger.verbose('Run Enzyme jest test to collect DOM');
     await runJestInChildProcess(filePathWithEnzymeAdapter);
@@ -288,6 +290,7 @@ export const { shallow, mount } = enzyme;
     return enzymeRenderAdapterCodeJS;
 };
 
+// TODO: test on a different repo to make sure this works
 /**
  * Run tests with jest api's directly
  * @param testFilePath
@@ -307,47 +310,42 @@ export const runJestDirectly = async (
         // Create path to jest config file in host project
         const jestConfigPathAbsolute = path.join(process.cwd(), jestConfigPath);
 
-        console.log('filePathWithEnzymeAdapter:', filePathWithEnzymeAdapter);
-        console.log('jestConfigPathAbsolute:', jestConfigPathAbsolute);
-
         // Automatically use the current working directory as the host project root
         const hostProjectRoot = process.cwd();
-        console.log('hostProjectRoot:', hostProjectRoot);
 
         // Resolve the Jest CLI module from the host project's node_modules
         const jestPath = require.resolve('jest', { paths: [hostProjectRoot] });
-        console.log('jestPath:', jestPath);
 
         // Import the Jest CLI from the resolved path
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { runCLI } = require(jestPath);
 
         // Read and parse the host project's Jest configuration
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const hostJestConfig = require(jestConfigPathAbsolute);
-        console.log('hostJestConfig:', hostJestConfig);
 
         // TODO: add logic here to make sure it doesn't break
         delete hostJestConfig.testRegex;
 
         // Options for running Jest tests
-        const options = {
+        const options: Config.Argv = {
             ...hostJestConfig, // Use the host project's Jest config
             runInBand: true, // Run tests in a single process
             silent: true, // Suppress output unless there's an error
             testMatch: [filePathWithEnzymeAdapter], // Match the specific test file
         };
 
-        console.log('options:', hostJestConfig);
-
         // Execute Jest tests using the host project's configuration
+        await promisify(runCLI)(options, [hostProjectRoot]);
 
-        const { results } = await promisify(runCLI)(options as any, [
-            hostProjectRoot,
-        ]);
-
-        return results;
+        // TODO: return const {results} = ... and check that tests passed, if needed
+        // return results;
     } catch (error) {
         getDomEnzymeLogger.warn(`Could not run Enzyme tests.\nError: ${error}`);
     }
 };
 
-// const result = runJestDirectly('src/support/enzyme-helper/enzyme-working-file.jest.tsx', 'jest.config.js');
+// const result = runJestDirectly(
+//     'src/support/enzyme-helper/enzyme-working-file.jest.tsx',
+//     'jest.config.js',
+// );

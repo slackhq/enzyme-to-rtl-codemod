@@ -10,7 +10,8 @@ module.exports = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     testPathIgnorePatterns: [
       '/node_modules/',
-      '<rootDir>/support/ast-transformations/utils/test-data/',
-      '<rootDir>/support/prompt-generation/utils/test-data/',
+      '/src/support/ast-transformations/utils/test-data/',
+      '/src/support/prompt-generation/utils/test-data/',
+      '/src/support/enzyme-helper/test-data/',
       ],
 };

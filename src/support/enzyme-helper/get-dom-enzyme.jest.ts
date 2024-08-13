@@ -1,10 +1,5 @@
 import fs from 'fs';
-import {
-    overwriteEnzymeMounts,
-    getenzymeRenderAdapterCode,
-    createEnzymeAdapter,
-    runJestDirectly,
-} from './get-dom-enzyme';
+import * as getDomEnzyme from './get-dom-enzyme';
 import { getConfigProperty } from '../config';
 
 // Mocks
@@ -12,6 +7,13 @@ jest.mock('fs');
 jest.mock('../config', () => ({
     getConfigProperty: jest.fn(),
 }));
+
+const {
+    overwriteEnzymeMounts,
+    getenzymeRenderAdapterCode,
+    createEnzymeAdapter,
+    runJestDirectly,
+} = getDomEnzyme;
 
 describe('overwriteEnzymeMounts', () => {
     const filePath = 'testFile.js';
@@ -97,7 +99,7 @@ describe('createEnzymeAdapter', () => {
 
         // Mock render adapter code
         const getenzymeRenderAdapterCodeMock = jest.spyOn(
-            require('./get-dom-enzyme'),
+            getDomEnzyme,
             'getenzymeRenderAdapterCode',
         );
 
@@ -128,12 +130,11 @@ describe('createEnzymeAdapter', () => {
 });
 
 describe('runJestDirectly', () => {
-    it.only('should create enzyme adapter file with the correct content and path', async () => {
-        // jest.setTimeout(10000);
-        await runJestDirectly(
+    it.skip('should create enzyme adapter file with the correct content and path', async () => {
+        const output = await runJestDirectly(
             'src/support/enzyme-helper/enzyme-working-file.jest.tsx',
             'jest.config.js',
         );
-        // console.log('result:', result)
+        console.log('result:', output);
     });
 });

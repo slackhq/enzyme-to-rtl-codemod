@@ -1,6 +1,5 @@
 module.exports = {
     preset: 'ts-jest',
-    // TODO: check if this breaks logger silencing
     testEnvironment: 'jsdom',
     roots: ['<rootDir>/src'],
     transform: {

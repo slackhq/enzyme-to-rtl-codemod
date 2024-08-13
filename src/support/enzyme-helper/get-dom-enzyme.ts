@@ -2,13 +2,10 @@ import fs from 'fs';
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import createCustomLogger from '../logger/logger';
-import { runCLI } from 'jest';
-import path from 'path';
 import { promisify } from 'util';
+import path from 'path';
 
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
-
-// TODO: remove child process and try running directly with jest apis
 
 /**
  * Get React component DOM for test cases
@@ -28,31 +25,9 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
         return 'Could not collect DOM for test cases. Proceed without DOM';
     }
 
-    /**
-     * Copy mount adapters file collecting DOM tree to host project
-     * Write the string to a file
-     */
-    // Get a csv file path with DOM for test cases
-    getDomEnzymeLogger.verbose('Get domTreeFilePath');
-    const domTreeFilePath = getConfigProperty('collectedDomTreeFilePath');
-
-    // Create a string with enzyme shallow/mount adapters wih the path to csv for DOM tree
-    getDomEnzymeLogger.verbose('Get enzymeRenderAdapterCode');
-    const enzymeRenderAdapterCode = getenzymeRenderAdapterCode(domTreeFilePath);
-
-    // Get the path to the file for enzymeRenderAdapterCode
-    getDomEnzymeLogger.verbose('Get enzymeRenderAdapterFilePath');
-    const enzymeMountAdapterFilePath = getConfigProperty(
-        'enzymeMountAdapterFilePath',
-    );
-
-    // Create a file with shallow/enzyme adapter that collects DOM
-    getDomEnzymeLogger.verbose('Create shallow/enzyme adapter to collect DOM');
-    fs.writeFileSync(
-        enzymeMountAdapterFilePath,
-        enzymeRenderAdapterCode,
-        'utf8',
-    );
+    // Create setup for collecting DOM for rendered components in tests
+    getDomEnzymeLogger.verbose('Create enzyme adapter to collect DOM');
+    createEnzymeAdapter();
 
     // Create new Enzyme file with Enzyme mounts overwrite
     getDomEnzymeLogger.verbose('Get filePathWithEnzymeAdapter');
@@ -63,36 +38,18 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
     getDomEnzymeLogger.verbose('Overwrite enzyme shallow/mount import methods');
     await overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter);
 
-    // Create jest command to run tests
-    getDomEnzymeLogger.verbose('Generate jest command');
-    const jestCommand = `${getConfigProperty('jestBinaryPath')} ${filePathWithEnzymeAdapter}`;
+    // Run tests with child process
+    getDomEnzymeLogger.verbose('Run Enzyme jest test to collect DOM');
+    await runJestInChildProcess(filePathWithEnzymeAdapter);
 
-    try {
-        getDomEnzymeLogger.verbose(
-            `Run jest file with command: ${jestCommand}`,
-        );
-        await runCommand(jestCommand);
-    } catch (error) {
-        getDomEnzymeLogger.warn(
-            `Could not run jest command command: ${jestCommand}`,
-        );
-        getDomEnzymeLogger.warn(`Error: ${error}`);
-        return 'Could not collect DOM for test cases. Proceed without DOM';
-    }
+    // Run tests with jest api directly
+    // 'jest.config.js' -- TODO: add to config and expose api to set it
+    await runJestDirectly(filePathWithEnzymeAdapter, 'jest.config.js');
 
     // Return output
-    let domTreeOutput =
-        'Could not collect DOM for test cases. Proceed without DOM';
-    try {
-        getDomEnzymeLogger.verbose(
-            `Getting collected DOM from ${domTreeFilePath}`,
-        );
-        domTreeOutput = fs.readFileSync(domTreeFilePath, 'utf-8');
-    } catch (error) {
-        getDomEnzymeLogger.warn(
-            `Could not collect DOM logs from ${domTreeFilePath}.\nError: ${error}`,
-        );
-    }
+    getDomEnzymeLogger.verbose('Get DOM tree output');
+    const domTreeOutput = getDomTreeOutputFromFile();
+
     getDomEnzymeLogger.info('Done: getting rendered component code');
     return domTreeOutput;
 };
@@ -128,6 +85,79 @@ export const overwriteEnzymeMounts = async (
         );
         fs.writeFileSync(filePathWithEnzymeAdapter, updatedContent, 'utf-8');
     }
+};
+
+/**
+ * Create Enzyme adapter with overwritten mount/shallow methods that collect DOM in each test case
+ */
+export const createEnzymeAdapter = (): void => {
+    // Get a csv file path with DOM for test cases
+    getDomEnzymeLogger.verbose('Get domTreeFilePath');
+    const domTreeFilePath = getConfigProperty('collectedDomTreeFilePath');
+
+    // Create a string with enzyme shallow/mount adapters wih the path to csv for DOM tree
+    getDomEnzymeLogger.verbose('Get enzymeRenderAdapterCode');
+    const enzymeRenderAdapterCode = getenzymeRenderAdapterCode(domTreeFilePath);
+
+    // Get the path to the file for enzymeRenderAdapterCode
+    getDomEnzymeLogger.verbose('Get enzymeRenderAdapterFilePath');
+    const enzymeMountAdapterFilePath = getConfigProperty(
+        'enzymeMountAdapterFilePath',
+    );
+
+    // Create a file with shallow/enzyme adapter that collects DOM
+    getDomEnzymeLogger.verbose('Create shallow/enzyme adapter to collect DOM');
+    fs.writeFileSync(
+        enzymeMountAdapterFilePath,
+        enzymeRenderAdapterCode,
+        'utf-8',
+    );
+};
+
+/**
+ * Run command in a child process
+ * @param jestCommand
+ * @returns
+ */
+const runJestInChildProcess = async (
+    filePathWithEnzymeAdapter: string,
+): Promise<void> => {
+    getDomEnzymeLogger.verbose('Generate jest command');
+    const jestCommand = `${getConfigProperty('jestBinaryPath')} ${filePathWithEnzymeAdapter}`;
+    try {
+        getDomEnzymeLogger.verbose(
+            `Run jest file with command: ${jestCommand}`,
+        );
+        await runCommand(jestCommand);
+    } catch (error) {
+        getDomEnzymeLogger.warn(
+            `Could not run jest command command: ${jestCommand}`,
+        );
+        getDomEnzymeLogger.warn(`Error: ${error}`);
+    }
+};
+
+/**
+ * Get collected DOM from a file
+ * @returns
+ */
+const getDomTreeOutputFromFile = (): string => {
+    let domTreeOutput =
+        'Could not collect DOM for test cases. Proceed without DOM';
+    try {
+        getDomEnzymeLogger.verbose(
+            `Getting collected DOM from ${getConfigProperty('collectedDomTreeFilePath')}`,
+        );
+        domTreeOutput = fs.readFileSync(
+            getConfigProperty('collectedDomTreeFilePath'),
+            'utf-8',
+        );
+    } catch (error) {
+        getDomEnzymeLogger.warn(
+            `Could not collect DOM logs from ${getConfigProperty('collectedDomTreeFilePath')}.\nError: ${error}`,
+        );
+    }
+    return domTreeOutput;
 };
 
 /**
@@ -258,80 +288,55 @@ export const { shallow, mount } = enzyme;
     return enzymeRenderAdapterCodeJS;
 };
 
-const runJestTest = async (testFilePath: string) => {
-    const options = {
-        runInBand: true, // Run tests in a single process (useful for debugging)
-        silent: true, // Suppress output unless there's an error
-        _: [], // Required by Jest to represent positional args
-        $0: 'jest', // Simulate process name
-        testPathPattern: [testFilePath], // Use an array for test file patterns
-    };
-
+/**
+ * Run tests with jest api's directly
+ * @param testFilePath
+ * @param jestConfigPath
+ */
+const runJestDirectly = async (
+    testFilePath: string,
+    jestConfigPath: string,
+): Promise<void> => {
     try {
-        const result = await runCLI(options, [process.cwd()]);
-        if (result.results.success) {
-            console.log('Test ran successfully:', result.results);
-        } else {
-            console.warn('Some tests failed:', result.results);
-        }
-    } catch (error) {
-        console.error('Test execution failed:', error);
-    }
-};
+        // Create path to Enzyme file to run
+        const filePathWithEnzymeAdapter = path.join(
+            process.cwd(),
+            testFilePath,
+        );
 
-// Usage
-// const filePathWithEnzymeAdapter = 'src/enzyme-working-file.jest.tsx';
-// runJestTest(filePathWithEnzymeAdapter);
+        // Create path to jest config file in host project
+        const jestConfigPathAbsolute = path.join(process.cwd(), jestConfigPath);
 
-const runJestTest2 = async (testFilePath: string, jestConfigPath: string) => {
-    try {
         // Automatically use the current working directory as the host project root
         const hostProjectRoot = process.cwd();
 
         // Resolve the Jest CLI module from the host project's node_modules
         const jestPath = require.resolve('jest', { paths: [hostProjectRoot] });
 
-        console.log('jestPath:', jestPath)
-
         // Import the Jest CLI from the resolved path
         const { runCLI } = require(jestPath);
 
         // Read and parse the host project's Jest configuration
-        const hostJestConfig = require(jestConfigPath);
+        const hostJestConfig = require(jestConfigPathAbsolute);
 
         // TODO: add logic here to make sure it doesn't break
         delete hostJestConfig.testRegex;
-
-        // const hostJestConfig = JSON.parse(fs.readFileSync(jestConfigPath, 'utf8'));
 
         // Options for running Jest tests
         const options = {
             ...hostJestConfig, // Use the host project's Jest config
             runInBand: true, // Run tests in a single process
             silent: true, // Suppress output unless there's an error
-            testMatch: [testFilePath], // Match the specific test file
+            testMatch: [filePathWithEnzymeAdapter], // Match the specific test file
         };
 
         // Execute Jest tests using the host project's configuration
         const { results } = await promisify(runCLI)(options as any, [
             hostProjectRoot,
         ]);
-        // if (results.success) {
-        //     console.log('Test ran successfully:', results);
-        // } else {
-        //     console.warn('Some tests failed:', results);
-        // }
 
         console.log(results);
     } catch (error) {
-        console.error('Test execution failed:', error);
+        getDomEnzymeLogger.warn(`Could not run Enzyme tests.\nError: ${error}`);
     }
 };
-
-// // Usage
-// const filePathWithEnzymeAdapter = path.join(
-//     process.cwd(),
-//     'src/enzyme-working-file.jest.tsx',
-// );
-// const jestConfigPath = path.join(process.cwd(), 'jest.config.js');
-// runJestTest2(filePathWithEnzymeAdapter, jestConfigPath);

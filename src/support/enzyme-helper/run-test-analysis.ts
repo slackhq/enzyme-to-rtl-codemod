@@ -48,7 +48,7 @@ export const runTestAndAnalyzeFile = async (
     // Write logs to a file
     const jestRunLogsPath = getConfigProperty('jestRunLogsFilePath');
     testAnalysisLogger.verbose(`Write jest run logs to ${jestRunLogsPath}`);
-    fs.writeFileSync(jestRunLogsPath, result.testrunLogs, 'utf8');
+    fs.writeFileSync(jestRunLogsPath, result.testrunLogs, 'utf-8');
 
     // Analyze logs for errors
     testAnalysisLogger.verbose('Analyze logs for errors');

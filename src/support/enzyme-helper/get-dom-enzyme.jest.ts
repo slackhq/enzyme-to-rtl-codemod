@@ -2,10 +2,16 @@ import fs from 'fs';
 import {
     overwriteEnzymeMounts,
     getenzymeRenderAdapterCode,
+    createEnzymeAdapter,
 } from './get-dom-enzyme';
+import * as getDomEnzyme from './get-dom-enzyme';
+import { getConfigProperty } from '../config';
 
-// Mock the 'fs' module
+// Mocks
 jest.mock('fs');
+jest.mock('../config', () => ({
+    getConfigProperty: jest.fn(),
+}));
 
 describe('overwriteEnzymeMounts', () => {
     const filePath = 'testFile.js';
@@ -39,7 +45,7 @@ describe('overwriteEnzymeMounts', () => {
         );
     });
 
-    it('should throw an error if no Enzyme imports are detected', async () => {
+    it('should not match and write file', async () => {
         const fileContent =
             "import { somethingElse } from 'some-library';\nconst a = 1;";
 
@@ -67,6 +73,58 @@ describe('getenzymeRenderAdapterCode', () => {
         expect(actualCode).toContain(
             "import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';",
         );
-        expect(actualCode).toContain(`${collectedDomTreeFilePath}`);
+        expect(actualCode).toContain(collectedDomTreeFilePath);
     });
 });
+
+describe('createEnzymeAdapter', () => {
+    it('should create enzyme adapter file with the correct content and path', () => {
+        // Mock config props
+        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
+            typeof getConfigProperty
+        >;
+
+        // Mock only for this test case
+        const domTreeFilePath = '/path/to/domTree.csv';
+        const enzymeMountAdapterFilePath = '/path/to/enzymeMountAdapter.js';
+
+        getConfigPropertyMock.mockImplementation((property) => {
+            if (property === 'collectedDomTreeFilePath') return domTreeFilePath;
+            if (property === 'enzymeMountAdapterFilePath')
+                return enzymeMountAdapterFilePath;
+            return '';
+        });
+
+        // Mock render adapter code
+        const getenzymeRenderAdapterCodeMock = jest.spyOn(
+            require('./get-dom-enzyme'),
+            'getenzymeRenderAdapterCode',
+        );
+
+        const enzymeRenderAdapterCode =
+            "import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';";
+
+        getenzymeRenderAdapterCodeMock.mockReturnValue(enzymeRenderAdapterCode);
+
+        // Run the method
+        createEnzymeAdapter();
+
+        // Assert
+        expect(getConfigPropertyMock).toHaveBeenCalledWith(
+            'collectedDomTreeFilePath',
+        );
+        expect(getenzymeRenderAdapterCodeMock).toHaveBeenCalledWith(
+            domTreeFilePath,
+        );
+        expect(getConfigPropertyMock).toHaveBeenCalledWith(
+            'enzymeMountAdapterFilePath',
+        );
+        expect(fs.writeFileSync).toHaveBeenCalledWith(
+            enzymeMountAdapterFilePath,
+            enzymeRenderAdapterCode,
+            'utf-8',
+        );
+    });
+});
+
+describe('runJestDirectly', () => {});

@@ -10,6 +10,6 @@
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true
     },
-    "include": ["src/**/*", "temp/enzyme-working-file.jest.tsx"],
+    "include": ["src/**/*", "src/support/enzyme-helper/enzyme-working-file.jest.tsx"],
     "exclude": ["node_modules"]
   }

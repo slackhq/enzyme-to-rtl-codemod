@@ -293,7 +293,7 @@ export const { shallow, mount } = enzyme;
  * @param testFilePath
  * @param jestConfigPath
  */
-const runJestDirectly = async (
+export const runJestDirectly = async (
     testFilePath: string,
     jestConfigPath: string,
 ): Promise<void> => {
@@ -307,17 +307,23 @@ const runJestDirectly = async (
         // Create path to jest config file in host project
         const jestConfigPathAbsolute = path.join(process.cwd(), jestConfigPath);
 
+        console.log('filePathWithEnzymeAdapter:', filePathWithEnzymeAdapter);
+        console.log('jestConfigPathAbsolute:', jestConfigPathAbsolute);
+
         // Automatically use the current working directory as the host project root
         const hostProjectRoot = process.cwd();
+        console.log('hostProjectRoot:', hostProjectRoot);
 
         // Resolve the Jest CLI module from the host project's node_modules
         const jestPath = require.resolve('jest', { paths: [hostProjectRoot] });
+        console.log('jestPath:', jestPath);
 
         // Import the Jest CLI from the resolved path
         const { runCLI } = require(jestPath);
 
         // Read and parse the host project's Jest configuration
         const hostJestConfig = require(jestConfigPathAbsolute);
+        console.log('hostJestConfig:', hostJestConfig);
 
         // TODO: add logic here to make sure it doesn't break
         delete hostJestConfig.testRegex;
@@ -330,13 +336,18 @@ const runJestDirectly = async (
             testMatch: [filePathWithEnzymeAdapter], // Match the specific test file
         };
 
+        console.log('options:', hostJestConfig);
+
         // Execute Jest tests using the host project's configuration
+
         const { results } = await promisify(runCLI)(options as any, [
             hostProjectRoot,
         ]);
 
-        console.log(results);
+        return results;
     } catch (error) {
         getDomEnzymeLogger.warn(`Could not run Enzyme tests.\nError: ${error}`);
     }
 };
+
+// const result = runJestDirectly('src/support/enzyme-helper/enzyme-working-file.jest.tsx', 'jest.config.js');

@@ -3,8 +3,8 @@ import {
     overwriteEnzymeMounts,
     getenzymeRenderAdapterCode,
     createEnzymeAdapter,
+    runJestDirectly,
 } from './get-dom-enzyme';
-import * as getDomEnzyme from './get-dom-enzyme';
 import { getConfigProperty } from '../config';
 
 // Mocks
@@ -127,4 +127,13 @@ describe('createEnzymeAdapter', () => {
     });
 });
 
-describe('runJestDirectly', () => {});
+describe('runJestDirectly', () => {
+    it.only('should create enzyme adapter file with the correct content and path', async () => {
+        // jest.setTimeout(10000);
+        await runJestDirectly(
+            'src/support/enzyme-helper/enzyme-working-file.jest.tsx',
+            'jest.config.js',
+        );
+        // console.log('result:', result)
+    });
+});

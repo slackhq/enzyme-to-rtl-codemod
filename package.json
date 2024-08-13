@@ -1,7 +1,7 @@
 {
-  "name": "test-package-useless",
-  "version": "1.1.31",
-  "description": "AI-powered conversion of Enzyme to RTL",
+  "name": "enzyme-to-rtl-codemod",
+  "version": "0.0.0",
+  "description": "AST codemod for Enzyme to RTL with AI integrationc capabilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

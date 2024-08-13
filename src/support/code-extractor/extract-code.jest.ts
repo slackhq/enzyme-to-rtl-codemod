@@ -36,7 +36,7 @@ describe('extractCodeContentToFile', () => {
             `
             console.log("test")
             `,
-            'utf8',
+            'utf-8',
         );
     });
 

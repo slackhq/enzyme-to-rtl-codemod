@@ -5,8 +5,6 @@ import { countTestCases } from './utils/utils';
 describe('genPrompt', () => {
     const enzymeFilePath =
         'src/support/prompt-generation/utils/test-data/gen-prompt-test-file.jest.tsx';
-    const enzymeFilePathNoTests =
-        'src/support/prompt-generation/utils/test-data/gen-prompt-test-file-no-tests.jest.tsx';
     const mockGetByTestIdAttribute = 'data-testid';
     const mockAstCodemodOutput = '<codemod>Partially converted code</codemod>';
     const mockRenderedCompCode = '<component>Rendered component</component>';

@@ -93,7 +93,7 @@ describe('runTestAndAnalyzeFile', () => {
         expect(mockedWriteFileSync).toHaveBeenCalledWith(
             '/path/to/jestRunLogs',
             mockShellProcess.output + mockShellProcess.stderr,
-            'utf8',
+            'utf-8',
         );
 
         // Analyze logs for errors assertion

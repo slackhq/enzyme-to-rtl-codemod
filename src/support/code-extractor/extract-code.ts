@@ -33,7 +33,7 @@ export const extractCodeContentToFile = (LLMresponse: string): string => {
 
     // Write extracted code to file
     const rtlConvertedFilePath = getConfigProperty('rtlConvertedFilePath');
-    fs.writeFileSync(`${rtlConvertedFilePath}`, testCaseCode, 'utf8');
+    fs.writeFileSync(`${rtlConvertedFilePath}`, testCaseCode, 'utf-8');
 
     codeExtractorLogger.info('Done: extracting code from the LLM response');
     return rtlConvertedFilePath;

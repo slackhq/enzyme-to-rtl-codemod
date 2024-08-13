@@ -27,7 +27,7 @@ export const getASTCodemodCode = (filePath: string, testId: string): string => {
     // Get ast transformed file path
     const astConvertedFilePath = `${getConfigProperty('astTranformedFilePath')}`;
     astLogger.info(`Writing AST transformed code to ${astConvertedFilePath}`);
-    fs.writeFileSync(astConvertedFilePath, astTransformedCode, 'utf8');
+    fs.writeFileSync(astConvertedFilePath, astTransformedCode, 'utf-8');
 
     astLogger.info('Done: Running AST codemod');
     return astTransformedCode;

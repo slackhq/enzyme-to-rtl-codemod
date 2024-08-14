@@ -134,3 +134,12 @@ convertTestFile(
 # Debugging
 1. By default log level is `info`
 2. Set the log level to `verbose` by importing and setting `setLogLevel('verbose')`
+
+
+# Testing:
+## locally:
+1. bump the version in package.json
+1. comment out /dist in npmignore
+1. `npm run build`
+1. `npm pack`
+1. install in your host project with `npm install <path_to_tar_file>`

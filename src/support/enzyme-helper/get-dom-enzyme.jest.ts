@@ -1,18 +1,22 @@
 import fs from 'fs';
 import * as getDomEnzyme from './get-dom-enzyme';
 import { getConfigProperty } from '../config';
+import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
 
 // Mocks
 jest.mock('fs');
 jest.mock('../config', () => ({
     getConfigProperty: jest.fn(),
 }));
+jest.mock('../shell-helper/shell-helper');
 
 const {
     overwriteEnzymeMounts,
     getenzymeRenderAdapterCode,
     createEnzymeAdapter,
     runJestDirectly,
+    runJestInChildProcess,
+    getDomTreeOutputFromFile,
 } = getDomEnzyme;
 
 describe('overwriteEnzymeMounts', () => {
@@ -129,6 +133,52 @@ describe('createEnzymeAdapter', () => {
     });
 });
 
+describe('runJestInChildProcess', () => {
+    it('should generate the correct jest command and run it', () => {
+        // Mock config props
+        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
+            typeof getConfigProperty
+        >;
+        getConfigPropertyMock.mockReturnValueOnce('/path/to/jestBinary');
+
+        const mockedRunCommand = runCommand as jest.MockedFunction<
+            typeof runCommand
+        >;
+
+        runJestInChildProcess('path/to/filePathWithEnzymeAdapter');
+
+        expect(mockedRunCommand).toHaveBeenCalledTimes(1);
+        expect(mockedRunCommand).toHaveBeenCalledWith(
+            '/path/to/jestBinary path/to/filePathWithEnzymeAdapter',
+        );
+    });
+});
+
+describe('getDomTreeOutputFromFile', () => {
+    it('should get correct file path and read a file', () => {
+        // Mock config props
+        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
+            typeof getConfigProperty
+        >;
+        getConfigPropertyMock.mockReturnValueOnce(
+            '/path/to/collectedDomTreeFilePath',
+        );
+
+        // Mock readFileSync to return the file content
+        const fileContent = 'DOMlogs';
+        (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
+
+        getDomTreeOutputFromFile();
+
+        // Check if readFileSync was called with the correct file path
+        expect(fs.readFileSync).toHaveBeenCalledWith(
+            '/path/to/collectedDomTreeFilePath',
+            'utf-8',
+        );
+    });
+});
+
+// TODO: can't test because of jest config collision.
 describe('runJestDirectly', () => {
     it.skip('should create enzyme adapter file with the correct content and path', async () => {
         const output = await runJestDirectly(

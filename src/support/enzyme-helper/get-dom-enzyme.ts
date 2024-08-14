@@ -121,7 +121,7 @@ export const createEnzymeAdapter = (): void => {
  * @param jestCommand
  * @returns
  */
-const runJestInChildProcess = async (
+export const runJestInChildProcess = async (
     filePathWithEnzymeAdapter: string,
 ): Promise<void> => {
     getDomEnzymeLogger.verbose('Generate jest command');
@@ -143,17 +143,18 @@ const runJestInChildProcess = async (
  * Get collected DOM from a file
  * @returns
  */
-const getDomTreeOutputFromFile = (): string => {
+export const getDomTreeOutputFromFile = (): string => {
     let domTreeOutput =
         'Could not collect DOM for test cases. Proceed without DOM';
+
+    const collectedDomTreeFilePath = getConfigProperty(
+        'collectedDomTreeFilePath',
+    );
     try {
         getDomEnzymeLogger.verbose(
-            `Getting collected DOM from ${getConfigProperty('collectedDomTreeFilePath')}`,
+            `Getting collected DOM from ${collectedDomTreeFilePath}`,
         );
-        domTreeOutput = fs.readFileSync(
-            getConfigProperty('collectedDomTreeFilePath'),
-            'utf-8',
-        );
+        domTreeOutput = fs.readFileSync(collectedDomTreeFilePath, 'utf-8');
     } catch (error) {
         getDomEnzymeLogger.warn(
             `Could not collect DOM logs from ${getConfigProperty('collectedDomTreeFilePath')}.\nError: ${error}`,

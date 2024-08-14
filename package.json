@@ -1,0 +1,62 @@
+{
+  "name": "@slack/enzyme-to-rtl-codemod",
+  "version": "0.0.1",
+  "description": "AST codemod for Enzyme to RTL with AI integrationc capabilities",
+  "keywords": ["slack", "enzyme", "rtl", "codemod"],
+  "author": "Salesforce, Inc.",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slackhq/enzyme-to-rtl-codemod"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:coverage": "jest --coverage --detectOpenHandles",
+    "lint:check": "eslint 'src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
+    "prettier:check": "prettier --check 'src/**/*.{ts,tsx}'",
+    "prettier:fix": "prettier --write 'src/**/*.{ts,tsx}'",
+    "format:fix": "npm run lint:fix && npm run prettier:fix"
+  },
+  "dependencies": {
+    "jscodeshift": "17.0.0",
+    "winston": "3.13.1"
+  },
+  "peerDependencies": {
+    "enzyme": "3.11.0",
+    "jest": ">=27.0.0",
+    "@testing-library/react": ">=10.4.9 <=12.1.5",
+    "@testing-library/dom": ">=7.30.0",
+    "@testing-library/jest-dom": ">=5.11.0",
+    "@testing-library/user-event": ">=12.8.3",
+    "cheerio": "1.0.0-rc.10"
+  },
+  "devDependencies": {
+    "@types/enzyme": "3.10.18",
+    "@types/jest": "29.5.12",
+    "@types/jscodeshift": "0.11.11",
+    "@types/node": "20.14.3",
+    "@typescript-eslint/eslint-plugin": "7.16.1",
+    "@typescript-eslint/parser": "7.16.1",
+    "@wojtekmaj/enzyme-adapter-react-17": "0.8.0",
+    "cheerio": "1.0.0-rc.10",
+    "enzyme": "3.11.0",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-prettier": "5.2.1",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0",
+    "prettier": "3.3.3",
+    "ts-jest": "29.2.2",
+    "typescript": "5.4.5"
+  }
+}

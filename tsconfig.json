@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+      "jsx": "react",
+      "target": "ES6",
+      "module": "commonjs",
+      "declaration": true,
+      "outDir": "./dist",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true
+    },
+    "include": ["src/**/*"],
+    "exclude": [
+      "node_modules",
+      "src/support/ast-transformations/utils/test-data/**/*",
+      "src/support/prompt-generation/utils/test-data/**/*",
+      "src/support/enzyme-helper/test-data/**/*",
+      "**/*.jest.ts",
+      "**/*.jest.tsx"
+    ]
+  }

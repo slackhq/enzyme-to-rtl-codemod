@@ -12,10 +12,6 @@ import {
     configureLogLevel,
 } from './support/config';
 
-/**
- * TODO:
- * 1. Figure out if Provider with test store needs to be passed in
- */
 // Export configuration methods
 export { setJestBinaryPath, setOutputResultsPath, configureLogLevel };
 

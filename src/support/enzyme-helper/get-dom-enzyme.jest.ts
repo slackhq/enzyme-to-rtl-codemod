@@ -14,7 +14,6 @@ const {
     overwriteEnzymeMounts,
     getenzymeRenderAdapterCode,
     createEnzymeAdapter,
-    runJestDirectly,
     runJestInChildProcess,
     getDomTreeOutputFromFile,
     getReactCompDom,
@@ -177,17 +176,6 @@ describe('getDomTreeOutputFromFile', () => {
             '/path/to/collectedDomTreeFilePath',
             'utf-8',
         );
-    });
-});
-
-// TODO: can't test because of jest config collision.
-describe('runJestDirectly', () => {
-    it.skip('should create enzyme adapter file with the correct content and path', async () => {
-        const output = await runJestDirectly(
-            'src/support/enzyme-helper/enzyme-working-file.jest.tsx',
-            'jest.config.js',
-        );
-        console.log('result:', output);
     });
 });
 

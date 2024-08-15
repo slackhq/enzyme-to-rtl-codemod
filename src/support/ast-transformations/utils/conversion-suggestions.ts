@@ -124,7 +124,6 @@ const suggestByMethod = (
 ): string => {
     let suggestion = '';
 
-    // TODO: check if it makes sense adding suggestions for these methods when testing on real code
     switch (wrapperMethod) {
         case 'setState':
             suggestion += `You need to simulate a user interaction or use a hook to change the state to ${wrapperMethodArgs}.`;

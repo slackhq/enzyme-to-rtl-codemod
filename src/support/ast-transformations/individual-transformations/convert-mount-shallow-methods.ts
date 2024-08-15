@@ -84,7 +84,6 @@ export const convertMountShallowMethods = (
             'id',
         ).node;
         /**
-         * TODO: check on more examples
          * Check if the mount/shallow method call is a AssignmentExpression
          * Example:
          * let mountComponent;
@@ -116,7 +115,6 @@ export const convertMountShallowMethods = (
         astLogger.verbose('Renamed abstracted function to "renderFunc"');
     }
 
-    // TODO: test on more file to make sure it works
     // Convert mount(args) and shallow (args) function calls to render(args)
     astLogger.verbose('Convert mount(args) and shallow (args) to render(args)');
     matchedQuery.replaceWith(({ node }: { node: CallExpression }) => {

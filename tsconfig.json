@@ -13,7 +13,7 @@
     "include": ["src/**/*"],
     "exclude": [
       "node_modules",
-      "src/support/ast-transformations/utils/test-data/**/*", // TODO: fix these tests to be real Enzyme tests
+      "src/support/ast-transformations/utils/test-data/**/*",
       "src/support/prompt-generation/utils/test-data/**/*",
       "src/support/enzyme-helper/test-data/**/*"
     ]

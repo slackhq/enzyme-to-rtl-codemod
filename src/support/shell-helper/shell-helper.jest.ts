@@ -1,4 +1,4 @@
-import { runCommand, ShellProcess } from './shell-helper'; // Replace with the actual path to your file
+import { runCommand } from './shell-helper';
 
 describe('runCommand Integration Test', () => {
     it('should execute "echo hello" command and return the output', async () => {
@@ -26,7 +26,7 @@ describe('runCommand Integration Test', () => {
 
     // Not enabling to avoid long running test
     it.skip('should kill the process if it runs longer than the allowed time', async () => {
-        const command = 'sleep 30';
+        const command = 'sleep 302';
         try {
             await runCommand(command);
         } catch (error) {

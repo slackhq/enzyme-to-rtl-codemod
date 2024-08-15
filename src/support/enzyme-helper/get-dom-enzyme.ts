@@ -2,7 +2,7 @@ import fs from 'fs';
 import { Config } from '@jest/types';
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
-import createCustomLogger from '../logger/logger';
+import { createCustomLogger } from '../logger/logger';
 import { promisify } from 'util';
 import path from 'path';
 
@@ -46,7 +46,8 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
 
     // Run tests with jest api directly
     // 'jest.config.js' -- TODO: add to config and expose api to set it
-    await runJestDirectly(filePathWithEnzymeAdapter, 'jest.config.js');
+    // const jestConfigPath = getConfigProperty('jestConfigPath');
+    // await runJestDirectly(filePathWithEnzymeAdapter, jestConfigPath);
 
     // Return output
     getDomEnzymeLogger.verbose('Get DOM tree output');
@@ -307,15 +308,25 @@ export const runJestDirectly = async (
             process.cwd(),
             testFilePath,
         );
+        getDomEnzymeLogger.verbose(
+            `Created path to Enzyme file to run "${filePathWithEnzymeAdapter}"`,
+        );
 
         // Create path to jest config file in host project
         const jestConfigPathAbsolute = path.join(process.cwd(), jestConfigPath);
+        getDomEnzymeLogger.verbose(
+            `Created path to jest config "${jestConfigPathAbsolute}"`,
+        );
 
         // Automatically use the current working directory as the host project root
         const hostProjectRoot = process.cwd();
+        getDomEnzymeLogger.verbose(
+            `Set host project root "${hostProjectRoot}"`,
+        );
 
         // Resolve the Jest CLI module from the host project's node_modules
         const jestPath = require.resolve('jest', { paths: [hostProjectRoot] });
+        getDomEnzymeLogger.verbose(`Resolved jest path "${jestPath}"`);
 
         // Import the Jest CLI from the resolved path
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -335,9 +346,14 @@ export const runJestDirectly = async (
             silent: true, // Suppress output unless there's an error
             testMatch: [filePathWithEnzymeAdapter], // Match the specific test file
         };
+        getDomEnzymeLogger.verbose(`Collected config "${options}"`);
 
         // Execute Jest tests using the host project's configuration
+        getDomEnzymeLogger.verbose('Running jest tests with jest api directly');
         await promisify(runCLI)(options, [hostProjectRoot]);
+        getDomEnzymeLogger.verbose(
+            'Finished running jest tests with jest api directly',
+        );
 
         // TODO: return const {results} = ... and check that tests passed, if needed
         // return results;

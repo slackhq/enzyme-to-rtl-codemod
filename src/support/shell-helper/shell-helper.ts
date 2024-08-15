@@ -1,8 +1,4 @@
-/* eslint-disable no-console */
 import * as child from 'child_process';
-import { promisify } from 'util';
-
-const sleep = promisify(setTimeout);
 
 /**
  * Shell process type
@@ -63,7 +59,6 @@ export const runCommand = (command: string): Promise<ShellProcess> => {
         // Collect error output
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         childProcess.stderr.on('data', (data: any) => {
-            console.log('workign....');
             shell.stderr += data.toString();
         });
 
@@ -82,8 +77,7 @@ export const runCommand = (command: string): Promise<ShellProcess> => {
         // Race between process completion and timeout
         const timeoutTime = 180000;
         const timeout = setTimeout(() => {
-            console.log('Process took too long, killing it...');
-            shell.process.kill(); // Kill the process
+            shell.process.kill();
             reject(
                 new Error(
                     `Failed to finish after ${timeoutTime / 1000 / 60} minutes`,

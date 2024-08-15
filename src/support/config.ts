@@ -3,7 +3,10 @@ import fs from 'fs';
 import { config as winstonConfig } from 'winston';
 // TODO: move count test case to generic utils maybe
 import { countTestCases } from './prompt-generation/utils/utils';
-import createCustomLogger from './logger/logger';
+import {
+    createCustomLogger,
+    updateLogLevelForAllLoggers,
+} from './logger/logger';
 
 export const configLogger = createCustomLogger('Config');
 
@@ -46,6 +49,8 @@ const config: Config = {
 export const configureLogLevel = (logLevel: LogLevel): void => {
     configLogger.info(`Set log level to ${logLevel}`);
     process.env.LOG_LEVEL = logLevel as string;
+    // Update the global log level and all loggers
+    updateLogLevelForAllLoggers(logLevel as string);
 };
 
 /**
@@ -53,7 +58,7 @@ export const configureLogLevel = (logLevel: LogLevel): void => {
  * @param newJestBinaryPath
  */
 export const setJestBinaryPath = (newJestBinaryPath: string): void => {
-    configLogger.info(`Set jest binary path to ${newJestBinaryPath}`);
+    configLogger.info(`Set jest binary path to "${newJestBinaryPath}"`);
     config.jestBinaryPath = newJestBinaryPath;
 };
 
@@ -62,7 +67,7 @@ export const setJestBinaryPath = (newJestBinaryPath: string): void => {
  * @param newOutputResultsPath
  */
 export const setOutputResultsPath = (newOutputResultsPath: string): void => {
-    configLogger.info(`Set output results path to ${newOutputResultsPath}`);
+    configLogger.info(`Set output results path to "${newOutputResultsPath}"`);
     config.outputResultsPath = path.resolve(newOutputResultsPath);
 };
 
@@ -85,10 +90,11 @@ export const checkConfiguration = (filePath: string): void => {
         if (importStatementRegex.test(fileContent)) {
             configLogger.verbose(`Found tests in ${filePath}`);
             config.enzymeImportsPresent = true;
+        } else {
+            configLogger.warn(
+                'Enzyme file provided does not have any tests. Cannot collect DOM tree for tests',
+            );
         }
-        configLogger.warn(
-            'Enzyme file provided does not have any tests. Cannot collect DOM tree for tests',
-        );
     }
 
     // Check if jestBinaryPath is set and can be found

@@ -14,8 +14,7 @@ import {
 
 /**
  * TODO:
- * 2. Promisify node process in shell helper (?)
- * 7. Figure out if Provider with test store needs to be passed in
+ * 1. Figure out if Provider with test store needs to be passed in
  */
 // Export configuration methods
 export { setJestBinaryPath, setOutputResultsPath, configureLogLevel };

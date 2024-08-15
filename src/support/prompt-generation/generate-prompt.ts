@@ -1,5 +1,5 @@
 import fs from 'fs';
-import createCustomLogger from '../logger/logger';
+import { createCustomLogger } from '../logger/logger';
 import { countTestCases } from './utils/utils';
 
 export const promptLogger = createCustomLogger('Prompt');

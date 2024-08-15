@@ -1,7 +1,7 @@
 import fs from 'fs';
 import * as getDomEnzyme from './get-dom-enzyme';
 import { getConfigProperty } from '../config';
-import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
+import { runCommand } from '../shell-helper/shell-helper';
 
 // Mocks
 jest.mock('fs');

@@ -1,4 +1,4 @@
-import createCustomLogger from './logger';
+import { createCustomLogger } from './logger';
 
 describe('createCustomLogger', () => {
     it('should use the default log level info', () => {
@@ -14,4 +14,6 @@ describe('createCustomLogger', () => {
         logger.info('Test log');
         expect(spyInfo).toHaveBeenNthCalledWith(1, 'Test log');
     });
+
+    // TODO: add more tests for the new logger factory
 });

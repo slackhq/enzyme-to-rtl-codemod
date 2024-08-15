@@ -2,7 +2,7 @@ import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
-import createCustomLogger from '../logger/logger';
+import { createCustomLogger } from '../logger/logger';
 
 export const testAnalysisLogger = createCustomLogger('Test Analysis');
 
@@ -77,7 +77,9 @@ export const runTestAndAnalyzeFile = async (
     }
     testAnalysisLogger.info('Extracting test results');
     const detailedResult = extractTestResults(result.testrunLogs);
-    testAnalysisLogger.info(`Detailed result: ${detailedResult}`);
+    testAnalysisLogger.info(
+        `Detailed result: ${JSON.stringify(detailedResult)}`,
+    );
 
     testAnalysisLogger.info('Done: Run RTL test and analyze results');
 

@@ -154,9 +154,6 @@ const suggestByMethod = (
         case 'name':
             suggestion += `Use screen.getByRole to find elements by their role ${wrapperMethodArgs}.`;
             break;
-        case 'debug':
-            suggestion += 'Use screen.debug() to print the DOM structure.';
-            break;
         case 'getElement':
             suggestion += `Use screen.getBy... or screen.queryBy... to access the element directly. Consider checking for ${wrapperMethodArgs}.`;
             break;

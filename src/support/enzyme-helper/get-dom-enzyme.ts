@@ -21,8 +21,6 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
         getDomEnzymeLogger.warn(
             'No Enzyme imports present. Cannot collect logs. Continue...',
         );
-        // TODO: when testing. Check what the best return string should be
-        // Maybe return null and do not include this as part of the prompt
         return 'Could not collect DOM for test cases. Proceed without DOM';
     }
 
@@ -39,15 +37,9 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
     getDomEnzymeLogger.verbose('Overwrite enzyme shallow/mount import methods');
     await overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter);
 
-    // TODO: test if we can use jest api's directly
     // Run tests with child process
     getDomEnzymeLogger.verbose('Run Enzyme jest test to collect DOM');
     await runJestInChildProcess(filePathWithEnzymeAdapter);
-
-    // Run tests with jest api directly
-    // 'jest.config.js' -- TODO: add to config and expose api to set it
-    // const jestConfigPath = getConfigProperty('jestConfigPath');
-    // await runJestDirectly(filePathWithEnzymeAdapter, jestConfigPath);
 
     // Return output
     getDomEnzymeLogger.verbose('Get DOM tree output');
@@ -292,7 +284,6 @@ export const { shallow, mount } = enzyme;
     return enzymeRenderAdapterCodeJS;
 };
 
-// TODO: test on a different repo to make sure this works
 /**
  * Run tests with jest api's directly
  * @param testFilePath
@@ -361,8 +352,3 @@ export const runJestDirectly = async (
         getDomEnzymeLogger.warn(`Could not run Enzyme tests.\nError: ${error}`);
     }
 };
-
-// const result = runJestDirectly(
-//     'src/support/enzyme-helper/enzyme-working-file.jest.tsx',
-//     'jest.config.js',
-// );

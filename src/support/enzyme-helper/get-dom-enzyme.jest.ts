@@ -17,6 +17,8 @@ const {
     runJestDirectly,
     runJestInChildProcess,
     getDomTreeOutputFromFile,
+    getReactCompDom,
+    getDomEnzymeLogger,
 } = getDomEnzyme;
 
 describe('overwriteEnzymeMounts', () => {
@@ -186,5 +188,76 @@ describe('runJestDirectly', () => {
             'jest.config.js',
         );
         console.log('result:', output);
+    });
+});
+
+describe('getReactCompDom', () => {
+    const filePath = 'testFile.js';
+    const domTreeOutput = '<div>Mock DOM Tree</div>';
+
+    beforeEach(() => {
+        jest.resetAllMocks();
+    });
+
+    it('should return a warning message when Enzyme imports are not present', async () => {
+        const spyWarn = jest.spyOn(getDomEnzymeLogger, 'warn');
+
+        // Mock config props
+        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
+            typeof getConfigProperty
+        >;
+
+        getConfigPropertyMock.mockReturnValue('');
+
+        // Run the method
+        const result = await getReactCompDom(filePath);
+
+        // Assert
+        expect(result).toBe(
+            'Could not collect DOM for test cases. Proceed without DOM',
+        );
+        expect(spyWarn).toHaveBeenCalledWith(
+            'No Enzyme imports present. Cannot collect logs. Continue...',
+        );
+    });
+
+    it('should proceed with collecting DOM when Enzyme imports are present', async () => {
+        // Mock getConfigProperty to return true for enzymeImportsPresent and mock other properties
+        (getConfigProperty as jest.Mock).mockImplementation((property) => {
+            if (property === 'enzymeImportsPresent') return true;
+            if (property === 'filePathWithEnzymeAdapter')
+                return 'testFileWithAdapter.js';
+            return '';
+        });
+
+        // Spy on functions
+        const createEnzymeAdapterMock = jest.spyOn(
+            getDomEnzyme,
+            'createEnzymeAdapter',
+        );
+        const overwriteEnzymeMountsMock = jest
+            .spyOn(getDomEnzyme, 'overwriteEnzymeMounts')
+            .mockResolvedValue();
+        const runJestInChildProcessMock = jest
+            .spyOn(getDomEnzyme, 'runJestInChildProcess')
+            .mockResolvedValue();
+        const getDomTreeOutputFromFileMock = jest
+            .spyOn(getDomEnzyme, 'getDomTreeOutputFromFile')
+            .mockReturnValue(domTreeOutput);
+
+        // Run the method
+        const result = await getReactCompDom(filePath);
+
+        // Assert
+        expect(result).toBe(domTreeOutput);
+        expect(createEnzymeAdapterMock).toHaveBeenCalled();
+        expect(overwriteEnzymeMountsMock).toHaveBeenCalledWith(
+            filePath,
+            'testFileWithAdapter.js',
+        );
+        expect(runJestInChildProcessMock).toHaveBeenCalledWith(
+            'testFileWithAdapter.js',
+        );
+        expect(getDomTreeOutputFromFileMock).toHaveBeenCalled();
     });
 });

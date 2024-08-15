@@ -88,7 +88,6 @@ export const convertMountShallowVars = (
         varsRenderRefs.push(left.name);
 
         // Remove variable declaration
-        // TODO: test on more examples
         root.find(j.VariableDeclarator, {
             id: { name: left.name },
         }).remove();
@@ -140,7 +139,6 @@ export const convertMountShallowVars = (
 
         /**
          * Find the cases where the const is an object deconstruction
-         * TODO: find the example for this one. Not sure where this one applies
          */
         astLogger.verbose(
             `Query for VariableDeclaration with deconstructed object with ${renderFunction}`,

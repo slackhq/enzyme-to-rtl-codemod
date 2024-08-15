@@ -8,7 +8,6 @@ import type { ASTPath } from 'jscodeshift';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addComment = (currentPath: ASTPath, comment: string): void => {
     // Get needed parent node
-    // TODO: check on more Enzyme files
     const commonTopLevelNodeTypes = [
         'VariableDeclaration',
         'ExpressionStatement',

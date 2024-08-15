@@ -1,4 +1,4 @@
-import { createCustomLogger } from './logger';
+import { createCustomLogger, updateLogLevelForAllLoggers } from './logger';
 
 describe('createCustomLogger', () => {
     it('should use the default log level info', () => {
@@ -15,5 +15,29 @@ describe('createCustomLogger', () => {
         expect(spyInfo).toHaveBeenNthCalledWith(1, 'Test log');
     });
 
-    // TODO: add more tests for the new logger factory
+    it('should silence the logger in test environment', () => {
+        const label = 'test-label';
+        const logger = createCustomLogger(label);
+
+        expect(logger.silent).toBe(true);
+    });
+
+    it('should not silence the logger in non-test environments', () => {
+        process.env.NODE_ENV = 'production';
+        const label = 'test-label';
+        const logger = createCustomLogger(label);
+        expect(logger.silent).toBe(false);
+    });
+});
+
+describe('updateLogLevelForAllLoggers', () => {
+    it('should update the log level for all loggers', () => {
+        const logger1 = createCustomLogger('logger1');
+        const logger2 = createCustomLogger('logger2');
+
+        updateLogLevelForAllLoggers('verbose');
+
+        expect(logger1.level).toBe('verbose');
+        expect(logger2.level).toBe('verbose');
+    });
 });

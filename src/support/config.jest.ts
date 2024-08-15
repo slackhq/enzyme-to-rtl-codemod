@@ -92,7 +92,7 @@ describe('Configuration Functions', () => {
         });
 
         it.skip('should throw an error if Jest binary path is set but jest is not installed', () => {
-            // TODO: figure out how to mock this
+            // Cannot mock
             jest.doMock('jest', () => {
                 throw new Error('Module not found');
             });
@@ -130,7 +130,7 @@ describe('Configuration Functions', () => {
         });
 
         it.skip('should throw an error if jscodeshift is not installed', () => {
-            // TODO: figure out how to mock this
+            // Cannot mock
             jest.doMock('jscodeshift', () => {
                 throw new Error('Module not found');
             });
@@ -145,7 +145,7 @@ describe('Configuration Functions', () => {
             setOutputResultsPath('output/path');
             (fs.existsSync as jest.Mock).mockReturnValue(true);
 
-            // TODO: figure out how to mock this
+            // Cannot mock
             jest.doMock('enzyme', () => {
                 throw new Error('Module not found');
             });

@@ -113,6 +113,4 @@ describe('convertMountShallowCalls', () => {
 		`;
         transformAndExpect(source, expectedText, 'mountComponent');
     });
-
-    it.todo('many different calls in the same file');
 });

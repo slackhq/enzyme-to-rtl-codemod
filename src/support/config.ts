@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs';
 import { config as winstonConfig } from 'winston';
-// TODO: move count test case to generic utils maybe
 import { countTestCases } from './prompt-generation/utils/utils';
 import {
     createCustomLogger,
@@ -108,7 +107,6 @@ export const checkConfiguration = (filePath: string): void => {
         );
     } else {
         // Check if jest installed
-        // TODO: maybe actually run it to check
         try {
             configLogger.verbose('Check if jest exists and can be resolved');
             require.resolve('jest');

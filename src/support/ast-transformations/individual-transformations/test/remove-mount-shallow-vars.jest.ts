@@ -71,8 +71,4 @@ describe('convertMountShallowVars', () => {
             'mountedComponent',
         ]);
     });
-
-    it.todo(
-        'should handle destructured variable declaration with abstracted function call',
-    );
 });

@@ -1,5 +1,3 @@
-# Ignore test data in AST transformations utils
 src/support/ast-transformations/utils/test-data/
-
-# Ignore test data in prompt generation utils
 src/support/prompt-generation/utils/test-data/
+src/support/enzyme-helper/test-data/

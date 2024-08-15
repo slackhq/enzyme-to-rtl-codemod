@@ -1,2 +1,3 @@
 src/support/ast-transformations/utils/test-data/*
 src/support/prompt-generation/utils/test-data/*
+src/support/enzyme-helper/test-data/*

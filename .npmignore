@@ -1,5 +1,5 @@
-src/
 node_modules/
-dist/
+src/
 .gitignore
-README.md
+temp/
+coverage/

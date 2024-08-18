@@ -53,10 +53,10 @@ describe('convertText', () => {
 
         // Verify a part of the abosolute path is present for both imports
         expect(transformedSource).toContain(
-            'src/enzyme-to-rtl-codemod/src/support/ast-transformations/utils/add-comment',
+            'enzyme-to-rtl-codemod/src/support/ast-transformations/utils/add-comment',
         );
         expect(transformedSource).toContain(
-            'src/enzyme-to-rtl-codemod/src/support/prompt-generation/utils/utils',
+            'enzyme-to-rtl-codemod/src/support/prompt-generation/utils/utils',
         );
     });
 });

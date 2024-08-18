@@ -6,14 +6,20 @@
 
 import type { Collection, JSCodeshift, ImportDeclaration } from 'jscodeshift';
 import { astLogger } from '../utils/ast-logger';
+import path from 'path';
 
 /**
- * Transforms the provided AST by converting all Enzyme imports to RTL imports.
- * @param j - JSCodeshift library
- * @param root - The root AST node
- * @returns {void} - The function does not return a value but mutates the AST directly.
+ *  Transforms the provided AST by converting all Enzyme imports to RTL imports.
+ *  - transform relative imports
+ * @param j
+ * @param root
+ * @param enzymeFilePath
  */
-export const convertImports = (j: JSCodeshift, root: Collection): void => {
+export const convertImports = (
+    j: JSCodeshift,
+    root: Collection,
+    enzymeFilePath: string,
+): void => {
     // Find all import declarations matching `import { shallow } from 'enzyme';`
     astLogger.verbose('Query for enzyme import declarations');
     const enzymeImportDeclaration = root.find(j.ImportDeclaration, {
@@ -52,5 +58,29 @@ export const convertImports = (j: JSCodeshift, root: Collection): void => {
     fileTopNode.replaceWith((path) => {
         path.node.body.unshift(newImportDeclaration);
         return path.node;
+    });
+
+    // Deal with relative imports
+    astLogger.verbose('Update relative import paths');
+    root.find(j.ImportDeclaration).forEach((astPath) => {
+        const importPath = astPath.node.source.value as string;
+
+        if (importPath.startsWith('.')) {
+            const rootFolder = process.cwd();
+
+            // Get the absolute path of the enzyme file in host project
+            const absoluteEnzymeFilePath = path.resolve(
+                rootFolder,
+                enzymeFilePath,
+            );
+
+            // Get the directory containing the current file
+            const absoluteSrcDir = path.dirname(absoluteEnzymeFilePath);
+
+            // Resolve the import path relative to the current file's directory
+            const absoluteImportPath = path.resolve(absoluteSrcDir, importPath);
+            astPath.node.source.value = absoluteImportPath;
+            astLogger.verbose(`Changed ${importPath} to ${absoluteImportPath}`);
+        }
     });
 };

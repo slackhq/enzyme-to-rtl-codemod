@@ -1,7 +1,5 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import Component from '../components/..';
-
 
 describe('Test suite', () => {
 	
@@ -32,3 +30,11 @@ describe('Test suite', () => {
 		);
 	}
 });
+
+const Component = () => (
+    <div>
+        <h1>Hello, World!</h1>
+        <div className="DashboardCard">Card 1</div>
+        <button className="clickMe">Click Me</button>
+    </div>
+);

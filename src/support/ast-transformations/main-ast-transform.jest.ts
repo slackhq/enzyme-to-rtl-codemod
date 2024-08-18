@@ -7,7 +7,7 @@ jest.mock('./utils/ast-logger');
 describe('main AST transform method', () => {
     const testId = 'data-id';
 
-    it.only('should transform a tsx file with all conversion patterns for a real enzyme file', () => {
+    it('should transform a tsx file with all conversion patterns for a real enzyme file', () => {
         const inputFilePath =
             'src/support/ast-transformations/utils/test-data/ast-conversion-test-file.jest.tsx';
         const expectedFilePath =

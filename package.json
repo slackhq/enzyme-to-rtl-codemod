@@ -26,7 +26,7 @@
   },
   "peerDependencies": {
     "enzyme": "3.11.0",
-    "jest": "^27.0.0"
+    "jest": ">=27.0.0"
   },
   "devDependencies": {
     "@types/enzyme": "3.10.18",

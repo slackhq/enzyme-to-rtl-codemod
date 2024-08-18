@@ -1,7 +1,6 @@
 import React from 'react';
 import { configure, mount } from 'enzyme';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
-import DummyComponent from './dummy-component';
 
 configure({ adapter: new Adapter() });
 
@@ -33,3 +32,11 @@ describe('Example test suite', () => {
         expect(dashboardCards.exists()).toBe(true);
     });
 });
+
+const DummyComponent = () => (
+    <div>
+        <h1>Hello, World!</h1>
+        <div className="DashboardCard">Card 1</div>
+        <button className="clickMe">Click Me</button>
+    </div>
+);

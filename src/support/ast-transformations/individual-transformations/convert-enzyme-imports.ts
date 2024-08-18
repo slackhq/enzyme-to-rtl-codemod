@@ -9,12 +9,6 @@ import { astLogger } from '../utils/ast-logger';
 import path from 'path';
 
 /**
- * Transforms the provided AST by converting all Enzyme imports to RTL imports.
- * @param j - JSCodeshift library
- * @param root - The root AST node
- * @returns {void} - The function does not return a value but mutates the AST directly.
- */
-/**
  *  Transforms the provided AST by converting all Enzyme imports to RTL imports.
  *  - transform relative imports
  * @param j

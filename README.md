@@ -28,7 +28,7 @@ This package exports the following:
 ```ts
 configureLogLevel('verbose');
 ```
-2. `setJestBinaryPath` - set the path to the executable binary for jest, e.g. `npm jest` or `yarn jest`
+2. `setJestBinaryPath` - set the path to the executable binary for jest, e.g. `npm jest`, `yarn jest` or `npx jest` that would allow to run a single test with that command in your host project, e.g. `npm jest <SingeEnzymeFilePath>`
 ```ts
 setJestBinaryPath('yarn jest');
 ```
@@ -139,7 +139,6 @@ convertTestFile(
 # Testing:
 ## locally:
 1. bump the version in package.json
-1. comment out /dist in npmignore
 1. `npm run build`
 1. `npm pack`
 1. install in your host project with `npm install <path_to_tar_file>`

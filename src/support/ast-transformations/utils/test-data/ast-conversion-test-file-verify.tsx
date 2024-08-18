@@ -2,7 +2,6 @@ import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import React from 'react';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
-import DummyComponent from './dummy-component';
 
 configure({ adapter: new Adapter() });
 
@@ -36,3 +35,11 @@ describe('Example test suite', () => {
         expect(dashboardCards).toBeInTheDocument();
     });
 });
+
+const DummyComponent = () => (
+    <div>
+        <h1>Hello, World!</h1>
+        <div className="DashboardCard">Card 1</div>
+        <button className="clickMe">Click Me</button>
+    </div>
+);

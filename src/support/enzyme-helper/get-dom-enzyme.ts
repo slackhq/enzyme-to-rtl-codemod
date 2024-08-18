@@ -1,12 +1,11 @@
 import fs from 'fs';
-import { Config } from '@jest/types';
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import { createCustomLogger } from '../logger/logger';
-import { promisify } from 'util';
-import path from 'path';
 
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
+
+// TODO: test_case_title on a new line in csv, right now it's in one line
 
 /**
  * Get React component DOM for test cases
@@ -82,6 +81,7 @@ export const overwriteEnzymeMounts = async (
     }
 };
 
+// TODO: check if host project has React 16 or React 17. If 17 add adaptor, if 16 do not add adaptor
 /**
  * Create Enzyme adapter with overwritten mount/shallow methods that collect DOM in each test case
  */

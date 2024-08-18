@@ -31,9 +31,9 @@ export const mainASTtransform = (filePath: string, testId: string): string => {
 
     const root = j(source);
 
-    // Convert enzyme imports
+    // Convert Enzyme and relative imports
     astLogger.verbose('Convert imports');
-    convertImports(j, root);
+    convertImports(j, root, filePath);
 
     /**
      * Convert mount and shallow to render

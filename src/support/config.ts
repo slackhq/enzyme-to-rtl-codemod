@@ -121,7 +121,7 @@ export const checkConfiguration = (filePath: string): void => {
     }
 
     // Check outputResultsPath is set and exists
-    configLogger.verbose('Check if jest exists and can be resolved');
+    configLogger.verbose('Check if outputResultsPath is set');
     if (!config.outputResultsPath) {
         configLogger.error(
             'Output results path is not set. Please use setOutputResultsPath to set it.',

@@ -1,6 +1,4 @@
 import React from 'react';
-import Component from '../components/..';
-import { renderComponent } from '../enzyme-helper/..';
 
 describe('Test suite', () => {
     it('renders the component', () => {

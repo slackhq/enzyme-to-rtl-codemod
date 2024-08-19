@@ -114,7 +114,6 @@ export const overwriteRelativeImports = (
     return convertedRelativeImportsCode;
 };
 
-// TODO: check if host project has React 16 or React 17. If 17 add adaptor, if 16 do not add adaptor
 // TODO: install RTL with correct version based on React version installed - @testing-library/react@12.1.5 for React 17^; 10.4.9 for React 16
 /**
  * Create Enzyme adapter with overwritten mount/shallow methods that collect DOM in each test case
@@ -198,15 +197,31 @@ export const getDomTreeOutputFromFile = (): string => {
 export const getenzymeRenderAdapterCode = (
     collectedDomTreeFilePath: string,
 ): string => {
+    const reactVersion = getConfigProperty('reactVersion');
+    let adapterCode = '';
+
+    if (reactVersion === 16) {
+        adapterCode = `
+import Adapter from 'enzyme-adapter-react-16';
+enzyme.configure({ adapter: new Adapter() });
+`;
+    } else if (reactVersion === 17) {
+        adapterCode = `
+import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
+enzyme.configure({ adapter: new Adapter() });
+`;
+    } else {
+        adapterCode = `// No Enzyme adapter configured for React version: ${reactVersion}`;
+    }
+
     // TODO: if file is in ts use TS adapter. If not, use JS
     const enzymeRenderAdapterCodeJS = `
 // Import original methods
 import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import fs from 'fs';
 
 // Set up Enzyme with the adapter
-enzyme.configure({ adapter: new Adapter() });
+${adapterCode}
 
 let currentTestCaseName = null;
 

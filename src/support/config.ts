@@ -24,6 +24,7 @@ interface Config {
     enzymeMountAdapterFilePath: string;
     filePathWithEnzymeAdapter: string;
     enzymeImportsPresent: boolean;
+    reactVersion: number;
 }
 
 const config: Config = {
@@ -38,6 +39,7 @@ const config: Config = {
     enzymeMountAdapterFilePath: '',
     filePathWithEnzymeAdapter: '',
     enzymeImportsPresent: false,
+    reactVersion: 17,
 };
 
 /**
@@ -167,6 +169,15 @@ export const checkConfiguration = (filePath: string): void => {
         );
     }
 
+    // Check React version
+    configLogger.verbose('Check enzyme version');
+    const reactVersion = getReactVersion();
+    if (!reactVersion) {
+        configLogger.warn(
+            `Could not get react version from package.json. Defaulting to ${config.reactVersion}`,
+        );
+    }
+
     configLogger.info('Starting conversion from Enzyme to RTL');
     configLogger.info(`Jest binary path: ${config.jestBinaryPath}`);
     configLogger.info(`Results folder path: ${config.outputResultsPath}`);
@@ -224,4 +235,31 @@ const extractFileDetails = (
     );
 
     return { fileTitle, fileExtension };
+};
+
+/**
+ * Get React version from package.json
+ * @returns
+ */
+export const getReactVersion = (): number | null => {
+    try {
+        const packageJsonPath = path.resolve(process.cwd(), 'package.json');
+        const packageJson = JSON.parse(
+            fs.readFileSync(packageJsonPath, 'utf-8'),
+        );
+        const reactVersion =
+            packageJson.dependencies.react ||
+            packageJson.devDependencies.react ||
+            null;
+
+        if (reactVersion) {
+            // Extract the main version number (e.g., "16" from "^16.8.0", "~16.8.0", etc.)
+            const versionMatch = reactVersion.match(/^\D*(\d+)\./);
+            const version = parseInt(versionMatch[1], 10);
+            return versionMatch ? version : null;
+        }
+        return null;
+    } catch (error) {
+        return null;
+    }
 };

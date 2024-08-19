@@ -92,14 +92,27 @@ describe('overwriteRelativeImports', () => {
 });
 
 describe('getenzymeRenderAdapterCode', () => {
-    const collectedDomTreeFilePath = 'path/to/test.js';
-
     it('should generate JS adapter code when the file is a JS file', () => {
+        const collectedDomTreeFilePath = 'path/to/test.js';
+
+        // Mock config props
+        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
+            typeof getConfigProperty
+        >;
+        getConfigPropertyMock.mockReturnValue(16);
+
         const actualCode = getenzymeRenderAdapterCode(collectedDomTreeFilePath);
+        console.log('actualCode:', actualCode);
         expect(actualCode).toContain(
             "import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';",
         );
         expect(actualCode).toContain(collectedDomTreeFilePath);
+        expect(actualCode).toContain(
+            "import Adapter from 'enzyme-adapter-react-16';",
+        );
+        expect(actualCode).toContain(
+            'enzyme.configure({ adapter: new Adapter() });',
+        );
     });
 });
 

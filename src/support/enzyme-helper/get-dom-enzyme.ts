@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { runCommand } from '../shell-helper/shell-helper';
+import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import { createCustomLogger } from '../logger/logger';
 import jscodeshift from 'jscodeshift';
@@ -55,13 +55,23 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
 
     // Run tests with child process
     getDomEnzymeLogger.verbose('Run Enzyme jest test to collect DOM');
-    await runJestInChildProcess(filePathWithEnzymeAdapter);
-
-    // TODO: check if the file ran or not
+    const jestRunProcess = await runJestInChildProcess(
+        filePathWithEnzymeAdapter,
+    );
 
     // Return output
     getDomEnzymeLogger.verbose('Get DOM tree output');
     const domTreeOutput = getDomTreeOutputFromFile();
+
+    // Check if jest ran successfully and share the logs
+    if (
+        domTreeOutput ===
+        'Could not collect DOM for test cases. Proceed without DOM'
+    ) {
+        getDomEnzymeLogger.warn(
+            `Check the output for the jest run: ${jestRunProcess}`,
+        );
+    }
 
     getDomEnzymeLogger.info('Done: getting rendered component code');
     return domTreeOutput;
@@ -149,19 +159,21 @@ export const createEnzymeAdapter = (): void => {
  */
 export const runJestInChildProcess = async (
     filePathWithEnzymeAdapter: string,
-): Promise<void> => {
+): Promise<string | null> => {
     getDomEnzymeLogger.verbose('Generate jest command');
     const jestCommand = `${getConfigProperty('jestBinaryPath')} ${filePathWithEnzymeAdapter}`;
     try {
         getDomEnzymeLogger.verbose(
             `Run jest file with command: ${jestCommand}`,
         );
-        await runCommand(jestCommand);
+        const commandRunProcess = await runCommand(jestCommand);
+        return commandRunProcess.output;
     } catch (error) {
         getDomEnzymeLogger.warn(
             `Could not run jest command command: ${jestCommand}`,
         );
         getDomEnzymeLogger.warn(`Error: ${error}`);
+        return null;
     }
 };
 

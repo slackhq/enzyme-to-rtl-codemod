@@ -14,6 +14,7 @@ describe('convertText', () => {
             import { addComment } from '../../utils/add-comment';
             import { countTestCases } from '../../../prompt-generation/utils/utils';
             import { anotherMethod } from '@aliasLocation/utils'
+            import { shallow } from './enzyme-mount-adapter';
         `;
 
         // Transform the source code
@@ -39,6 +40,10 @@ describe('convertText', () => {
         );
         expect(transformedSource).toContain(
             'enzyme-to-rtl-codemod/src/support/prompt-generation/utils/utils',
+        );
+        // Verify custom enzyme adapter is not converted
+        expect(transformedSource).toContain(
+            "import { shallow } from './enzyme-mount-adapter';",
         );
     });
 });

@@ -24,7 +24,10 @@ export const convertRelativeImports = (
     root.find(j.ImportDeclaration).forEach((astPath) => {
         const importPath = astPath.node.source.value as string;
 
-        if (importPath.startsWith('.')) {
+        if (
+            importPath.startsWith('.') &&
+            !importPath.includes('./enzyme-mount-adapter')
+        ) {
             const rootFolder = process.cwd();
 
             // Get the absolute path of the enzyme file in host project

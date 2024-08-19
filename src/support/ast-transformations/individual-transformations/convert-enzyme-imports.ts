@@ -15,6 +15,7 @@ import { astLogger } from '../utils/ast-logger';
 export const convertEnzymeImports = (
     j: JSCodeshift,
     root: Collection,
+    testId: string,
 ): void => {
     // Find all import declarations matching `import { shallow } from 'enzyme';`
     astLogger.verbose('Query for enzyme import declarations');
@@ -47,12 +48,51 @@ export const convertEnzymeImports = (
     }
 
     // Get the top file node
-    const fileTopNode = root.find(j.Program);
+    let fileTopNode = root.find(j.Program);
 
-    // Add the new import
+    // Add RTL imports
     astLogger.verbose('Add RTL import');
     fileTopNode.replaceWith((path) => {
         path.node.body.unshift(newImportDeclaration);
+        return path.node;
+    });
+
+    // Create import '@testing-library/jest-dom';
+    const jestDomImport = j.importDeclaration(
+        [],
+        j.literal('@testing-library/jest-dom'),
+    );
+
+    // Create import { configure } from '@testing-library/dom';
+    const configureImport = j.importDeclaration(
+        [j.importSpecifier(j.identifier('configure'))],
+        j.literal('@testing-library/dom'),
+    );
+
+    // Create configure({ testIdAttribute: 'test-id' });
+    const configureCall = j.expressionStatement(
+        j.callExpression(j.identifier('configure'), [
+            j.objectExpression([
+                j.property(
+                    'init',
+                    j.identifier('testIdAttribute'),
+                    j.literal(testId),
+                ),
+            ]),
+        ]),
+    );
+
+    // Get the top of the file to insert the new imports and configuration
+    fileTopNode = root.find(j.Program);
+
+    // Insert the statements in the correct order
+    astLogger.verbose(
+        'Inserting @testing-library/jest-dom, configure import, and configure call',
+    );
+    fileTopNode.replaceWith((path) => {
+        path.node.body.unshift(configureCall);
+        path.node.body.unshift(configureImport);
+        path.node.body.unshift(jestDomImport);
         return path.node;
     });
 };

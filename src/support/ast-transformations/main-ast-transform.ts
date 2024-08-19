@@ -3,7 +3,8 @@ import jscodeshift from 'jscodeshift';
 import { convertExists } from './individual-transformations/convert-exists';
 import { convertFind } from './individual-transformations/convert-find';
 import { convertHostNodes } from './individual-transformations/remove-enzyme-hostNodes-method';
-import { convertImports } from './individual-transformations/convert-enzyme-imports';
+import { convertEnzymeImports } from './individual-transformations/convert-enzyme-imports';
+import { convertRelativeImports } from './individual-transformations/convert-relative-imports';
 import { convertMountShallowMethods } from './individual-transformations/convert-mount-shallow-methods';
 import { convertMountShallowVars } from './individual-transformations/convert-mount-shallow-vars';
 import { convertSimulate } from './individual-transformations/convert-simulate';
@@ -31,9 +32,13 @@ export const mainASTtransform = (filePath: string, testId: string): string => {
 
     const root = j(source);
 
-    // Convert Enzyme and relative imports
-    astLogger.verbose('Convert imports');
-    convertImports(j, root, filePath);
+    // Convert Enzyme imports
+    astLogger.verbose('Convert Enzyme imports');
+    convertEnzymeImports(j, root);
+
+    // Convert relative imports
+    astLogger.verbose('Convert relatvie imports');
+    convertRelativeImports(j, root, filePath);
 
     /**
      * Convert mount and shallow to render

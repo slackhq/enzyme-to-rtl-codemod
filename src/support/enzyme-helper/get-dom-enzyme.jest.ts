@@ -18,20 +18,27 @@ const {
     getDomTreeOutputFromFile,
     getReactCompDom,
     getDomEnzymeLogger,
+    overwriteRelativeImports,
 } = getDomEnzyme;
 
 describe('overwriteEnzymeMounts', () => {
     const filePath = 'testFile.js';
-    const filePathWithEnzymeAdapter = 'testFileWithAdapter.js';
 
     beforeEach(() => {
         jest.resetAllMocks();
     });
 
-    it('should replace the import statement correctly', async () => {
-        const fileContent = "import { mount } from 'enzyme';\nconst a = 1;";
-        const expectedContent =
-            "import { mount, shallow } from './enzyme-mount-adapter';\nconst a = 1;";
+    it('should replace enzyme import statement correctly', () => {
+        const fileContent = `
+            import { mount } from 'enzyme';
+            const a = 1;
+            import { method } from '../utils/utils-test'
+            `;
+        const expectedContent = `
+            import { mount, shallow } from './enzyme-mount-adapter';
+            const a = 1;
+            import { method } from '../utils/utils-test'
+            `;
 
         // Mock readFileSync to return the file content
         (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
@@ -39,36 +46,48 @@ describe('overwriteEnzymeMounts', () => {
         // Mock writeFileSync
         (fs.writeFileSync as jest.Mock).mockImplementation();
 
-        await overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter);
+        const result = overwriteEnzymeMounts(filePath);
 
         // Check if readFileSync was called with the correct file path
         expect(fs.readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
 
-        // Check if writeFileSync was called with the correct arguments
-        expect(fs.writeFileSync).toHaveBeenCalledWith(
-            filePathWithEnzymeAdapter,
-            expectedContent,
-            'utf-8',
-        );
+        // Check output
+        expect(result).toEqual(expectedContent);
     });
 
-    it('should not match and write file', async () => {
+    it('should not match and return the same fileContent', () => {
         const fileContent =
+            "import { somethingElse } from 'some-library';\nconst a = 1;";
+        const expectedContent =
             "import { somethingElse } from 'some-library';\nconst a = 1;";
 
         // Mock readFileSync to return the file content
         (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
 
-        // Mock writeFileSync
-        (fs.writeFileSync as jest.Mock).mockImplementation();
-
-        overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter);
+        const result = overwriteEnzymeMounts(filePath);
 
         // Check if readFileSync was called with the correct file path
         expect(fs.readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
 
-        // Check if writeFileSync was not called
-        expect(fs.writeFileSync).not.toHaveBeenCalled();
+        // Check output
+        expect(result).toEqual(expectedContent);
+    });
+});
+
+describe('overwriteRelativeImports', () => {
+    it('should call convertRelativeImports with correct arguments', () => {
+        const filePathRelative =
+            'src/support/ast-transformations/individual-transformations/test/convert-enzyme-imports.jest.ts';
+        const fileContent =
+            "import { addComment } from '../../utils/add-comment';";
+
+        const result = overwriteRelativeImports(filePathRelative, fileContent);
+
+        // Verify a part of the abosolute path is present for the import
+        expect(result).toBeDefined();
+        expect(result).toContain(
+            'enzyme-to-rtl-codemod/src/support/ast-transformations/utils/add-comment',
+        );
     });
 });
 
@@ -223,9 +242,16 @@ describe('getReactCompDom', () => {
             getDomEnzyme,
             'createEnzymeAdapter',
         );
+        const enzymeOverwriteMockContent = `
+                import { mount, shallow } from './enzyme-mount-adapter';
+                import { testUtil } from '../utils/test-util';
+                `;
         const overwriteEnzymeMountsMock = jest
             .spyOn(getDomEnzyme, 'overwriteEnzymeMounts')
-            .mockResolvedValue();
+            .mockReturnValue(enzymeOverwriteMockContent);
+        const overwriteRelativeImportsMock = jest
+            .spyOn(getDomEnzyme, 'overwriteRelativeImports')
+            .mockReturnValue('');
         const runJestInChildProcessMock = jest
             .spyOn(getDomEnzyme, 'runJestInChildProcess')
             .mockResolvedValue();
@@ -239,10 +265,12 @@ describe('getReactCompDom', () => {
         // Assert
         expect(result).toBe(domTreeOutput);
         expect(createEnzymeAdapterMock).toHaveBeenCalled();
-        expect(overwriteEnzymeMountsMock).toHaveBeenCalledWith(
+        expect(overwriteEnzymeMountsMock).toHaveBeenCalledWith(filePath);
+        expect(overwriteRelativeImportsMock).toHaveBeenCalledWith(
             filePath,
-            'testFileWithAdapter.js',
+            enzymeOverwriteMockContent,
         );
+        expect(fs.writeFileSync).toHaveBeenCalledTimes(2);
         expect(runJestInChildProcessMock).toHaveBeenCalledWith(
             'testFileWithAdapter.js',
         );

@@ -2,6 +2,8 @@ import fs from 'fs';
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config';
 import { createCustomLogger } from '../logger/logger';
+import jscodeshift from 'jscodeshift';
+import { convertRelativeImports } from '../ast-transformations/individual-transformations/convert-relative-imports';
 
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
 
@@ -33,12 +35,31 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
         'filePathWithEnzymeAdapter',
     );
 
-    getDomEnzymeLogger.verbose('Overwrite enzyme shallow/mount import methods');
-    await overwriteEnzymeMounts(filePath, filePathWithEnzymeAdapter);
+    // Overwrite Enzyme mounts with custom methods
+    getDomEnzymeLogger.verbose(
+        'Overwrite enzyme shallow/mount methods and relative imports',
+    );
+    const overwriteEnzymeMountCode = overwriteEnzymeMounts(filePath);
+
+    // Convert relative to absolute imports
+    getDomEnzymeLogger.verbose('Convert relative to absolute imports');
+    const relToAbsolutePathsCode = overwriteRelativeImports(
+        filePath,
+        overwriteEnzymeMountCode,
+    );
+
+    // Write final code to a new file
+    fs.writeFileSync(
+        filePathWithEnzymeAdapter,
+        relToAbsolutePathsCode,
+        'utf-8',
+    );
 
     // Run tests with child process
     getDomEnzymeLogger.verbose('Run Enzyme jest test to collect DOM');
     await runJestInChildProcess(filePathWithEnzymeAdapter);
+
+    // TODO: check if the file ran or not
 
     // Return output
     getDomEnzymeLogger.verbose('Get DOM tree output');
@@ -54,18 +75,14 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
  * to
  * import { mount, shallow } from './enzyme-mount-adapter';
  * @param filePath
- * @param filePathWithEnzymeAdapter
  * @returns
  */
-export const overwriteEnzymeMounts = async (
-    filePath: string,
-    filePathWithEnzymeAdapter: string,
-): Promise<void> => {
+export const overwriteEnzymeMounts = (filePath: string): string => {
     // Regex to match the import statement
     const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
 
     // Get file content
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    let fileContent = fs.readFileSync(filePath, 'utf-8');
 
     const match = fileContent.match(importStatementRegex);
     const matchedImportString = match && match[1];
@@ -73,15 +90,34 @@ export const overwriteEnzymeMounts = async (
     // Direct import from enzyme
     // Check if matched and doesn't have 'type' in it, to avoid `import type { ReactWrapper } from 'enzyme';`
     if (matchedImportString && !matchedImportString.includes('type')) {
-        const updatedContent: string = fileContent.replace(
+        fileContent = fileContent.replace(
             matchedImportString,
             "import { mount, shallow } from './enzyme-mount-adapter';",
         );
-        fs.writeFileSync(filePathWithEnzymeAdapter, updatedContent, 'utf-8');
     }
+    return fileContent;
+};
+
+/**
+ * Convert relative to absolute imports to
+ * @param filePath
+ * @param fileContent
+ * @returns
+ */
+export const overwriteRelativeImports = (
+    filePath: string,
+    fileContent: string,
+): string => {
+    // Use jscodeshift to parse the source with tsx flag
+    const j = jscodeshift.withParser('tsx');
+    const root = j(fileContent);
+    convertRelativeImports(j, root, filePath);
+    const convertedRelativeImportsCode = root.toSource();
+    return convertedRelativeImportsCode;
 };
 
 // TODO: check if host project has React 16 or React 17. If 17 add adaptor, if 16 do not add adaptor
+// TODO: install RTL with correct version based on React version installed - @testing-library/react@12.1.5 for React 17^; 10.4.9 for React 16
 /**
  * Create Enzyme adapter with overwritten mount/shallow methods that collect DOM in each test case
  */
@@ -150,7 +186,7 @@ export const getDomTreeOutputFromFile = (): string => {
         domTreeOutput = fs.readFileSync(collectedDomTreeFilePath, 'utf-8');
     } catch (error) {
         getDomEnzymeLogger.warn(
-            `Could not collect DOM logs from ${getConfigProperty('collectedDomTreeFilePath')}.\nError: ${error}`,
+            `Could not collect DOM logs from ${getConfigProperty('collectedDomTreeFilePath')}\nError: ${error}`,
         );
     }
     return domTreeOutput;

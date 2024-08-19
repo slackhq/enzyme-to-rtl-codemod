@@ -23,14 +23,13 @@ describe('convertText', () => {
         const transformedSource = root.toSource();
 
         const expectedSource = `
+            import { render, screen, configure } from "@testing-library/react";
             import "@testing-library/jest-dom";
-            import { configure } from "@testing-library/dom";
 
             configure({
                         testIdAttribute: "data-id"
             });
 
-            import { render, screen } from "@testing-library/react";
             import { addComment } from '../../utils/add-comment';
         `;
 

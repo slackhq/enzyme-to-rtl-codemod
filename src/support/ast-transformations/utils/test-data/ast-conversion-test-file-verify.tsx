@@ -1,12 +1,11 @@
 import userEvent from "@testing-library/user-event";
+import { render, screen, configure } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { configure } from "@testing-library/dom";
 
 configure({
     testIdAttribute: "data-id"
 });
 
-import { render, screen } from "@testing-library/react";
 import React from 'react';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 

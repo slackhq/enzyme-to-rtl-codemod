@@ -8,9 +8,10 @@ import type { Collection, JSCodeshift, ImportDeclaration } from 'jscodeshift';
 import { astLogger } from '../utils/ast-logger';
 
 /**
- *  Transforms the provided AST by converting all Enzyme imports to RTL imports.
+ * Transform the provided AST by converting all Enzyme imports to RTL imports
  * @param j
  * @param root
+ * @param testId
  */
 export const convertEnzymeImports = (
     j: JSCodeshift,
@@ -25,37 +26,22 @@ export const convertEnzymeImports = (
         },
     });
 
-    let newImportDeclaration: ImportDeclaration;
-
-    // Replace shallow and mount imports with import screen and render from rtl
-    astLogger.verbose(
-        'Convert shallow and mount imports with import screen and render from rtl',
-    );
+    // Always remove enzyme imports
     if (enzymeImportDeclaration.length > 0) {
-        // create new import declaration for `import { render, screen } from '@testing-library/react';`
-        newImportDeclaration = j.importDeclaration(
-            [
-                j.importSpecifier(j.identifier('render')),
-                j.importSpecifier(j.identifier('screen')),
-            ],
-            j.literal('@testing-library/react'),
-        );
-
-        // remove enzyme imports
         enzymeImportDeclaration.remove();
     } else {
         astLogger.verbose('No enzyme imports found');
     }
 
-    // Get the top file node
-    let fileTopNode = root.find(j.Program);
-
-    // Add RTL imports
-    astLogger.verbose('Add RTL import');
-    fileTopNode.replaceWith((path) => {
-        path.node.body.unshift(newImportDeclaration);
-        return path.node;
-    });
+    // Create new import declaration for `import { render, screen, configure } from '@testing-library/react';`
+    const rtlImportDeclaration = j.importDeclaration(
+        [
+            j.importSpecifier(j.identifier('render')),
+            j.importSpecifier(j.identifier('screen')),
+            j.importSpecifier(j.identifier('configure')),
+        ],
+        j.literal('@testing-library/react'),
+    );
 
     // Create import '@testing-library/jest-dom';
     const jestDomImport = j.importDeclaration(
@@ -63,13 +49,7 @@ export const convertEnzymeImports = (
         j.literal('@testing-library/jest-dom'),
     );
 
-    // Create import { configure } from '@testing-library/dom';
-    const configureImport = j.importDeclaration(
-        [j.importSpecifier(j.identifier('configure'))],
-        j.literal('@testing-library/dom'),
-    );
-
-    // Create configure({ testIdAttribute: 'test-id' });
+    // Create configure({ testIdAttribute: testId });
     const configureCall = j.expressionStatement(
         j.callExpression(j.identifier('configure'), [
             j.objectExpression([
@@ -83,16 +63,16 @@ export const convertEnzymeImports = (
     );
 
     // Get the top of the file to insert the new imports and configuration
-    fileTopNode = root.find(j.Program);
+    const fileTopNode = root.find(j.Program);
 
     // Insert the statements in the correct order
     astLogger.verbose(
-        'Inserting @testing-library/jest-dom, configure import, and configure call',
+        'Inserting RTL imports, @testing-library/jest-dom, and configure call',
     );
     fileTopNode.replaceWith((path) => {
         path.node.body.unshift(configureCall);
-        path.node.body.unshift(configureImport);
         path.node.body.unshift(jestDomImport);
+        path.node.body.unshift(rtlImportDeclaration);
         return path.node;
     });
 };

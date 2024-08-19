@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
+import { render, screen, configure } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { configure } from "@testing-library/dom";
 
 configure({
     testIdAttribute: "data-id"

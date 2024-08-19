@@ -176,6 +176,9 @@ export const checkConfiguration = (filePath: string): void => {
         configLogger.warn(
             `Could not get react version from package.json. Defaulting to ${config.reactVersion}`,
         );
+    } else {
+        config.reactVersion = reactVersion;
+        configLogger.verbose(`Enzyme version ${config.reactVersion}`);
     }
 
     configLogger.info('Starting conversion from Enzyme to RTL');

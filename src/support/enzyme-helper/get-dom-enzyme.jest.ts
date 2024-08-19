@@ -1,7 +1,7 @@
 import fs from 'fs';
 import * as getDomEnzyme from './get-dom-enzyme';
 import { getConfigProperty } from '../config';
-import { runCommand } from '../shell-helper/shell-helper';
+import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
 
 // Mocks
 jest.mock('fs');
@@ -266,7 +266,7 @@ describe('getReactCompDom', () => {
             .mockReturnValue('');
         const runJestInChildProcessMock = jest
             .spyOn(getDomEnzyme, 'runJestInChildProcess')
-            .mockResolvedValue();
+            .mockResolvedValue('');
         const getDomTreeOutputFromFileMock = jest
             .spyOn(getDomEnzyme, 'getDomTreeOutputFromFile')
             .mockReturnValue(domTreeOutput);

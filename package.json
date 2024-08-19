@@ -1,6 +1,6 @@
 {
   "name": "enzyme-to-rtl-codemod",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "AST codemod for Enzyme to RTL with AI integrationc capabilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,7 +26,8 @@
   },
   "peerDependencies": {
     "enzyme": "3.11.0",
-    "jest": ">=27.0.0"
+    "jest": ">=27.0.0",
+    "@testing-library/react": "12.1.5"
   },
   "devDependencies": {
     "@types/enzyme": "3.10.18",

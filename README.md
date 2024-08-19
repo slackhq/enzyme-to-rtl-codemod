@@ -72,6 +72,7 @@ import { mount } from 'enzyme';
 ```
 2. This package works only with jest, no other test runners have been tested
 3. `enzyme-mount-adapter.js` is a Javascript file to enable this for project that do not use Typescript
+4. `converWithAST` method must be run before getting DOM tree for the Enzyme file, because that method sets the paths
 
 ## Example
 ```ts

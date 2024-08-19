@@ -7,8 +7,6 @@ import { convertRelativeImports } from '../ast-transformations/individual-transf
 
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
 
-// TODO: test_case_title on a new line in csv, right now it's in one line
-
 /**
  * Get React component DOM for test cases
  * @param filePath

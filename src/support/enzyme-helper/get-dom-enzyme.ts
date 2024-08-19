@@ -229,7 +229,7 @@ enzyme.mount = (node, options) => {
     const htmlContent = wrapper.html();
 	fs.appendFileSync(
 		'${collectedDomTreeFilePath}',
-		\`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\`,
+		\`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\n\`,
 	);
     return wrapper;
 };
@@ -242,15 +242,15 @@ enzyme.shallow = (node, options) => {
     try {
         // Try to get HTML
         const htmlContent = wrapper.html();
-		resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\`;
+		resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\n\`;
     } catch (htmlError) {
         // If html() fails, use debug() as a fallback
         try {
 			const debugContent = wrapper.debug().replace(/\\n/g, ' ');
-			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${debugContent}</dom_tree>;\`;
+			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${debugContent}</dom_tree>;\n\`;
         } catch (debugError) {
             // If both html() and debug() fail, provide a default string or handle the error as needed
-			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>Failed to retrieve DOM tree</dom_tree>;f\`;
+			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>Failed to retrieve DOM tree</dom_tree>;\n\`;
         }
     }
 	fs.appendFileSync('${collectedDomTreeFilePath}', resultString);
@@ -287,7 +287,7 @@ enzyme.mount = (node: React.ReactElement, options?: enzyme.MountRendererProps) =
 	const htmlContent = wrapper.html();
 	fs.appendFileSync(
 		'${collectedDomTreeFilePath}',
-		\`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\`,
+		\`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\n\`,
 	);
 	return wrapper;
 };
@@ -300,15 +300,15 @@ enzyme.shallow = (node: React.ReactElement, options?: enzyme.ShallowRendererProp
 	try {
 		// Try to get HTML
 		const htmlContent = wrapper.html();
-		resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\`;
+		resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\n\`;
 	} catch (htmlError) {
 		// If html() fails, use debug() as a fallback
 		try {
 			const debugContent = wrapper.debug().replace(/\\n/g, ' ');
-			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${debugContent}</dom_tree>;\`;
+			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${debugContent}</dom_tree>;\n\`;
 		} catch (debugError) {
 			// If both html() and debug() fail, provide a default string or handle the error as needed
-			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>Failed to retrieve DOM tree</dom_tree>;f\`;
+			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>Failed to retrieve DOM tree</dom_tree>;\n\`;
 		}
 	}
 	fs.appendFileSync('${collectedDomTreeFilePath}', resultString);

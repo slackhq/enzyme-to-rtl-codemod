@@ -90,9 +90,9 @@ export const convertEnzymeImports = (
         'Inserting @testing-library/jest-dom, configure import, and configure call',
     );
     fileTopNode.replaceWith((path) => {
-        path.node.body.unshift(configureCall); // Step 3: Insert configure call
-        path.node.body.unshift(configureImport); // Step 2: Insert configure import
-        path.node.body.unshift(jestDomImport); // Step 1: Insert jest-dom import
+        path.node.body.unshift(configureCall);
+        path.node.body.unshift(configureImport);
+        path.node.body.unshift(jestDomImport);
         return path.node;
     });
 };

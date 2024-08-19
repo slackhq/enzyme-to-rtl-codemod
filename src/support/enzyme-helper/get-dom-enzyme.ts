@@ -55,15 +55,22 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
 
     // Run tests with child process
     getDomEnzymeLogger.verbose('Run Enzyme jest test to collect DOM');
-    const jestRunProcess = await runJestInChildProcess(filePathWithEnzymeAdapter);
+    const jestRunProcess = await runJestInChildProcess(
+        filePathWithEnzymeAdapter,
+    );
 
     // Return output
     getDomEnzymeLogger.verbose('Get DOM tree output');
     const domTreeOutput = getDomTreeOutputFromFile();
 
     // Check if jest ran successfully and share the logs
-    if (domTreeOutput === 'Could not collect DOM for test cases. Proceed without DOM') {
-        getDomEnzymeLogger.warn(`Check the output for the jest run: ${jestRunProcess}`)
+    if (
+        domTreeOutput ===
+        'Could not collect DOM for test cases. Proceed without DOM'
+    ) {
+        getDomEnzymeLogger.warn(
+            `Check the output for the jest run: ${jestRunProcess}`,
+        );
     }
 
     getDomEnzymeLogger.info('Done: getting rendered component code');

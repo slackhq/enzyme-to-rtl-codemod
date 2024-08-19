@@ -26,7 +26,7 @@ export const getReactComponentDOM = async (filePath: string): Promise<string> =>
 // Generate prompt
 export const generatePrompt = (
     filePath: string,
-    getByTestIdAttribute = 'data-testid',
+    getByTestIdAttribute: string,
     astCodemodOutput: string,
     renderedCompCode: string,
 ): string =>

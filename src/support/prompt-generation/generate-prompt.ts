@@ -18,7 +18,7 @@ export const promptLogger = createCustomLogger('Prompt');
  */
 export const genPrompt = (
     filePath: string,
-    getByTestIdAttribute = 'data-testid',
+    getByTestIdAttribute: string,
     astCodemodOutput: string,
     renderedCompCode: string,
 ): string => {

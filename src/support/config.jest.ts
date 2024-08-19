@@ -7,6 +7,8 @@ import {
     checkConfiguration,
     getConfigProperty,
     addPathsToConfig,
+    getReactVersion,
+    configLogger,
 } from './config';
 
 // Mock the modules
@@ -56,6 +58,48 @@ describe('Configuration Functions', () => {
 
             setOutputResultsPath(outputPath);
             expect(getConfigProperty('outputResultsPath')).toBe(resolvedPath);
+        });
+    });
+
+    describe('getReactVersion', () => {
+        it('should return the correct major version when React is in dependencies', () => {
+            const mockPackageJson = JSON.stringify({
+                dependencies: {
+                    react: '^16.8.0',
+                },
+            });
+
+            (path.resolve as jest.Mock).mockReturnValue(
+                '/mocked/path/to/package.json',
+            );
+            (fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);
+
+            const version = getReactVersion();
+            expect(version).toBe(16);
+            expect(fs.readFileSync).toHaveBeenCalledWith(
+                '/mocked/path/to/package.json',
+                'utf-8',
+            );
+        });
+
+        it('should return null if no react found', () => {
+            const mockPackageJson = JSON.stringify({
+                dependencies: {
+                    enzyme: '3.11.0',
+                },
+            });
+
+            (path.resolve as jest.Mock).mockReturnValue(
+                '/mocked/path/to/package.json',
+            );
+            (fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);
+
+            const version = getReactVersion();
+            expect(version).toBe(null);
+            expect(fs.readFileSync).toHaveBeenCalledWith(
+                '/mocked/path/to/package.json',
+                'utf-8',
+            );
         });
     });
 
@@ -152,6 +196,24 @@ describe('Configuration Functions', () => {
 
             expect(() => checkConfiguration('some/file')).toThrow(
                 'enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
+            );
+        });
+
+        it('should call check version ', () => {
+            (path.resolve as jest.Mock).mockReturnValue('/mocked/full/path');
+            (fs.existsSync as jest.Mock).mockReturnValue(true);
+            setJestBinaryPath('jest/path');
+            setOutputResultsPath('output/path');
+
+            const fileContent = "import { mount } from 'enzyme';\nconst a = 1;";
+            // Mock readFileSync to return the file content for test counts
+            (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
+
+            const spyWarn = jest.spyOn(configLogger, 'warn');
+
+            checkConfiguration('some/file');
+            expect(spyWarn).toHaveBeenCalledWith(
+                'Could not get react version from package.json. Defaulting to 17',
             );
         });
     });

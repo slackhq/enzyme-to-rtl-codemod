@@ -27,7 +27,7 @@
   "peerDependencies": {
     "enzyme": "3.11.0",
     "jest": ">=27.0.0",
-    "@testing-library/react": ">=10.4.9",
+    "@testing-library/react": ">=10.4.9 <=12.1.5",
     "cheerio": "1.0.0-rc.10"
   },
   "devDependencies": {

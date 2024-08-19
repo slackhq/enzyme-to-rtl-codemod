@@ -3,6 +3,7 @@ import jscodeshift from 'jscodeshift';
 
 describe('convertText', () => {
     let j: jscodeshift.JSCodeshift;
+    const testId = 'data-id';
 
     beforeEach(() => {
         j = jscodeshift.withParser('tsx');
@@ -16,12 +17,19 @@ describe('convertText', () => {
 
         // Transform the source code
         const root = j(source);
-        convertEnzymeImports(j, root);
+        convertEnzymeImports(j, root, testId);
 
         // Generate the transformed source code
         const transformedSource = root.toSource();
 
         const expectedSource = `
+            import "@testing-library/jest-dom";
+            import { configure } from "@testing-library/dom";
+
+            configure({
+                        testIdAttribute: "data-id"
+            });
+
             import { render, screen } from "@testing-library/react";
             import { addComment } from '../../utils/add-comment';
         `;

@@ -102,7 +102,6 @@ describe('getenzymeRenderAdapterCode', () => {
         getConfigPropertyMock.mockReturnValue(16);
 
         const actualCode = getenzymeRenderAdapterCode(collectedDomTreeFilePath);
-        console.log('actualCode:', actualCode);
         expect(actualCode).toContain(
             "import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';",
         );

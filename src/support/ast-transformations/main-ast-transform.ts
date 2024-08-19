@@ -34,7 +34,7 @@ export const mainASTtransform = (filePath: string, testId: string): string => {
 
     // Convert Enzyme imports
     astLogger.verbose('Convert Enzyme imports');
-    convertEnzymeImports(j, root);
+    convertEnzymeImports(j, root, testId);
 
     // Convert relative imports
     astLogger.verbose('Convert relatvie imports');

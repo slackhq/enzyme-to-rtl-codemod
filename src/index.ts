@@ -11,4 +11,4 @@ export {
 } from './support/config';
 
 // Export one method to run all individual methods in one flow
-export { convertTestFiles } from './convert-test-files';
+export { convertTestFiles, LLMCallFunction } from './convert-test-files';

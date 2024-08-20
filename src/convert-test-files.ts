@@ -10,15 +10,16 @@ import {
 } from './support/config';
 
 // Define the function type for LLM call
-type LLMCallFunction = (prompt: string) => Promise<string>;
+export type LLMCallFunction = (prompt: string) => Promise<string>;
 
-export async function convertTestFiles({
+export const convertTestFiles = async ({
     filePaths,
     logLevel,
     jestBinaryPath,
     outputResultsPath,
     testId,
     llmCallFunction,
+    extendPrompt,
 }: {
     filePaths: string[];
     logLevel?: string;
@@ -26,7 +27,8 @@ export async function convertTestFiles({
     outputResultsPath: string;
     testId: string;
     llmCallFunction: LLMCallFunction;
-}): Promise<void> {
+    extendPrompt?: string[];
+}): Promise<void> => {
     // Set log level
     if (logLevel) {
         configureLogLevel(logLevel);
@@ -51,9 +53,10 @@ export async function convertTestFiles({
             'data-test',
             astConvertedCode,
             reactCompDom,
+            extendPrompt,
         );
 
-        // Call the api with a custom LLM method
+        // Call the API with a custom LLM method
         const LLMResponse = await llmCallFunction(prompt);
 
         // Extract generated code
@@ -62,4 +65,4 @@ export async function convertTestFiles({
         // Run the file and analyze the failures
         await runTestAndAnalyze(convertedFilePath);
     }
-}
+};

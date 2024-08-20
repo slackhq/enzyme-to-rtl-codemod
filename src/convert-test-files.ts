@@ -9,18 +9,23 @@ import {
     configureLogLevel,
 } from './support/config';
 
-export async function convertTestFile(filePath: string, {
+// Define the function type for LLM call
+type LLMCallFunction = (prompt: string) => Promise<string>;
+
+export async function convertTestFiles({
+    filePaths,
     logLevel,
     jestBinaryPath,
     outputResultsPath,
     testId,
     llmCallFunction,
 }: {
+    filePaths: string[];
     logLevel?: string;
     jestBinaryPath: string;
     outputResultsPath: string;
     testId: string;
-    llmCallFunction: Function;
+    llmCallFunction: LLMCallFunction;
 }): Promise<void> {
     // Set log level
     if (logLevel) {
@@ -33,26 +38,28 @@ export async function convertTestFile(filePath: string, {
     // Set host project results output path
     setOutputResultsPath(outputResultsPath);
 
-    // Get AST conversion
-    const astConvertedCode = converWithAST(filePath, testId);
+    for (const filePath of filePaths) {
+        // Get AST conversion
+        const astConvertedCode = converWithAST(filePath, testId);
 
-    // Get React Component DOM tree for each test case
-    const reactCompDom = await getReactCompDom(filePath);
+        // Get React Component DOM tree for each test case
+        const reactCompDom = await getReactCompDom(filePath);
 
-    // Generate the prompt
-    const prompt = generatePrompt(
-        filePath,
-        'data-test',
-        astConvertedCode,
-        reactCompDom,
-    );
+        // Generate the prompt
+        const prompt = generatePrompt(
+            filePath,
+            'data-test',
+            astConvertedCode,
+            reactCompDom,
+        );
 
-    // Call the api with a custom LLM method
-    const LLMResponse = await llmCallFunction(prompt);
+        // Call the api with a custom LLM method
+        const LLMResponse = await llmCallFunction(prompt);
 
-    // Extract generated code
-    const convertedFilePath = extractCodeContentToFile(LLMResponse);
+        // Extract generated code
+        const convertedFilePath = extractCodeContentToFile(LLMResponse);
 
-    // Run the file and analyze the failures
-    await runTestAndAnalyze(convertedFilePath);
+        // Run the file and analyze the failures
+        await runTestAndAnalyze(convertedFilePath);
+    }
 }

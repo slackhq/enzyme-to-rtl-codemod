@@ -10,41 +10,5 @@ export {
     configureLogLevel,
 } from './support/config';
 
-// Export one method to run all individual methond in one flow
-export { convertTestFile } from './convert-test-file';
-
-//
-
-
-// Workflows
-/**
- * Individual methods with config - programmatic
- * 1. Initialize config from file
- * 2. export everything directly
- */
-
-/**
- * Individual methods without config - programmatic
- * 1. export everything directly
- */
-
-/**
- * One method conversion with config - programmatic
- * 1. Initialize config from file
- * 2. Run convertTestFile
- */
-
-/**
- * One method conversion without config - programmatic
- * 1. Run convertTestFile and set everything in that method
- */
-
-/**
- * CLI with config - cli
- * 1. Run convertTestFile and set everything in that method
- */
-
-/**
- * CLI without config - cli
- * 1. Run convertTestFile and set everything in that method
- */
+// Export one method to run all individual methods in one flow
+export { convertTestFiles } from './convert-test-files';

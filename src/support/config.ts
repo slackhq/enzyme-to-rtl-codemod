@@ -17,6 +17,7 @@ interface Config {
     outputResultsPath: string;
     filePathTitle: string;
     filePathExtension: string;
+    fileConversionFolder: string;
     astTranformedFilePath: string;
     collectedDomTreeFilePath: string;
     rtlConvertedFilePath: string;
@@ -32,6 +33,7 @@ const config: Config = {
     outputResultsPath: '',
     filePathTitle: '',
     filePathExtension: '',
+    fileConversionFolder: '',
     astTranformedFilePath: '',
     collectedDomTreeFilePath: '',
     rtlConvertedFilePath: '',
@@ -206,12 +208,13 @@ export const addPathsToConfig = (filePath: string): void => {
     const { fileTitle, fileExtension } = extractFileDetails(filePath);
     config.filePathTitle = fileTitle;
     config.filePathExtension = fileExtension;
-    config.astTranformedFilePath = `${config.outputResultsPath}/ast-transformed-${config.filePathTitle}${config.filePathExtension}`;
-    config.collectedDomTreeFilePath = `${config.outputResultsPath}/dom-tree-${config.filePathTitle}.csv`;
-    config.rtlConvertedFilePath = `${getConfigProperty('outputResultsPath')}/rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
-    config.jestRunLogsFilePath = `${getConfigProperty('outputResultsPath')}/jest-run-logs-${config.filePathTitle}.md`;
-    config.enzymeMountAdapterFilePath = `${getConfigProperty('outputResultsPath')}/enzyme-mount-adapter.js`;
-    config.filePathWithEnzymeAdapter = `${getConfigProperty('outputResultsPath')}/enzyme-mount-overwritten-${config.filePathTitle}${config.filePathExtension}`;
+    config.fileConversionFolder = createFileConversionFolder(fileTitle);
+    config.astTranformedFilePath = `${config.fileConversionFolder}/ast-transformed-${config.filePathTitle}${config.filePathExtension}`;
+    config.collectedDomTreeFilePath = `${config.fileConversionFolder}/dom-tree-${config.filePathTitle}.csv`;
+    config.rtlConvertedFilePath = `${config.fileConversionFolder}/rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
+    config.jestRunLogsFilePath = `${config.fileConversionFolder}/jest-run-logs-${config.filePathTitle}.md`;
+    config.enzymeMountAdapterFilePath = `${config.fileConversionFolder}/enzyme-mount-adapter.js`;
+    config.filePathWithEnzymeAdapter = `${config.fileConversionFolder}/enzyme-mount-overwritten-${config.filePathTitle}${config.filePathExtension}`;
 };
 
 /**
@@ -241,6 +244,18 @@ const extractFileDetails = (
     );
 
     return { fileTitle, fileExtension };
+};
+
+/**
+ * Create folder for each test case conversion
+ * @param filePathTitle
+ * @returns
+ */
+const createFileConversionFolder = (filePathTitle: string): string => {
+    const fileConversionFolder = `${config.outputResultsPath}/${filePathTitle.replace(/[<>:"/|?*]+/g, '_')}`;
+    configLogger.verbose(`Create folder for ${fileConversionFolder}`);
+    fs.mkdirSync(fileConversionFolder);
+    return fileConversionFolder;
 };
 
 /**

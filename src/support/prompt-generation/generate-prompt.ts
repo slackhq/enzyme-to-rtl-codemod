@@ -4,7 +4,6 @@ import { countTestCases } from './utils/utils';
 
 export const promptLogger = createCustomLogger('Prompt');
 
-
 /**
  * Generate prompt for LLM
  * @param filePath

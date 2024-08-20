@@ -1,46 +1,10 @@
-import { getASTCodemodCode } from './support/ast-transformations/run-ast-transformations';
-import { getReactCompDom } from './support/enzyme-helper/get-dom-enzyme';
-import { genPrompt } from './support/prompt-generation/generate-prompt';
-import { extractCodeContentToFile } from './support/code-extractor/extract-code';
-import {
-    runTestAndAnalyzeFile,
-    RTLTestResult,
-} from './support/enzyme-helper/run-test-analysis';
-import {
+export { converWithAST } from './support/ast-transformations/run-ast-transformations';
+export { getReactCompDom } from './support/enzyme-helper/get-dom-enzyme';
+export { generatePrompt } from './support/prompt-generation/generate-prompt';
+export { extractCodeContentToFile } from './support/code-extractor/extract-code';
+export { runTestAndAnalyze } from './support/enzyme-helper/run-test-analysis';
+export {
     setJestBinaryPath,
     setOutputResultsPath,
     configureLogLevel,
 } from './support/config';
-
-// Export configuration methods
-export { setJestBinaryPath, setOutputResultsPath, configureLogLevel };
-
-// Convert with AST
-export const converWithAST = (filePath: string, testId: string): string =>
-    getASTCodemodCode(filePath, testId);
-
-// Get rendered component DOM
-export const getReactComponentDOM = async (filePath: string): Promise<string> =>
-    getReactCompDom(filePath);
-
-// Generate prompt
-export const generatePrompt = (
-    filePath: string,
-    getByTestIdAttribute: string,
-    astCodemodOutput: string,
-    renderedCompCode: string,
-): string =>
-    genPrompt(
-        filePath,
-        getByTestIdAttribute,
-        astCodemodOutput,
-        renderedCompCode,
-    );
-
-// Extract code
-export const extractCodeContent = (LLMresponse: string): string =>
-    extractCodeContentToFile(LLMresponse);
-
-// Run generated file and announce result
-export const runTestAndAnalyze = (filePath: string): Promise<RTLTestResult> =>
-    runTestAndAnalyzeFile(filePath);

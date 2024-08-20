@@ -13,7 +13,7 @@ export const promptLogger = createCustomLogger('Prompt');
  * @param extendPrompt
  * @returns
  */
-export const genPrompt = (
+export const generatePrompt = (
     filePath: string,
     getByTestIdAttribute: string,
     astCodemodOutput: string,

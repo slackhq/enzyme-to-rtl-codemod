@@ -226,29 +226,35 @@ describe('Configuration Functions', () => {
             const resolvedPath = '/resolved/path/to/output';
             (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
 
+            (fs.mkdirSync as jest.Mock) = jest.fn();
+
             setOutputResultsPath(outputPath);
 
             addPathsToConfig(filePath);
 
             expect(getConfigProperty('filePathTitle')).toBe('file');
             expect(getConfigProperty('filePathExtension')).toBe('.tsx');
+            expect(getConfigProperty('fileConversionFolder')).toBe(
+                `${resolvedPath}/file`,
+            );
+            expect(fs.mkdirSync).toHaveBeenCalledWith(`${resolvedPath}/file`);
             expect(getConfigProperty('astTranformedFilePath')).toBe(
-                `${resolvedPath}/ast-transformed-file.tsx`,
+                `${resolvedPath}/file/ast-transformed-file.tsx`,
             );
             expect(getConfigProperty('collectedDomTreeFilePath')).toBe(
-                `${resolvedPath}/dom-tree-file.csv`,
+                `${resolvedPath}/file/dom-tree-file.csv`,
             );
             expect(getConfigProperty('rtlConvertedFilePath')).toBe(
-                `${resolvedPath}/rtl-converted-file.tsx`,
+                `${resolvedPath}/file/rtl-converted-file.tsx`,
             );
             expect(getConfigProperty('jestRunLogsFilePath')).toBe(
-                `${resolvedPath}/jest-run-logs-file.md`,
+                `${resolvedPath}/file/jest-run-logs-file.md`,
             );
             expect(getConfigProperty('enzymeMountAdapterFilePath')).toBe(
-                `${resolvedPath}/enzyme-mount-adapter.js`,
+                `${resolvedPath}/file/enzyme-mount-adapter.js`,
             );
             expect(getConfigProperty('filePathWithEnzymeAdapter')).toBe(
-                `${resolvedPath}/enzyme-mount-overwritten-file.tsx`,
+                `${resolvedPath}/file/enzyme-mount-overwritten-file.tsx`,
             );
         });
     });

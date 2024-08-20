@@ -68,8 +68,11 @@ export const setJestBinaryPath = (newJestBinaryPath: string): void => {
  * @param newOutputResultsPath
  */
 export const setOutputResultsPath = (newOutputResultsPath: string): void => {
-    configLogger.info(`Set output results path to "${newOutputResultsPath}"`);
-    config.outputResultsPath = path.resolve(newOutputResultsPath);
+    const hostProjectRoot = process.cwd();
+    const resolvedPath = path.resolve(hostProjectRoot, newOutputResultsPath);
+
+    configLogger.info(`Set output results path to "${resolvedPath}"`);
+    config.outputResultsPath = resolvedPath;
 };
 
 /**

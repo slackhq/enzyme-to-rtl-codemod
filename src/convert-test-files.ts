@@ -12,6 +12,14 @@ import {
 // Define the function type for LLM call
 export type LLMCallFunction = (prompt: string) => Promise<string>;
 
+/**
+ * Converts test files and processes them using the specified parameters.
+ *
+ * This function takes an array of test file paths and performs a series of operations 
+ * including setting up the Jest environment, setting up configurations, and output paths. 
+ * It also utilizes an LLM (Large Language Model) call function to process the test files. 
+ * The results of the conversion are stored in the specified output directory.
+ */
 export const convertTestFiles = async ({
     filePaths,
     logLevel,

@@ -6,7 +6,7 @@
 		return shallow(<ReactComponent {...props} />);
 	}
  * Assumption: only one method is used: mount or shallow, but not both. 
- * TODO: fix this by collecting all the matched queries and return an array. See removeMountAndShallow.jest.tsx with all tests active
+ * Feature: fix this by collecting all the matched queries for shallowCall and mountCall. Now it handles cases with either mount shallow, but not both
  */
 
 import { JSCodeshift, Collection, CallExpression } from 'jscodeshift';

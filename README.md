@@ -44,9 +44,9 @@ const astConverted = await converWithAST(filePath);
 ```ts
 const reactCompDom = await getReactComponentDOM(filePath);
 ```
-6. `generatePrompt` - generate prompt with all the necessary info
+6. `generatePrompt` - generate prompt with all the necessary info. Extend it with extendPrompt: string[] that would enumerate each array item and add to the main prompt
 ```ts
-const prompt = await generatePrompt(filePath, 'data-qa', astConverted, reactCompDom);
+const prompt = await generatePrompt(filePath, 'data-qa', astConverted, reactCompDom, extendPrompt?);
 ```
 7. `extractCodeContent` - extract code from the LLM response
 ```ts
@@ -108,6 +108,16 @@ async function convertTestFile(filePath: string) {
 	const reactCompDom = await getReactComponentDOM(filePath);
 
 	// Generate the prompt
+	const extendPrompt = [
+		`Wrap component rendering into <Provider store={createTestStore()}><Component></Provider>. 
+		In order to do that you need to do two things
+		First, import these: 
+		import { Provider } from '.../provider'; 
+		import createTestStore from '.../test-store'; 
+		Second, wrap component rendering in <Provider>, if it was not done before. 
+		Example: <Provider store={createTestStore()}> <Component {...props} /> </Provider>`,
+		"dataTest('selector') should be converted to screen.getByTestId('selector')"
+		]
 	const prompt = await generatePrompt(filePath, 'data-qa', astConverted, reactCompDom);
 
 	/**

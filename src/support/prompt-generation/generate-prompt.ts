@@ -8,12 +8,14 @@ export const promptLogger = createCustomLogger('Prompt');
  * TODO:
  * 1. Figure out if Provider with test store needs to be passed in and how to do it
  */
+
 /**
  * Generate prompt for LLM
  * @param filePath
  * @param getByTestIdAttribute
  * @param astCodemodOutput
  * @param renderedCompCode
+ * @param extendPrompt
  * @returns
  */
 export const genPrompt = (
@@ -21,6 +23,7 @@ export const genPrompt = (
     getByTestIdAttribute: string,
     astCodemodOutput: string,
     renderedCompCode: string,
+    extendPrompt?: string[],
 ): string => {
     promptLogger.info('Start: generating prompt');
 
@@ -59,6 +62,16 @@ export const genPrompt = (
 	5. Ensure all text/strings are converted to lowercase regex expression. Example: screen.getByText(/your text here/i), screen.getByRole('button', {name: /your text here/i}).
 	6. When asserting that a DOM renders nothing, replace isEmptyRender()).toBe(true) with toBeEmptyDOMElement() by wrapping the component into a container. Example: expect(container).toBeEmptyDOMElement();.`;
 
+    // User additions to the prompt:
+    const extendedPromptSection =
+        extendPrompt && extendPrompt.length > 0
+            ? '\nAdditional user instructions:\n' +
+              extendPrompt
+                  .filter((item) => item.trim() !== '')
+                  .map((item, index) => `${index + 1}. ${item}`)
+                  .join('\n')
+            : '';
+
     const conlusion = `\nNow, please evaluate your output and make sure your converted code is between <rtl_test_code></rtl_test_code> tags.
 	If there are any deviations from the specified conditions, list them explicitly.
 	If the output adheres to all conditions and uses instructions section, you can simply state "The output meets all specified conditions.`;
@@ -77,6 +90,7 @@ export const genPrompt = (
         contextSetting +
         mainRequest +
         additionalRequest +
+        extendedPromptSection +
         conlusion +
         testCaseCodePrompt +
         convertedCodemodPrompt +

@@ -83,10 +83,32 @@ describe('genPrompt', () => {
 
         // Assert that the result is as expected
         expect(result).toBe(0);
+    });
 
-        // Restore the original implementation after the test
-        readFileSyncMock.mockRestore();
+    it('should generate prompt with additions and enumerate them', () => {
+        const extendPrompt = [
+            `Wrap component rendering into <Provider store={createTestStore()}><Component></Provider>. 
+        In order to do that you need to do two things
+        First, import these: 
+        import { Provider } from '.../provider'; 
+        import createTestStore from '.../test-store'; 
+        Second, wrap component rendering in <Provider>, if it was not done before. 
+        Example: <Provider store={createTestStore()}> <Component {...props} /> </Provider>`,
+            "dataTest('selector') should be converted to screen.getByTestId('selector')",
+        ];
+        const result = genPrompt(
+            enzymeFilePath,
+            mockGetByTestIdAttribute,
+            mockAstCodemodOutput,
+            mockRenderedCompCode,
+            extendPrompt,
+        );
 
-        expect(result).toBe(0);
+        expect(result).toContain(
+            '1. Wrap component rendering into <Provider store={createTestStore()}><Component></Provider>.',
+        );
+        expect(result).toContain(
+            "2. dataTest('selector') should be converted to screen.getByTestId('selector')",
+        );
     });
 });

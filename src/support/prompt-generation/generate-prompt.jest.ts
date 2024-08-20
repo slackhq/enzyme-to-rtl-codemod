@@ -1,8 +1,8 @@
 import fs from 'fs';
-import { genPrompt } from './generate-prompt';
+import { generatePrompt } from './generate-prompt';
 import { countTestCases } from './utils/utils';
 
-describe('genPrompt', () => {
+describe('generatePrompt', () => {
     const enzymeFilePath =
         'src/support/prompt-generation/utils/test-data/gen-prompt-test-file.jest.tsx';
     const mockGetByTestIdAttribute = 'data-testid';
@@ -49,7 +49,7 @@ describe('genPrompt', () => {
             .replace(/\s+/g, ' ')
             .trim();
 
-        const result = genPrompt(
+        const result = generatePrompt(
             enzymeFilePath,
             mockGetByTestIdAttribute,
             mockAstCodemodOutput,
@@ -96,7 +96,7 @@ describe('genPrompt', () => {
         Example: <Provider store={createTestStore()}> <Component {...props} /> </Provider>`,
             "dataTest('selector') should be converted to screen.getByTestId('selector')",
         ];
-        const result = genPrompt(
+        const result = generatePrompt(
             enzymeFilePath,
             mockGetByTestIdAttribute,
             mockAstCodemodOutput,

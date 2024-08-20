@@ -10,7 +10,7 @@ jest.mock('../config', () => ({
 jest.mock('../shell-helper/shell-helper');
 jest.mock('fs');
 
-describe('runTestAndAnalyzeFile', () => {
+describe('runTestAndAnalyze', () => {
     const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
         typeof getConfigProperty
     >;
@@ -74,7 +74,7 @@ describe('runTestAndAnalyzeFile', () => {
         );
 
         // Run the method
-        const result = await runTestAnalysis.runTestAndAnalyzeFile(filePath);
+        const result = await runTestAnalysis.runTestAndAnalyze(filePath);
 
         // Run command assertion
         expect(mockedRunCommand).toHaveBeenCalledTimes(1);

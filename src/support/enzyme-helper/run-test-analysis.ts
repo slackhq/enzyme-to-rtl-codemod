@@ -23,7 +23,7 @@ export interface TestResults {
  * @param testFilePath
  * @returns
  */
-export const runTestAndAnalyzeFile = async (
+export const runTestAndAnalyze = async (
     filePath: string,
 ): Promise<RTLTestResult> => {
     testAnalysisLogger.info('Start: Run RTL test and analyze results');
@@ -110,7 +110,7 @@ export const analyzeLogsForErrors = (jestRunLogs: string): boolean => {
     // Find errors in logs
     if (
         !jestRunLogs ||
-        jestRunLogs.includes('FAIL modern') ||
+        jestRunLogs.includes('FAIL') ||
         jestRunLogs.includes('No tests found') ||
         jestRunLogs.includes('Not run') ||
         jestRunLogs.includes('FATAL ERROR')

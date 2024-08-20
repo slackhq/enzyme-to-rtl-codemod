@@ -13,7 +13,7 @@ import {
  * @param testId - This unique identifier which matches the 'data-testid' attribute.
  * @returns
  */
-export const getASTCodemodCode = (filePath: string, testId: string): string => {
+export const converWithAST = (filePath: string, testId: string): string => {
     // Check if config is set
     checkConfiguration(filePath);
 

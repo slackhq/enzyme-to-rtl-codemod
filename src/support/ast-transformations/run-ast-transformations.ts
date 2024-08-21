@@ -5,7 +5,7 @@ import {
     getConfigProperty,
     checkConfiguration,
     addPathsToConfig,
-} from '../config';
+} from '../config/config';
 
 /**
  * Run jscodeshift and make AST conversions

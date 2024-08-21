@@ -1,16 +1,28 @@
-import { converWithAST } from './support/ast-transformations/run-ast-transformations';
-import { getReactCompDom } from './support/enzyme-helper/get-dom-enzyme';
-import { generatePrompt } from './support/prompt-generation/generate-prompt';
-import { extractCodeContentToFile } from './support/code-extractor/extract-code';
-import { runTestAndAnalyze } from './support/enzyme-helper/run-test-analysis';
+import fs from 'fs';
+import { converWithAST } from '../ast-transformations/run-ast-transformations';
+import { getReactCompDom } from '../enzyme-helper/get-dom-enzyme';
+import { generatePrompt } from '../prompt-generation/generate-prompt';
+import { extractCodeContentToFile } from '../code-extractor/extract-code';
+import {
+    runTestAndAnalyze,
+    TestResult,
+} from '../enzyme-helper/run-test-analysis';
 import {
     setJestBinaryPath,
     setOutputResultsPath,
     configureLogLevel,
-} from './support/config';
+} from '../config/config';
+import {
+    generateSummaryJson,
+    SummaryJson,
+} from './utils/generate-result-summary';
 
 // Define the function type for LLM call
 export type LLMCallFunction = (prompt: string) => Promise<string>;
+
+export interface TestResults {
+    [filePath: string]: TestResult;
+}
 
 /**
  * Converts test files and processes them using the specified parameters.
@@ -36,7 +48,7 @@ export const convertTestFiles = async ({
     testId: string;
     llmCallFunction: LLMCallFunction;
     extendPrompt?: string[];
-}): Promise<void> => {
+}): Promise<SummaryJson> => {
     // Set log level
     if (logLevel) {
         configureLogLevel(logLevel);
@@ -47,6 +59,9 @@ export const convertTestFiles = async ({
 
     // Set host project results output path
     setOutputResultsPath(outputResultsPath);
+
+    // Initialize total results object to collect results
+    const totalResults: TestResults = {};
 
     for (const filePath of filePaths) {
         // Get AST conversion
@@ -71,6 +86,18 @@ export const convertTestFiles = async ({
         const convertedFilePath = extractCodeContentToFile(LLMResponse);
 
         // Run the file and analyze the failures
-        await runTestAndAnalyze(convertedFilePath);
+        const result = await runTestAndAnalyze(convertedFilePath, false);
+
+        // Store the result in the totalResults object
+        const filePathClean = `${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
+        totalResults[filePathClean] = result;
     }
+
+    // Write summary to outputResultsPath
+    const generatedSummary = generateSummaryJson(totalResults);
+    const finalSummaryJson = JSON.stringify(generatedSummary, null, 2);
+    const resultFilePath = `${outputResultsPath}/summary.json`;
+    fs.writeFileSync(resultFilePath, finalSummaryJson, 'utf-8');
+
+    return generatedSummary;
 };

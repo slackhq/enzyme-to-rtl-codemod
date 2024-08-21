@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { getConfigProperty } from '../config';
+import { getConfigProperty } from '../config/config';
 import { createCustomLogger } from '../logger/logger';
 
 export const codeExtractorLogger = createCustomLogger('Extract Code');

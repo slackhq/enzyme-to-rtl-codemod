@@ -1,11 +1,11 @@
 import path from 'path';
 import fs from 'fs';
 import { config as winstonConfig } from 'winston';
-import { countTestCases } from './prompt-generation/utils/utils';
+import { countTestCases } from '../prompt-generation/utils/utils';
 import {
     createCustomLogger,
     updateLogLevelForAllLoggers,
-} from './logger/logger';
+} from '../logger/logger';
 
 export const configLogger = createCustomLogger('Config');
 
@@ -208,7 +208,9 @@ export const addPathsToConfig = (filePath: string): void => {
     const { fileTitle, fileExtension } = extractFileDetails(filePath);
     config.filePathTitle = fileTitle;
     config.filePathExtension = fileExtension;
-    config.fileConversionFolder = createFileConversionFolder(fileTitle);
+    config.fileConversionFolder = createFileConversionFolder(
+        config.filePathTitle + config.filePathExtension,
+    );
     config.astTranformedFilePath = `${config.fileConversionFolder}/ast-transformed-${config.filePathTitle}${config.filePathExtension}`;
     config.collectedDomTreeFilePath = `${config.fileConversionFolder}/dom-tree-${config.filePathTitle}.csv`;
     config.rtlConvertedFilePath = `${config.fileConversionFolder}/rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
@@ -248,11 +250,11 @@ const extractFileDetails = (
 
 /**
  * Create folder for each test case conversion
- * @param filePathTitle
+ * @param filePath
  * @returns
  */
-const createFileConversionFolder = (filePathTitle: string): string => {
-    const fileConversionFolder = `${config.outputResultsPath}/${filePathTitle.replace(/[<>:"/|?*]+/g, '_')}`;
+const createFileConversionFolder = (filePath: string): string => {
+    const fileConversionFolder = `${config.outputResultsPath}/${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
     configLogger.verbose(`Create folder for ${fileConversionFolder}`);
     fs.mkdirSync(fileConversionFolder);
     return fileConversionFolder;

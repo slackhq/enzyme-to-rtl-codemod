@@ -25,7 +25,7 @@ There three ways to use this package:
 ## 1. Run conversion flow for one or more files in one method in a script:
 1. Import convertTestFiles
 ```ts
-export declare const convertTestFiles: ({ filePaths, logLevel, jestBinaryPath, outputResultsPath, testId, llmCallFunction, extendPrompt }: {
+export declare const convertTestFiles: ({ filePaths, logLevel, jestBinaryPath, outputResultsPath, testId, llmCallFunction, extendPrompt, }: {
     filePaths: string[];
     logLevel?: string;
     jestBinaryPath: string;
@@ -33,12 +33,12 @@ export declare const convertTestFiles: ({ filePaths, logLevel, jestBinaryPath, o
     testId: string;
     llmCallFunction: LLMCallFunction;
     extendPrompt?: string[];
-}) => Promise<void>;
+}) => Promise<SummaryJson>;
 ```
 2. Example
 ```ts
-// Import convertTestFiles that accepts an array of Enzyme files and LLMCallFunction type
-import { convertTestFiles, LLMCallFunction } from 'enzyme-to-rtl-codemod';
+// Import convertTestFiles that accepts an array of Enzyme files, LLMCallFunction and SummaryJson types
+import { convertTestFiles, LLMCallFunction, SummaryJson } from 'enzyme-to-rtl-codemod';
 
 // Example implementation of the LLM call function
 const callLLMFunctionExample: LLMCallFunction = async (prompt: string): Promise<string> => {
@@ -58,18 +58,19 @@ const callLLMFunctionExample: LLMCallFunction = async (prompt: string): Promise<
 
 // Call the async method, see logs and files in `outputResultsPath`
 (async function convertTests(filePaths: string[]) {
-	await convertTestFiles({
+	const results: SummaryJson = await convertTestFiles({
 		filePaths: filePaths,
 		logLevel: 'verbose',
 		jestBinaryPath: 'npx jest',
 		outputResultsPath: 'ai-conversion-testing/temp',
 		testId: 'data-test',
 		llmCallFunction: callLLMFunctionExample,
-		extendPrompt: ['convert this to that', 'add this store to <Provider>']
+		extendPrompt: ['convert this to that', 'add myStore to <Provider> like this <Provider store=(myStore)>Component</Provider>']
 	});
+    console.log('results:', results);
 })([
-	'forms/__tests__/button-row.test.js',
-	'forms/__tests__/select.test.js'
+	'<testPath1>',
+	'<testPath1>'
 ]);
 ```
 
@@ -87,6 +88,7 @@ import {
 	generatePrompt,
 	extractCodeContentToFile,
 	runTestAndAnalyze,
+    TestResult,
 	configureLogLevel,
 } from 'enzyme-to-rtl-codemod';
 // Import llm call method helper
@@ -124,7 +126,9 @@ const convertTestFile = async (filePath: string): Promise<void> => {
     const convertedFilePath = extractCodeContentToFile(LLMResponse);
 
     // Run the file and analyze the failures
-    await runTestAndAnalyze(convertedFilePath);
+    const result: TestResult = await runTestAndAnalyze(convertedFilePath);
+
+    console.log('result:', result);
 };
 
 // Run the function and see logs and files in `outputResultsPath`
@@ -166,7 +170,8 @@ const prompt = await generatePrompt(filePath, 'data-qa', astConverted, reactComp
 ```ts
 const convertedFilePath = extractCodeContent(LLMResponse);
 ```
-1. `runTestAndAnalyze` - run the converted test file and analyze the logs
+1. `TestResult` - type of return object for `runTestAndAnalyze`
+1. `runTestAndAnalyze` - run the converted test file and analyze the logs. Return an object of `TestResult` type
 ```ts
 await runTestAndAnalyze(convertedFilePath);
 ```
@@ -174,6 +179,7 @@ await runTestAndAnalyze(convertedFilePath);
 ```ts
 export type LLMCallFunction = (prompt: string) => Promise<string>;
 ```
+1. `TestResults` - test run results type returned by `convertTestFiles`
 1. `convertTestFiles` - run the conversion flow in one method. See methods above that correspond to parameters below
 ```ts
 export const convertTestFiles = async ({
@@ -191,8 +197,8 @@ export const convertTestFiles = async ({
     outputResultsPath: string;
     testId: string;
     llmCallFunction: LLMCallFunction;
-    extendPrompt: string[];
-}): Promise<void> => ...
+    extendPrompt?: string[];
+}): Promise<SummaryJson> =>...
 ```
 
 # Output results
@@ -203,6 +209,7 @@ Results will be written to the outputResultsPath/<filePathTitle> folder
 4. rtl-converted-file.jest.tsx - Converted RTL file
 5. test-cases-dom-tree.csv - CSV with DOM tree for each test case
 6. jest-test-run-logs.md - Jest run logs for your RTL file
+7. summary.json - summary of conversions
 
 # NOTE:
 1. This package will only work if your test files use Enzyme `mount` and `shallow` imported directly from Enzyme package. If you use helper methods to mount the components it will not work

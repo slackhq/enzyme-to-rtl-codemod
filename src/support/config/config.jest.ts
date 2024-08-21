@@ -220,7 +220,7 @@ describe('Configuration Functions', () => {
 
     describe('addPathsToConfig', () => {
         it('should set various paths in the config based on the provided file path', () => {
-            const filePath = 'some/path/file.tsx';
+            const filePath = 'some/path/file.jest.tsx';
 
             const outputPath = 'output/path';
             const resolvedPath = '/resolved/path/to/output';
@@ -233,28 +233,30 @@ describe('Configuration Functions', () => {
             addPathsToConfig(filePath);
 
             expect(getConfigProperty('filePathTitle')).toBe('file');
-            expect(getConfigProperty('filePathExtension')).toBe('.tsx');
+            expect(getConfigProperty('filePathExtension')).toBe('.jest.tsx');
             expect(getConfigProperty('fileConversionFolder')).toBe(
-                `${resolvedPath}/file`,
+                `${resolvedPath}/file-jest-tsx`,
             );
-            expect(fs.mkdirSync).toHaveBeenCalledWith(`${resolvedPath}/file`);
+            expect(fs.mkdirSync).toHaveBeenCalledWith(
+                `${resolvedPath}/file-jest-tsx`,
+            );
             expect(getConfigProperty('astTranformedFilePath')).toBe(
-                `${resolvedPath}/file/ast-transformed-file.tsx`,
+                `${resolvedPath}/file-jest-tsx/ast-transformed-file.jest.tsx`,
             );
             expect(getConfigProperty('collectedDomTreeFilePath')).toBe(
-                `${resolvedPath}/file/dom-tree-file.csv`,
+                `${resolvedPath}/file-jest-tsx/dom-tree-file.csv`,
             );
             expect(getConfigProperty('rtlConvertedFilePath')).toBe(
-                `${resolvedPath}/file/rtl-converted-file.tsx`,
+                `${resolvedPath}/file-jest-tsx/rtl-converted-file.jest.tsx`,
             );
             expect(getConfigProperty('jestRunLogsFilePath')).toBe(
-                `${resolvedPath}/file/jest-run-logs-file.md`,
+                `${resolvedPath}/file-jest-tsx/jest-run-logs-file.md`,
             );
             expect(getConfigProperty('enzymeMountAdapterFilePath')).toBe(
-                `${resolvedPath}/file/enzyme-mount-adapter.js`,
+                `${resolvedPath}/file-jest-tsx/enzyme-mount-adapter.js`,
             );
             expect(getConfigProperty('filePathWithEnzymeAdapter')).toBe(
-                `${resolvedPath}/file/enzyme-mount-overwritten-file.tsx`,
+                `${resolvedPath}/file-jest-tsx/enzyme-mount-overwritten-file.jest.tsx`,
             );
         });
     });

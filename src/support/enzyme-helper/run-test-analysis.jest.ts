@@ -1,10 +1,10 @@
 import * as runTestAnalysis from './run-test-analysis';
 import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
-import { getConfigProperty } from '../config';
+import { getConfigProperty } from '../config/config';
 import fs from 'fs';
 
 // Mock implementations
-jest.mock('../config', () => ({
+jest.mock('../config/config', () => ({
     getConfigProperty: jest.fn(),
 }));
 jest.mock('../shell-helper/shell-helper');
@@ -25,13 +25,19 @@ describe('runTestAndAnalyze', () => {
         jest.restoreAllMocks();
     });
 
-    it('should run the RTL test and analyze the results', async () => {
+    it('should run the RTL test, analyze the results and write a json file by default', async () => {
         const filePath = 'path/to/testFile';
         const testPassMock = false;
 
         // Mock jest binary path
-        getConfigPropertyMock.mockReturnValueOnce('/path/to/jestBinary');
-        getConfigPropertyMock.mockReturnValueOnce('/path/to/jestRunLogs');
+        getConfigPropertyMock.mockImplementation((property) => {
+            if (property === 'jestBinaryPath') return '/path/to/jestBinary';
+            if (property === 'jestRunLogsFilePath')
+                return '/path/to/jestRunLogs';
+            if (property === 'fileConversionFolder')
+                return '/path/to/outputResultsPath/fileConversionFolder';
+            return '';
+        });
 
         // Mock shell process
         const mockShellProcess: ShellProcess = {
@@ -89,10 +95,30 @@ describe('runTestAndAnalyze', () => {
         );
 
         // Write file assertions
-        expect(mockedWriteFileSync).toHaveBeenCalledTimes(1);
-        expect(mockedWriteFileSync).toHaveBeenCalledWith(
+        expect(mockedWriteFileSync).toHaveBeenCalledTimes(2);
+        expect(mockedWriteFileSync).toHaveBeenNthCalledWith(
+            1,
             '/path/to/jestRunLogs',
             mockShellProcess.output + mockShellProcess.stderr,
+            'utf-8',
+        );
+        // Stringify the expected JSON object for comparison
+        const expectedJsonString = JSON.stringify(
+            {
+                testPass: testPassMock,
+                failedTests: 1,
+                passedTests: 0,
+                totalTests: 1,
+                successRate: 0,
+            },
+            null,
+            2,
+        );
+
+        expect(mockedWriteFileSync).toHaveBeenNthCalledWith(
+            2,
+            '/path/to/outputResultsPath/fileConversionFolder/summary.json',
+            expectedJsonString,
             'utf-8',
         );
 
@@ -108,7 +134,10 @@ describe('runTestAndAnalyze', () => {
         // Check results is returned
         expect(result).toEqual({
             testPass: testPassMock,
-            testrunLogs: mockShellProcess.output + mockShellProcess.stderr,
+            failedTests: 1,
+            passedTests: 0,
+            totalTests: 1,
+            successRate: 0,
         });
     });
 

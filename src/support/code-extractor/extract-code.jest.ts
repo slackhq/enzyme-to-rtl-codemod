@@ -1,9 +1,9 @@
 import fs from 'fs';
 import { extractCodeContentToFile, codeExtractorLogger } from './extract-code';
-import { getConfigProperty } from '../config';
+import { getConfigProperty } from '../config/config';
 
 // Mock the getConfigProperty function
-jest.mock('../config', () => ({
+jest.mock('../config/config', () => ({
     getConfigProperty: jest.fn(),
 }));
 

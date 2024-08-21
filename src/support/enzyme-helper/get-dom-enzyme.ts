@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
-import { getConfigProperty } from '../config';
+import { getConfigProperty } from '../config/config';
 import { createCustomLogger } from '../logger/logger';
 import jscodeshift from 'jscodeshift';
 import { convertRelativeImports } from '../ast-transformations/individual-transformations/convert-relative-imports';

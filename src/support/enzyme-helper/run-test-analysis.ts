@@ -1,16 +1,18 @@
 import { runCommand } from '../shell-helper/shell-helper';
-import { getConfigProperty } from '../config';
+import { getConfigProperty } from '../config/config';
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 import { createCustomLogger } from '../logger/logger';
 
 export const testAnalysisLogger = createCustomLogger('Test Analysis');
 
-export interface RTLTestResult {
+export interface TestResult {
     testPass: boolean | null;
-    testrunLogs: string;
+    failedTests: number;
+    passedTests: number;
+    totalTests: number;
+    successRate: number;
 }
-
 export interface TestResults {
     failedTests: number;
     passedTests: number;
@@ -25,12 +27,16 @@ export interface TestResults {
  */
 export const runTestAndAnalyze = async (
     filePath: string,
-): Promise<RTLTestResult> => {
+    writeResults = true,
+): Promise<TestResult> => {
     testAnalysisLogger.info('Start: Run RTL test and analyze results');
 
-    const result: RTLTestResult = {
+    const result: TestResult = {
         testPass: null,
-        testrunLogs: 'Not run',
+        failedTests: 0,
+        passedTests: 0,
+        totalTests: 0,
+        successRate: 0,
     };
 
     // Create jest run command for the test file
@@ -40,7 +46,7 @@ export const runTestAndAnalyze = async (
 
     // Collect test run logs
     testAnalysisLogger.verbose('Clean output');
-    result.testrunLogs = removeANSIEscapeCodes(
+    const testrunLogs = removeANSIEscapeCodes(
         generatedFileRunShellProcess.output +
             generatedFileRunShellProcess.stderr,
     );
@@ -48,11 +54,11 @@ export const runTestAndAnalyze = async (
     // Write logs to a file
     const jestRunLogsPath = getConfigProperty('jestRunLogsFilePath');
     testAnalysisLogger.verbose(`Write jest run logs to ${jestRunLogsPath}`);
-    fs.writeFileSync(jestRunLogsPath, result.testrunLogs, 'utf-8');
+    fs.writeFileSync(jestRunLogsPath, testrunLogs, 'utf-8');
 
     // Analyze logs for errors
     testAnalysisLogger.verbose('Analyze logs for errors');
-    result.testPass = analyzeLogsForErrors(result.testrunLogs);
+    result.testPass = analyzeLogsForErrors(testrunLogs);
 
     if (!result.testPass) {
         testAnalysisLogger.info('Test failed');
@@ -76,10 +82,27 @@ export const runTestAndAnalyze = async (
         );
     }
     testAnalysisLogger.info('Extracting test results');
-    const detailedResult = extractTestResults(result.testrunLogs);
+    const detailedResult = extractTestResults(testrunLogs);
+    // Merge detailedResult into the result object
+    result.failedTests = detailedResult.failedTests;
+    result.passedTests = detailedResult.passedTests;
+    result.totalTests = detailedResult.totalTests;
+    result.successRate = detailedResult.successRate;
+
     testAnalysisLogger.info(
         `Detailed result: ${JSON.stringify(detailedResult)}`,
     );
+
+    // Write results
+    if (writeResults) {
+        const fileConversionFolder = getConfigProperty('fileConversionFolder');
+        testAnalysisLogger.info(
+            `Writing final result to ${fileConversionFolder}`,
+        );
+        const jsonResult = JSON.stringify(result, null, 2);
+        const resultFilePath = `${fileConversionFolder}/summary.json`;
+        fs.writeFileSync(resultFilePath, jsonResult, 'utf-8');
+    }
 
     testAnalysisLogger.info('Done: Run RTL test and analyze results');
 

@@ -1,88 +1,78 @@
-import * as child from 'child_process';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 /**
- * Shell process type
+ * Represents a shell process and its outputs.
  */
 export interface ShellProcess {
     /**
-     * Child process object
+     * The spawned child process object.
      */
-    process: child.ChildProcessWithoutNullStreams;
+    process: ChildProcessWithoutNullStreams;
     /**
-     * Command output
+     * The standard output from the command.
      */
     output: string;
     /**
-     * Command error output
+     * The standard error output from the command.
      */
     stderr: string;
     /**
-     * Process state
-     */
-    finished: boolean;
-    /**
-     * Command string
+     * The shell command executed.
      */
     command: string;
 }
 
 /**
- * Run shell command
- * - Start child process with the command
- * - Listen to data output events and collect them
- * - Wait for completion for 4 minutes, else fail
- * @param command cli command, e.g. any shell command
- * @returns command output
+ * Executes a shell command.
+ * @param command - The shell command to run.
+ * @param timeout - The maximum time allowed for the command to execute (default: 3 minutes).
+ * @returns A promise resolving to the ShellProcess object containing the command outputs.
  */
-export const runCommand = (command: string): Promise<ShellProcess> => {
+export const runCommand = (
+    command: string,
+    timeout = 180000,
+): Promise<ShellProcess> => {
     return new Promise((resolve, reject) => {
-        // Start child process
-        const childProcess = child.spawn(command, {
-            shell: true,
-        });
+        // Spawn the child process with the given command
+        const childProcess = spawn(command, { shell: true });
 
-        // Set shell object
-        const shell: ShellProcess = {
+        // Initialize the ShellProcess object
+        const shellProcess: ShellProcess = {
             process: childProcess,
             output: '',
             stderr: '',
-            finished: false,
             command,
         };
 
-        // Listen to data event that returns all the output and collect it
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        childProcess.stdout.on('data', (data: any) => {
-            shell.output += data.toString();
+        // Capture standard output data
+        childProcess.stdout.on('data', (data: Buffer) => {
+            shellProcess.output += data.toString();
         });
 
-        // Collect error output
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        childProcess.stderr.on('data', (data: any) => {
-            shell.stderr += data.toString();
+        // Capture standard error data
+        childProcess.stderr.on('data', (data: Buffer) => {
+            shellProcess.stderr += data.toString();
         });
 
-        // Set the finished flag to true on close event
+        // Resolve the promise once the process closes
         childProcess.on('close', () => {
-            shell.finished = true;
-            resolve(shell);
-            clearTimeout(timeout);
+            resolve(shellProcess);
+            clearTimeout(timer);
         });
 
-        // Handle errors from the child process
+        // Reject the promise if the process encounters an error
         childProcess.on('error', (error) => {
             reject(error);
         });
 
-        // Race between process completion and timeout
-        const timeoutTime = 180000;
-        const timeout = setTimeout(() => {
-            shell.process.kill();
+        // Set up a timeout to kill the process if it takes too long
+        const timer = setTimeout(() => {
+            childProcess.kill();
             reject(
                 new Error(
-                    `Failed to finish after ${timeoutTime / 1000 / 60} minutes`,
+                    `Command timed out after ${timeout / 1000 / 60} minutes`,
                 ),
             );
-        }, timeoutTime);
+        }, timeout);
     });
 };

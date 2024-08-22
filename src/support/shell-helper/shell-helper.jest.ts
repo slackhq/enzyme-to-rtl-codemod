@@ -5,7 +5,6 @@ describe('runCommand Integration Test', () => {
         const command = 'echo hello';
 
         const result = await runCommand(command);
-        expect(result.finished).toBe(true);
         expect(result.command).toBe(command);
         expect(result.output).toBe('hello\n');
         expect(result.stderr).toBe('');
@@ -16,7 +15,6 @@ describe('runCommand Integration Test', () => {
 
         const result = await runCommand(command);
 
-        expect(result.finished).toBe(true);
         expect(result.command).toBe(command);
         expect(result.output).toBe('');
         expect(result.stderr).toBe(
@@ -24,16 +22,19 @@ describe('runCommand Integration Test', () => {
         );
     });
 
-    // Not enabling to avoid long running test
-    it.skip('should kill the process if it runs longer than the allowed time', async () => {
+    it('should kill the process if it runs longer than the allowed time', async () => {
         const command = 'sleep 302';
+        const timeout = 2000; // Set a timeout of 2 seconds
+
         try {
-            await runCommand(command);
+            await runCommand(command, timeout);
         } catch (error) {
-            // Ensure the error message indicates that the process was killed
+            // Ensure the error message indicates that the process was killed due to timeout
             const typedError = error as Error;
             expect(typedError).toBeDefined();
-            expect(typedError.message).toContain('Failed to finish after');
+            expect(typedError.message).toContain(
+                `Command timed out after ${timeout / 1000 / 60} minutes`,
+            );
         }
     }, 40000);
 });

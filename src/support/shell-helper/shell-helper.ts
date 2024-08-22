@@ -54,20 +54,35 @@ export const runCommand = (
             shellProcess.stderr += data.toString();
         });
 
+        /**
+         * Cleans up the child process by destroying streams and removing listeners.
+         * Ensures no open handles remain.
+         */
+        const cleanup = () => {
+            childProcess.stdout?.destroy();
+            childProcess.stderr?.destroy();
+            childProcess.stdin?.end(); // Close stdin if not used
+            childProcess.removeAllListeners();
+            clearTimeout(timer); // Clear the timeout
+        };
+
         // Resolve the promise once the process closes
         childProcess.on('close', () => {
+            cleanup();
             resolve(shellProcess);
-            clearTimeout(timer);
         });
 
         // Reject the promise if the process encounters an error
         childProcess.on('error', (error) => {
+            cleanup();
             reject(error);
         });
 
         // Set up a timeout to kill the process if it takes too long
         const timer = setTimeout(() => {
-            shellProcess.process.kill();
+            // Kill the child process if it exceeds the timeout duration
+            childProcess.kill('SIGKILL');
+            cleanup();
             reject(
                 new Error(
                     `Command timed out after ${timeout / 1000 / 60} minutes`,

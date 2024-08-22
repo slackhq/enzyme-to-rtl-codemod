@@ -53,7 +53,6 @@ describe('runTestAndAnalyze', () => {
                 Time:        2.589 s, estimated 3 s
             `,
             stderr: '',
-            finished: true,
             command: 'mocked command',
         };
         // Mock jest run logs

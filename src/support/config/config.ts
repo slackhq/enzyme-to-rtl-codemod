@@ -71,8 +71,10 @@ export const setJestBinaryPath = (newJestBinaryPath: string): void => {
  */
 export const setOutputResultsPath = (newOutputResultsPath: string): void => {
     const hostProjectRoot = process.cwd();
-    const resolvedPath = path.resolve(hostProjectRoot, newOutputResultsPath);
-
+    const now = new Date();
+    const timeStamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+    const pathWithTimestamp = `${newOutputResultsPath}/${timeStamp}`;
+    const resolvedPath = path.resolve(hostProjectRoot, pathWithTimestamp);
     configLogger.info(`Set output results path to "${resolvedPath}"`);
     config.outputResultsPath = resolvedPath;
 };
@@ -137,13 +139,26 @@ export const checkConfiguration = (filePath: string): void => {
             'Output results path is not set. Please use setOutputResultsPath to set it.',
         );
     } else {
+        // Ensure the directory exists or create it
         configLogger.verbose('Check if output results path exists');
-        if (!fs.existsSync(config.outputResultsPath)) {
+        try {
+            if (!fs.existsSync(config.outputResultsPath)) {
+                configLogger.verbose(
+                    `Output results path does not exist. Creating directory: ${config.outputResultsPath}`,
+                );
+                fs.mkdirSync(config.outputResultsPath, { recursive: true });
+                configLogger.info(
+                    `Directory created: ${config.outputResultsPath}`,
+                );
+            } else {
+                configLogger.info('Output results path exists.');
+            }
+        } catch (error) {
             configLogger.error(
-                'Output results path is set but cannot be accessed. Please use setOutputResultsPath to set it.',
+                `Failed to create output results path: ${config.outputResultsPath}\nError: ${error}`,
             );
             throw new Error(
-                'Output results path is set but cannot be accessed. Please use setOutputResultsPath to set it.',
+                `Failed to create output results path: ${config.outputResultsPath}\nError: ${error}`,
             );
         }
     }
@@ -256,7 +271,7 @@ const extractFileDetails = (
 const createFileConversionFolder = (filePath: string): string => {
     const fileConversionFolder = `${config.outputResultsPath}/${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
     configLogger.verbose(`Create folder for ${fileConversionFolder}`);
-    fs.mkdirSync(fileConversionFolder);
+    fs.mkdirSync(fileConversionFolder, { recursive: true });
     return fileConversionFolder;
 };
 

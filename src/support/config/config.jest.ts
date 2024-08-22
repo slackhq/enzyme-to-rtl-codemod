@@ -155,12 +155,34 @@ describe('Configuration Functions', () => {
             );
         });
 
-        it('should throw an error if output results path is set but does not exist', () => {
+        it('should not create new folders for results if they exist and log that paths exist', () => {
             setJestBinaryPath('jest/path');
             // Mock setOutputResultsPath
             const outputPath = 'path/to/output';
             const resolvedPath = '/resolved/path/to/output';
             (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
+            const spyInfo = jest.spyOn(configLogger, 'info');
+
+            setOutputResultsPath(outputPath);
+
+            (fs.existsSync as jest.Mock)
+                .mockReturnValueOnce(true)
+                .mockReturnValueOnce(true);
+
+            (fs.mkdirSync as jest.Mock) = jest.fn();
+
+            checkConfiguration('some/file');
+            expect(spyInfo).toHaveBeenCalledWith('Output results path exists.');
+            expect(fs.mkdirSync).not.toHaveBeenCalled();
+        });
+
+        it('should create new folders for results if they do not exist and log that paths exist', () => {
+            setJestBinaryPath('jest/path');
+            // Mock setOutputResultsPath
+            const outputPath = 'path/to/output';
+            const resolvedPath = '/resolved/path/to/output';
+            (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
+            const spyInfo = jest.spyOn(configLogger, 'info');
 
             setOutputResultsPath(outputPath);
 
@@ -168,8 +190,15 @@ describe('Configuration Functions', () => {
                 .mockReturnValueOnce(true)
                 .mockReturnValueOnce(false);
 
-            expect(() => checkConfiguration('some/file')).toThrow(
-                'Output results path is set but cannot be accessed. Please use setOutputResultsPath to set it.',
+            (fs.mkdirSync as jest.Mock) = jest.fn();
+
+            checkConfiguration('some/file');
+            expect(spyInfo).toHaveBeenCalledWith(
+                'Directory created: /resolved/path/to/output',
+            );
+            expect(fs.mkdirSync).toHaveBeenCalledWith(
+                '/resolved/path/to/output',
+                { recursive: true },
             );
         });
 
@@ -228,35 +257,41 @@ describe('Configuration Functions', () => {
 
             (fs.mkdirSync as jest.Mock) = jest.fn();
 
-            setOutputResultsPath(outputPath);
+            // Mock Date to return a specific date and time
+            const mockDate = new Date(2024, 7, 21, 6, 6, 6);
+            jest.spyOn(global, 'Date').mockImplementation(
+                () => mockDate as unknown as Date,
+            );
+            const expectedFolderName = `${resolvedPath}/file-jest-tsx`;
 
+            setOutputResultsPath(outputPath);
             addPathsToConfig(filePath);
 
             expect(getConfigProperty('filePathTitle')).toBe('file');
             expect(getConfigProperty('filePathExtension')).toBe('.jest.tsx');
             expect(getConfigProperty('fileConversionFolder')).toBe(
-                `${resolvedPath}/file-jest-tsx`,
+                expectedFolderName,
             );
-            expect(fs.mkdirSync).toHaveBeenCalledWith(
-                `${resolvedPath}/file-jest-tsx`,
-            );
+            expect(fs.mkdirSync).toHaveBeenCalledWith(expectedFolderName, {
+                recursive: true,
+            });
             expect(getConfigProperty('astTranformedFilePath')).toBe(
-                `${resolvedPath}/file-jest-tsx/ast-transformed-file.jest.tsx`,
+                `${expectedFolderName}/ast-transformed-file.jest.tsx`,
             );
             expect(getConfigProperty('collectedDomTreeFilePath')).toBe(
-                `${resolvedPath}/file-jest-tsx/dom-tree-file.csv`,
+                `${expectedFolderName}/dom-tree-file.csv`,
             );
             expect(getConfigProperty('rtlConvertedFilePath')).toBe(
-                `${resolvedPath}/file-jest-tsx/rtl-converted-file.jest.tsx`,
+                `${expectedFolderName}/rtl-converted-file.jest.tsx`,
             );
             expect(getConfigProperty('jestRunLogsFilePath')).toBe(
-                `${resolvedPath}/file-jest-tsx/jest-run-logs-file.md`,
+                `${expectedFolderName}/jest-run-logs-file.md`,
             );
             expect(getConfigProperty('enzymeMountAdapterFilePath')).toBe(
-                `${resolvedPath}/file-jest-tsx/enzyme-mount-adapter.js`,
+                `${expectedFolderName}/enzyme-mount-adapter.js`,
             );
             expect(getConfigProperty('filePathWithEnzymeAdapter')).toBe(
-                `${resolvedPath}/file-jest-tsx/enzyme-mount-overwritten-file.jest.tsx`,
+                `${expectedFolderName}/enzyme-mount-overwritten-file.jest.tsx`,
             );
         });
     });

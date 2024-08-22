@@ -67,7 +67,7 @@ export const runCommand = (
 
         // Set up a timeout to kill the process if it takes too long
         const timer = setTimeout(() => {
-            childProcess.kill();
+            shellProcess.process.kill();
             reject(
                 new Error(
                     `Command timed out after ${timeout / 1000 / 60} minutes`,

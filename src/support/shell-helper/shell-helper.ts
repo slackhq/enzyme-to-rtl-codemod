@@ -58,7 +58,7 @@ export const runCommand = (
          * Cleans up the child process by destroying streams and removing listeners.
          * Ensures no open handles remain.
          */
-        const cleanup = () => {
+        const cleanup = (): void => {
             childProcess.stdout?.destroy();
             childProcess.stderr?.destroy();
             childProcess.stdin?.end(); // Close stdin if not used

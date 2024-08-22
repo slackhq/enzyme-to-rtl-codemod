@@ -202,7 +202,7 @@ export const convertTestFiles = async ({
 ```
 
 # Output results
-Results will be written to the outputResultsPath/<filePathTitle> folder
+Results will be written to the outputResultsPath/<timeStampFolder>/<filePath>/* folder
 1. ast-transformed-file.jest.tsx - AST converted/annotated file
 2. enzyme-mount-overwrite.jest.tsx - Your file with overwritten Enzyme rendering methods that emit DOM for test cases 
 3. enzyme-render-adapter.ts - Enzyme rendering methods with DOM logs collection logic

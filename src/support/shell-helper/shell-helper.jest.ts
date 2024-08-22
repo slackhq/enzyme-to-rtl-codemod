@@ -23,7 +23,7 @@ describe('runCommand Integration Test', () => {
     });
 
     it('should kill the process if it runs longer than the allowed time', async () => {
-        const command = 'sleep 302';
+        const command = 'sleep 10'
         const timeout = 2000; // Set a timeout of 2 seconds
 
         try {

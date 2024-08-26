@@ -1,7 +1,17 @@
 {
-  "name": "enzyme-to-rtl-codemod",
-  "version": "0.0.0",
+  "name": "@slack/enzyme-to-rtl-codemod",
+  "version": "0.0.1",
   "description": "AST codemod for Enzyme to RTL with AI integrationc capabilities",
+  "keywords": ["slack", "enzyme", "rtl", "codemod"],
+  "author": "Salesforce, Inc.",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slackhq/enzyme-to-rtl-codemod"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -17,9 +27,6 @@
     "prettier:fix": "prettier --write 'src/**/*.{ts,tsx}'",
     "format:fix": "npm run lint:fix && npm run prettier:fix"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "jscodeshift": "17.0.0",
     "winston": "3.13.1"

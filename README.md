@@ -70,7 +70,7 @@ const callLLMFunctionExample: LLMCallFunction = async (prompt: string): Promise<
     console.log('results:', results);
 })([
 	'<testPath1>',
-	'<testPath1>'
+	'<testPath2>'
 ]);
 ```
 

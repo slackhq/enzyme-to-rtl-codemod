@@ -1,7 +1,10 @@
 import fs from 'fs';
 import { converWithAST } from '../ast-transformations/run-ast-transformations';
 import { getReactCompDom } from '../enzyme-helper/get-dom-enzyme';
-import { generatePrompt } from '../prompt-generation/generate-prompt';
+import {
+    generateInitialPrompt,
+    generateFeedbackPrompt,
+} from '../prompt-generation/generate-prompt';
 import { extractCodeContentToFile } from '../code-extractor/extract-code';
 import {
     runTestAndAnalyze,
@@ -22,7 +25,10 @@ import {
 export type LLMCallFunction = (prompt: string) => Promise<string>;
 
 export interface TestResults {
-    [filePath: string]: TestResult;
+    [filePath: string]: {
+        attempt1: TestResult;
+        attempt2: TestResult;
+    };
 }
 
 /**
@@ -40,7 +46,8 @@ export const convertTestFiles = async ({
     outputResultsPath,
     testId,
     llmCallFunction,
-    extendPrompt,
+    extendInitialPrompt,
+    extendFeedbackPrompt,
 }: {
     filePaths: string[];
     logLevel?: string;
@@ -48,7 +55,8 @@ export const convertTestFiles = async ({
     outputResultsPath: string;
     testId: string;
     llmCallFunction: LLMCallFunction;
-    extendPrompt?: string[];
+    extendInitialPrompt?: string[];
+    extendFeedbackPrompt?: string[];
 }): Promise<SummaryJson> => {
     // Set log level
     if (logLevel) {
@@ -72,12 +80,12 @@ export const convertTestFiles = async ({
         const reactCompDom = await getReactCompDom(filePath);
 
         // Generate the prompt
-        const prompt = generatePrompt(
+        const prompt = generateInitialPrompt(
             filePath,
             'data-test',
             astConvertedCode,
             reactCompDom,
-            extendPrompt,
+            extendInitialPrompt,
         );
 
         // Call the API with a custom LLM method
@@ -87,11 +95,40 @@ export const convertTestFiles = async ({
         const convertedFilePath = extractCodeContentToFile(LLMResponse);
 
         // Run the file and analyze the failures
-        const result = await runTestAndAnalyze(convertedFilePath, false);
+        const attempt1Result = await runTestAndAnalyze(
+            convertedFilePath,
+            false,
+        );
 
         // Store the result in the totalResults object
         const filePathClean = `${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
-        totalResults[filePathClean] = result;
+        totalResults[filePathClean]['attempt1'] = attempt1Result;
+
+        // Feedback step
+        if (!attempt1Result.testPass) {
+            // Generate feedback the prompt
+            const feedbackPrompt = generateFeedbackPrompt(
+                filePath,
+                'data-test',
+                astConvertedCode,
+                reactCompDom,
+                extendInitialPrompt,
+            );
+
+            // Call the API with a custom LLM method
+            const feedbackLLMResponse = await llmCallFunction(feedbackPrompt);
+
+            // Extract generated code
+            // don't hardcode the filePath to write the file to
+            const convertedFilePath =
+                extractCodeContentToFile(feedbackLLMResponse);
+
+            // Run the file and analyze the failures
+            const attempt1Result = await runTestAndAnalyze(
+                convertedFilePath,
+                false,
+            );
+        }
     }
 
     // Write summary to outputResultsPath

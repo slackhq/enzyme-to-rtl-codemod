@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { generatePrompt } from './generate-prompt';
+import { generateInitialPrompt } from './generate-prompt';
 import { countTestCases } from './utils/utils';
 import { getConfigProperty } from '../config/config';
 
@@ -55,12 +55,11 @@ describe('generatePrompt', () => {
 });
       </enzyme_test_code>
       Partially converted test file code: <codemod><codemod>Partially converted code</codemod></codemod>
-      Rendered component DOM tree: <component><component>Rendered component</component></component>
-    `
+      Rendered component DOM tree: <component><component>Rendered component</component></component>`
             .replace(/\s+/g, ' ')
             .trim();
 
-        const result = generatePrompt(
+        const result = generateInitialPrompt(
             enzymeFilePath,
             mockGetByTestIdAttribute,
             mockAstCodemodOutput,
@@ -107,7 +106,7 @@ describe('generatePrompt', () => {
         Example: <Provider store={createTestStore()}> <Component {...props} /> </Provider>`,
             "dataTest('selector') should be converted to screen.getByTestId('selector')",
         ];
-        const result = generatePrompt(
+        const result = generateInitialPrompt(
             enzymeFilePath,
             mockGetByTestIdAttribute,
             mockAstCodemodOutput,

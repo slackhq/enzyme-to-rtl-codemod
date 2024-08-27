@@ -13,11 +13,11 @@ This package is designed to help with automated conversion of jest tests from En
 # How to install
 1. Install the package
 ```bash
-npm install package-name-from-npm
+npm install @slack/enzyme-to-rtl-codemod
 ```
 or
 ``` bash
-yarn add package-name-from-npm
+yarn add @slack/enzyme-to-rtl-codemod
 ```
 # API/Usage
 There three ways to use this package:
@@ -38,7 +38,7 @@ export declare const convertTestFiles: ({ filePaths, logLevel, jestBinaryPath, o
 2. Example
 ```ts
 // Import convertTestFiles that accepts an array of Enzyme files, LLMCallFunction and SummaryJson types
-import { convertTestFiles, LLMCallFunction, SummaryJson } from 'enzyme-to-rtl-codemod';
+import { convertTestFiles, LLMCallFunction, SummaryJson } from '@slack/enzyme-to-rtl-codemod';
 
 // Example implementation of the LLM call function
 const callLLMFunctionExample: LLMCallFunction = async (prompt: string): Promise<string> => {
@@ -90,7 +90,7 @@ import {
 	runTestAndAnalyze,
     TestResult,
 	configureLogLevel,
-} from 'enzyme-to-rtl-codemod';
+} from '@slack/enzyme-to-rtl-codemod';
 // Import llm call method helper
 import { callLLM } from './llm-helper';
 

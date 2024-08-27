@@ -11,6 +11,7 @@ import {
     setJestBinaryPath,
     setOutputResultsPath,
     configureLogLevel,
+    getConfigProperty,
 } from '../config/config';
 import {
     generateSummaryJson,
@@ -96,7 +97,7 @@ export const convertTestFiles = async ({
     // Write summary to outputResultsPath
     const generatedSummary = generateSummaryJson(totalResults);
     const finalSummaryJson = JSON.stringify(generatedSummary, null, 2);
-    const resultFilePath = `${outputResultsPath}/summary.json`;
+    const resultFilePath = `${getConfigProperty('outputResultsPath')}/summary.json`;
     fs.writeFileSync(resultFilePath, finalSummaryJson, 'utf-8');
 
     return generatedSummary;

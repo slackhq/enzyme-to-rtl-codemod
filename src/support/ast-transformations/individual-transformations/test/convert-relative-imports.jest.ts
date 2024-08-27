@@ -46,4 +46,24 @@ describe('convertText', () => {
             "import { shallow } from './enzyme-mount-adapter';",
         );
     });
+
+    it('Should convert relative paths in jest.mock calls', () => {
+        const source = "jest.mock('./utils/ast-logger');";
+
+        // Transform the source code
+        const root = j(source);
+        convertRelativeImports(
+            j,
+            root,
+            'src/support/ast-transformations/main-ast-transform.jest.ts',
+        );
+
+        // Generate the transformed source code
+        const transformedSource = root.toSource();
+
+        // Verify jest.mock relative paths are converted to absolute
+        expect(transformedSource).toContain(
+            'enzyme-to-rtl-codemod/src/support/ast-transformations/utils/ast-logger',
+        );
+    });
 });

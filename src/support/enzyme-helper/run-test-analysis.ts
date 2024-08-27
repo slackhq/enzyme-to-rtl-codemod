@@ -1,6 +1,5 @@
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config/config';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 import { createCustomLogger } from '../logger/logger';
@@ -61,14 +60,14 @@ export const runTestAndAnalyze = async (
     testAnalysisLogger.verbose('Analyze logs for errors');
     result.testPass = analyzeLogsForErrors(testrunLogs);
 
+    const rtlConvertedFilePath = getConfigProperty('rtlConvertedFilePath');
+
     if (!result.testPass) {
         testAnalysisLogger.info('Test failed');
         testAnalysisLogger.info(
-            `Converted RTL file path: ${getConfigProperty('rtlConvertedFilePath')}`,
+            `Converted RTL file path: ${rtlConvertedFilePath}`,
         );
-        testAnalysisLogger.info(
-            `Jest run logs file path: ${getConfigProperty('jestRunLogsFilePath')}`,
-        );
+        testAnalysisLogger.info(`Jest run logs file path: ${jestRunLogsPath}`);
         testAnalysisLogger.info(
             `See ${getConfigProperty('outputResultsPath')} for more info`,
         );
@@ -76,11 +75,18 @@ export const runTestAndAnalyze = async (
         // TODO: add check if the converted file has fewer tests
         testAnalysisLogger.info('Test passed!');
         testAnalysisLogger.info(
-            `Converted RTL file path: ${getConfigProperty('rtlConvertedFilePath')}`,
+            `Converted RTL file path: ${rtlConvertedFilePath}`,
         );
-        testAnalysisLogger.info(
-            `Jest run logs file path: ${getConfigProperty('jestRunLogsFilePath')}`,
-        );
+        testAnalysisLogger.info(`Jest run logs file path: ${jestRunLogsPath}`);
+
+        // Check if converted file has the same number of tests as original
+        const convertedTestCaseNum = countTestCases(rtlConvertedFilePath);
+        const originalTestCaseNum = getConfigProperty('originalTestCaseNum');
+        if (convertedTestCaseNum < originalTestCaseNum) {
+            testAnalysisLogger.warn(
+                `Generated file has fewer test cases (${convertedTestCaseNum}) than original (${originalTestCaseNum})`,
+            );
+        }
     }
     testAnalysisLogger.info('Extracting test results');
     const detailedResult = extractTestResults(testrunLogs);

@@ -1,6 +1,12 @@
 import fs from 'fs';
 import { generatePrompt } from './generate-prompt';
 import { countTestCases } from './utils/utils';
+import { getConfigProperty } from '../config/config';
+
+// Mock the getConfigProperty function
+jest.mock('../config/config', () => ({
+    getConfigProperty: jest.fn(),
+}));
 
 describe('generatePrompt', () => {
     const enzymeFilePath =
@@ -10,6 +16,11 @@ describe('generatePrompt', () => {
     const mockRenderedCompCode = '<component>Rendered component</component>';
 
     it('should generate the correct prompt', () => {
+        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
+            typeof getConfigProperty
+        >;
+        getConfigPropertyMock.mockReturnValue(4);
+
         const expectedPrompt = `
       I need assistance converting an Enzyme test case to the React Testing Library framework.
       I will provide you with the Enzyme test file code inside <enzyme_test_code></enzyme_test_code> tags.

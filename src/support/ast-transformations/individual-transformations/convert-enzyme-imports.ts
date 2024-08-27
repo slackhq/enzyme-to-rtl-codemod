@@ -4,7 +4,7 @@
  * import { shallow } from 'enzyme'; --> import { render, screen } from '@testing-library/react';
  */
 
-import type { Collection, JSCodeshift, ImportDeclaration } from 'jscodeshift';
+import type { Collection, JSCodeshift } from 'jscodeshift';
 import { astLogger } from '../utils/ast-logger';
 
 /**

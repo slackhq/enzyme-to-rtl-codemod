@@ -14,8 +14,7 @@
         "@typescript-eslint/indent": ["error", 4],
         "semi": ["error", "always"],
         "quotes": ["warn", "single"],
-        "no-unused-vars": "warn",
-        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/no-unused-vars": "error",
         "@typescript-eslint/explicit-function-return-type": [
             "error",
             {

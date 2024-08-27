@@ -1,5 +1,6 @@
 import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config/config';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 import { createCustomLogger } from '../logger/logger';
@@ -164,8 +165,7 @@ export const extractTestResults = (jestRunLogs: string): TestResults => {
     const match = jestRunLogs.match(pattern);
 
     if (match) {
-        const [, failed = 0, _skipped = 0, passed = 0, total = 0] =
-            match.map(Number);
+        const [, failed = 0, , passed = 0, total = 0] = match.map(Number);
 
         // Update the detailedResult object if matched
         detailedResult.failedTests = failed || 0; // if failed is NaN

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
+import { runCommand } from '../shell-helper/shell-helper';
 import { getConfigProperty } from '../config/config';
 import { createCustomLogger } from '../logger/logger';
 import jscodeshift from 'jscodeshift';
@@ -282,65 +282,6 @@ enzyme.shallow = (node, options) => {
     return wrapper;
 };
 
-export const { shallow, mount } = enzyme;
-	`;
-    const enzymeRenderAdapterCodeTS = `
-// Import original methods
-import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
-import fs from 'fs';
-
-// Set up Enzyme with the adapter
-enzyme.configure({ adapter: new Adapter() });
-
-let currentTestCaseName: string | null = null;
-
-beforeEach(() => {
-	// Set the current test case name before each test
-	const testName = expect.getState().currentTestName;
-	currentTestCaseName = testName ? testName.trim() : null;
-});
-
-afterEach(() => {
-	// Reset the current test case name after each test
-	currentTestCaseName = null;
-});
-
-// Overwrite mount method
-enzyme.mount = (node: React.ReactElement, options?: enzyme.MountRendererProps) => {
-	const wrapper = originalMount(node, options);
-	const htmlContent = wrapper.html();
-	fs.appendFileSync(
-		'${collectedDomTreeFilePath}',
-		\`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\n\`,
-	);
-	return wrapper;
-};
-
-// Overwrite shallow method
-enzyme.shallow = (node: React.ReactElement, options?: enzyme.ShallowRendererProps) => {
-	const wrapper = originalShallow(node, options);
-	let resultString;
-
-	try {
-		// Try to get HTML
-		const htmlContent = wrapper.html();
-		resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${htmlContent}</dom_tree>;\n\`;
-	} catch (htmlError) {
-		// If html() fails, use debug() as a fallback
-		try {
-			const debugContent = wrapper.debug().replace(/\\n/g, ' ');
-			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>\${debugContent}</dom_tree>;\n\`;
-		} catch (debugError) {
-			// If both html() and debug() fail, provide a default string or handle the error as needed
-			resultString = \`<test_case_title>\${currentTestCaseName}</test_case_title> and <dom_tree>Failed to retrieve DOM tree</dom_tree>;\n\`;
-		}
-	}
-	fs.appendFileSync('${collectedDomTreeFilePath}', resultString);
-	return wrapper;
-};
-
-export const { shallow, mount } = enzyme;
-`;
+export const { shallow, mount } = enzyme;`;
     return enzymeRenderAdapterCodeJS;
 };

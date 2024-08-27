@@ -26,6 +26,7 @@ interface Config {
     filePathWithEnzymeAdapter: string;
     enzymeImportsPresent: boolean;
     reactVersion: number;
+    originalTestCaseNum: number;
 }
 
 const config: Config = {
@@ -42,6 +43,7 @@ const config: Config = {
     filePathWithEnzymeAdapter: '',
     enzymeImportsPresent: false,
     reactVersion: 17,
+    originalTestCaseNum: 0,
 };
 
 /**
@@ -201,12 +203,15 @@ export const checkConfiguration = (filePath: string): void => {
         configLogger.verbose(`Enzyme version ${config.reactVersion}`);
     }
 
+    // Count number of test cases
+    config.originalTestCaseNum = countTestCases(filePath);
+
     configLogger.info('Starting conversion from Enzyme to RTL');
     configLogger.info(`Jest binary path: ${config.jestBinaryPath}`);
     configLogger.info(`Results folder path: ${config.outputResultsPath}`);
     configLogger.info(`Enzyme file path to convert: ${filePath}`);
     configLogger.info(
-        `Number of test cases in file: ${countTestCases(filePath)}`,
+        `Number of test cases in file: ${config.originalTestCaseNum}`,
     );
 };
 

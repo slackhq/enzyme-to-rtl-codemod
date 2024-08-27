@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { createCustomLogger } from '../logger/logger';
-import { countTestCases } from './utils/utils';
-
+import { getConfigProperty } from '../config/config';
 export const promptLogger = createCustomLogger('Prompt');
 
 /**
@@ -25,7 +24,7 @@ export const generatePrompt = (
     // Get number of test cases
     let numTestCasesString = '';
     promptLogger.verbose(`Getting number of test cases from ${filePath}`);
-    const numTestCases = countTestCases(filePath);
+    const numTestCases = getConfigProperty('originalTestCaseNum');
     if (numTestCases > 0) {
         numTestCasesString = `In the original file there are ${numTestCases.toString()} test cases.`;
     } else {

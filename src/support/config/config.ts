@@ -191,15 +191,6 @@ export const configureLogLevel = (logLevel: LogLevel): void => {
 };
 
 /**
- * Provide the Jest binary run command used in your project. E.g. "npm run jest"
- * @param newJestBinaryPath
- */
-export const setJestBinaryPath = (newJestBinaryPath: string): void => {
-    configLogger.info(`Set jest binary path to "${newJestBinaryPath}"`);
-    config.jestBinaryPath = newJestBinaryPath;
-};
-
-/**
  * Create timestamped results folder
  * @param outputResultsPath
  */

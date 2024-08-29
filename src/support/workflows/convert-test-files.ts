@@ -3,10 +3,7 @@ import { initializeConfig, Config } from '../config/config';
 
 import { converWithAST } from '../ast-transformations/run-ast-transformations';
 import { getReactCompDom } from '../enzyme-helper/get-dom-enzyme';
-import {
-    generateInitialPrompt,
-    generateFeedbackPrompt,
-} from '../prompt-generation/generate-prompt';
+import { generateInitialPrompt } from '../prompt-generation/generate-prompt';
 import { extractCodeContentToFile } from '../code-extractor/extract-code';
 import {
     runTestAndAnalyze,
@@ -21,17 +18,8 @@ import {
 export type LLMCallFunction = (prompt: string) => Promise<string>;
 
 export interface TestResults {
-    [filePath: string]: {
-        attempt1: TestResult;
-        attempt2: TestResult;
-    };
+    [filePath: string]: TestResult;
 }
-
-/**
- * TODO
- * 1. Mb create config initialization and set all the paths, instead of setting things separately. Expose config and pass things to functions
- * 2. Mb add logic inside the methods
- */
 
 /**
  * Converts test files and processes them using the specified parameters.
@@ -49,7 +37,6 @@ export const convertTestFiles = async ({
     testId,
     llmCallFunction,
     extendInitialPrompt,
-    extendFeedbackPrompt,
 }: {
     filePaths: string[];
     logLevel?: string;
@@ -58,7 +45,6 @@ export const convertTestFiles = async ({
     testId: string;
     llmCallFunction: LLMCallFunction;
     extendInitialPrompt?: string[];
-    extendFeedbackPrompt?: string[];
 }): Promise<SummaryJson> => {
     // Initialize total results object to collect results
     const totalResults: TestResults = {};
@@ -79,6 +65,8 @@ export const convertTestFiles = async ({
         } catch (error) {
             console.log('Could not initialize');
         }
+
+        console.log('config:', config);
 
         // Get AST conversion
         const astConvertedCode = converWithAST(
@@ -131,33 +119,7 @@ export const convertTestFiles = async ({
 
         // Store the result in the totalResults object
         const filePathClean = `${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
-        totalResults[filePathClean]['attempt1'] = attempt1Result;
-
-        // // Feedback step
-        // if (!attempt1Result.testPass) {
-        //     // Generate feedback the prompt
-        //     const feedbackPrompt = generateFeedbackPrompt(
-        //         filePath,
-        //         config.testId,
-        //         astConvertedCode,
-        //         reactCompDom,
-        //         config.reactVersion,
-        //         extendFeedbackPrompt,
-        //     );
-
-        //     // Call the API with a custom LLM method
-        //     const feedbackLLMResponse = await llmCallFunction(feedbackPrompt);
-
-        //     // Extract generated code
-        //     const convertedFilePath =
-        //         extractCodeContentToFile(feedbackLLMResponse, config.rtlConvertedFilePathAttmp2);
-
-        //     // Run the file and analyze the failures
-        //     const attempt2Result = await runTestAndAnalyze(
-        //         convertedFilePath,
-        //         false,
-        //     );
-        // }
+        totalResults[filePathClean] = attempt1Result;
     }
 
     // Write summary to outputResultsPath

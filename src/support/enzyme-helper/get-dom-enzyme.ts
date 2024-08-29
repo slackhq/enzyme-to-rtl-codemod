@@ -23,7 +23,7 @@ export const getReactCompDom = async (
     getDomEnzymeLogger.info('Start: getting rendered component code');
 
     // Check if file has Enzyme imports for mount/shallow
-    if (enzymeImportsPresent) {
+    if (!enzymeImportsPresent) {
         getDomEnzymeLogger.warn(
             'No Enzyme imports present. Cannot collect logs. Continue...',
         );

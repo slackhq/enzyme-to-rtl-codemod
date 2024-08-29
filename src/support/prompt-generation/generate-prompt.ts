@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { createCustomLogger } from '../logger/logger';
-import { getConfigProperty } from '../config/config';
+
 export const promptLogger = createCustomLogger('Prompt');
 
 /**
@@ -17,16 +17,15 @@ export const generateInitialPrompt = (
     getByTestIdAttribute: string,
     astCodemodOutput: string,
     renderedCompCode: string,
+    originalTestCaseNum: number,
     extendPrompt?: string[],
 ): string => {
     promptLogger.info('Start: generating prompt');
 
     // Get number of test cases
     let numTestCasesString = '';
-    promptLogger.verbose(`Getting number of test cases from ${filePath}`);
-    const numTestCases = getConfigProperty('originalTestCaseNum');
-    if (numTestCases > 0) {
-        numTestCasesString = `In the original file there are ${numTestCases.toString()} test cases.`;
+    if (originalTestCaseNum > 0) {
+        numTestCasesString = `In the original file there are ${originalTestCaseNum.toString()} test cases.`;
     } else {
         promptLogger.warn(`No test cases have been found in ${filePath}`);
     }
@@ -99,18 +98,15 @@ export const generateFeedbackPrompt = (
     getByTestIdAttribute: string,
     jestRunLogsFilePathAttmp1: string,
     renderedCompCode: string,
+    originalTestCaseNum: number,
     extendPrompt?: string[],
 ): string => {
     promptLogger.info('Start: generating feedback prompt');
 
     // Get number of test cases
     let numTestCasesString = '';
-    promptLogger.verbose(
-        `Getting number of test cases from ${rtlConvertedFilePathAttmpt1}`,
-    );
-    const numTestCases = getConfigProperty('originalTestCaseNum');
-    if (numTestCases > 0) {
-        numTestCasesString = `In the original file there are ${numTestCases.toString()} test cases.`;
+    if (originalTestCaseNum > 0) {
+        numTestCasesString = `In the original file there are ${originalTestCaseNum.toString()} test cases.`;
     } else {
         promptLogger.warn(
             `No test cases have been found in ${rtlConvertedFilePathAttmpt1}`,

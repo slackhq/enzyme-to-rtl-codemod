@@ -1,3 +1,6 @@
+// Config initialization
+export { initializeConfig } from './support/config/config';
+
 // Export running individual methods directly
 export { converWithAST } from './support/ast-transformations/run-ast-transformations';
 export { getReactCompDom } from './support/enzyme-helper/get-dom-enzyme';

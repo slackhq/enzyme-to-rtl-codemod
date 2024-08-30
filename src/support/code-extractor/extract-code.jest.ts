@@ -20,7 +20,10 @@ describe('extractCodeContentToFile', () => {
 
             1. Converted test case code from Enzyme to RTL
             The output meets all specified conditions.`;
-        const rtlConvertedFilePath = extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected);
+        const rtlConvertedFilePath = extractCodeContentToFile(
+            LLMresponse,
+            rtlConvertedFilePathExpected,
+        );
 
         expect(rtlConvertedFilePath).toBe(rtlConvertedFilePath);
         expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -42,17 +45,17 @@ describe('extractCodeContentToFile', () => {
         1. Converted test case code from Enzyme to RTL
         The output meets all specified conditions.`;
 
-        expect(() => extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected)).toThrow(
-            'Could not extract code from the LLM response',
-        );
+        expect(() =>
+            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+        ).toThrow('Could not extract code from the LLM response');
     });
 
     it('should throw an error if code is not extracted due to empty string', () => {
         const LLMresponse = '';
 
-        expect(() => extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected)).toThrow(
-            'Could not extract code from the LLM response',
-        );
+        expect(() =>
+            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+        ).toThrow('Could not extract code from the LLM response');
     });
 
     it('should throw an error if code is not extracted due to LLM response cut off', () => {
@@ -63,9 +66,9 @@ describe('extractCodeContentToFile', () => {
         const spyWarn = jest.spyOn(codeExtractorLogger, 'warn');
         const spyError = jest.spyOn(codeExtractorLogger, 'error');
 
-        expect(() => extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected)).toThrow(
-            'Could not extract code from the LLM response',
-        );
+        expect(() =>
+            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+        ).toThrow('Could not extract code from the LLM response');
 
         expect(spyWarn).toHaveBeenNthCalledWith(
             1,

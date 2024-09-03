@@ -3,9 +3,6 @@ import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
 import fs from 'fs';
 
 // Mock implementations
-jest.mock('../config/config', () => ({
-    getConfigProperty: jest.fn(),
-}));
 jest.mock('../shell-helper/shell-helper');
 jest.mock('fs');
 

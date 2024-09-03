@@ -1,298 +1,278 @@
-// import fs from 'fs';
-// import path from 'path';
-// import {
-//     configureLogLevel,
-//     setJestBinaryPath,
-//     setOutputResultsPath,
-//     checkConfiguration,
-//     getConfigProperty,
-//     addPathsToConfig,
-//     getReactVersion,
-//     configLogger,
-// } from './config';
+import fs from 'fs';
+import path from 'path';
+import {
+    configureLogLevel,
+    setOutputResultsPath,
+    getReactVersion,
+    checkSharedConfig,
+    checkPerFileConfig,
+    checkIfEnzyme,
+    configLogger,
+    extractFileDetails,
+    createFileConversionFolder,
+    initializeConfig,
+} from './config';
 
-// // Mock the modules
-// jest.mock('fs');
-// jest.mock('path');
+// Mock the modules
+jest.mock('fs');
+jest.mock('path');
 
-// // Reset config function
-// const resetConfig = (): void => {
-//     (path.resolve as jest.Mock).mockReturnValue('');
-//     setOutputResultsPath('');
-//     setJestBinaryPath('');
-// };
+// Reset config function
+const resetConfig = (): void => {
+    (path.resolve as jest.Mock).mockReturnValue('');
+    setOutputResultsPath('');
+};
 
-// describe('Configuration Functions', () => {
-//     beforeEach(() => {
-//         resetConfig();
-//         jest.clearAllMocks();
-//     });
+describe('Configuration Functions', () => {
+    beforeEach(() => {
+        resetConfig();
+        jest.clearAllMocks();
+    });
 
-//     describe('getConfigProperty', () => {
-//         it('should return the correct config property', () => {
-//             expect(getConfigProperty('enzymeImportsPresent')).toBe(false);
-//         });
-//     });
+    describe('initializeConfig - Happy Path', () => {
+        it('should initialize the config with the correct values', () => {
+            const mockArgs = {
+                filePath: 'some/path/to/file.test.tsx',
+                jestBinaryPath: 'path/to/jest',
+                outputResultsPath: 'path/to/results',
+                testId: 'data-test-id',
+                logLevel: 'verbose',
+            };
+            // Mock the file content to simulate test cases number
+            const mockFileContent = `
+            it('should do something', () => {});
+            test('should do something else', () => {});
+            `;
+            jest.spyOn(fs, 'readFileSync').mockReturnValue(mockFileContent);
 
-//     describe('configureLogLevel', () => {
-//         it('should set the log level', () => {
-//             configureLogLevel('verbose');
-//             expect(process.env.LOG_LEVEL).toBe('verbose');
-//         });
-//     });
+            // Pass the verification for the Enzyme file
+            jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
-//     describe('setJestBinaryPath', () => {
-//         it('should set the Jest binary path', () => {
-//             const jestBinaryPath = 'path/to/jest';
-//             setJestBinaryPath(jestBinaryPath);
-//             expect(getConfigProperty('jestBinaryPath')).toBe(jestBinaryPath);
-//         });
-//     });
+            // Mock outputResultsPath path resolve
+            (path.resolve as jest.Mock).mockReturnValue(
+                mockArgs.outputResultsPath,
+            );
 
-//     describe('setOutputResultsPath', () => {
-//         it('should set and resolve the output results path', () => {
-//             const outputPath = 'path/to/output';
-//             const resolvedPath = '/resolved/path/to/output';
+            // Call the function to initialize the config
+            const resultConfig = initializeConfig(mockArgs);
 
-//             (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
+            // Assertions for shared config
+            expect(resultConfig.jestBinaryPath).toBe(mockArgs.jestBinaryPath);
+            expect(resultConfig.outputResultsPath).toBe(
+                mockArgs.outputResultsPath,
+            );
+            expect(resultConfig.jsonSummaryPath).toContain(
+                `${mockArgs.outputResultsPath}/summary.json`,
+            );
+            expect(resultConfig.logLevel).toBe(mockArgs.logLevel);
+            expect(resultConfig.testId).toBe(mockArgs.testId);
+            expect(resultConfig.reactVersion).toBe(17);
+            expect(resultConfig.configInitialized).toBe(true);
 
-//             setOutputResultsPath(outputPath);
-//             expect(getConfigProperty('outputResultsPath')).toBe(resolvedPath);
-//         });
-//     });
+            // Assertions for per test file config
+            expect(resultConfig.filePathTitle).toBe('file');
+            expect(resultConfig.filePathExtension).toBe('.test.tsx');
+            expect(resultConfig.fileConversionFolder).toBe(
+                `${mockArgs.outputResultsPath}/file-test-tsx`,
+            );
+            expect(resultConfig.astTranformedFilePath).toBe(
+                `${resultConfig.fileConversionFolder}/ast-transformed-file.test.tsx`,
+            );
+            expect(resultConfig.collectedDomTreeFilePath).toBe(
+                `${resultConfig.fileConversionFolder}/dom-tree-file.csv`,
+            );
+            expect(resultConfig.originalTestCaseNum).toBe(2);
+            expect(resultConfig.filePathWithEnzymeAdapter).toBe(
+                `${resultConfig.fileConversionFolder}/enzyme-mount-overwritten-file.test.tsx`,
+            );
+            expect(resultConfig.enzymeMountAdapterFilePath).toBe(
+                `${resultConfig.fileConversionFolder}/enzyme-mount-adapter.js`,
+            );
+            expect(resultConfig.enzymeImportsPresent).toBe(false);
 
-//     describe('getReactVersion', () => {
-//         it('should return the correct major version when React is in dependencies', () => {
-//             const mockPackageJson = JSON.stringify({
-//                 dependencies: {
-//                     react: '^16.8.0',
-//                 },
-//             });
+            // Assertions for attempt paths
+            expect(resultConfig.rtlConvertedFilePathAttmp1).toContain(
+                `${resultConfig.fileConversionFolder}/attmp-1-rtl-converted-file.test.tsx`,
+            );
+            expect(resultConfig.jestRunLogsFilePathAttmp1).toContain(
+                `${resultConfig.fileConversionFolder}/attmp-1-jest-run-logs-file.md`,
+            );
+            expect(resultConfig.rtlConvertedFilePathAttmp2).toContain(
+                `${resultConfig.fileConversionFolder}/attmp-2-rtl-converted-file.test.tsx`,
+            );
+            expect(resultConfig.jestRunLogsFilePathAttmp2).toContain(
+                `${resultConfig.fileConversionFolder}/attmp-2-jest-run-logs-file.md`,
+            );
+        });
+    });
 
-//             (path.resolve as jest.Mock).mockReturnValue(
-//                 '/mocked/path/to/package.json',
-//             );
-//             (fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);
+    describe('initializePerFileConfig', () => {});
 
-//             const version = getReactVersion();
-//             expect(version).toBe(16);
-//             expect(fs.readFileSync).toHaveBeenCalledWith(
-//                 '/mocked/path/to/package.json',
-//                 'utf-8',
-//             );
-//         });
+    describe('configureLogLevel', () => {
+        it('should set the log level', () => {
+            configureLogLevel('verbose');
+            expect(process.env.LOG_LEVEL).toBe('verbose');
+        });
+    });
 
-//         it('should return null if no react found', () => {
-//             const mockPackageJson = JSON.stringify({
-//                 dependencies: {
-//                     enzyme: '3.11.0',
-//                 },
-//             });
+    describe('setOutputResultsPath', () => {
+        it('should set and resolve the output results path', () => {
+            const outputPath = 'path/to/output';
+            const resolvedPath = '/resolved/path/to/output';
 
-//             (path.resolve as jest.Mock).mockReturnValue(
-//                 '/mocked/path/to/package.json',
-//             );
-//             (fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);
+            (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
 
-//             const version = getReactVersion();
-//             expect(version).toBe(null);
-//             expect(fs.readFileSync).toHaveBeenCalledWith(
-//                 '/mocked/path/to/package.json',
-//                 'utf-8',
-//             );
-//         });
-//     });
+            const resultPath = setOutputResultsPath(outputPath);
+            expect(resultPath).toBe(resolvedPath);
+        });
+    });
 
-//     describe('checkConfiguration', () => {
-//         it('should throw an error if the file does not exist', () => {
-//             (fs.existsSync as jest.Mock).mockReturnValue(false);
+    describe('extractFileDetails', () => {
+        it('should extract the file title and extension correctly', () => {
+            const filePath = 'some/path/to/file.jest.tsx';
 
-//             expect(() => checkConfiguration('non/existent/file')).toThrow(
-//                 'Enzyme file provided does not exist',
-//             );
-//         });
+            const result = extractFileDetails(filePath);
 
-//         it('should set enzymeImportsPresent to true if it is an Enzyme file', () => {
-//             // Mock check if file exists
-//             (fs.existsSync as jest.Mock).mockReturnValue(true);
-//             const fileContent = "import { mount } from 'enzyme';\nconst a = 1;";
+            expect(result).toEqual({
+                fileTitle: 'file',
+                fileExtension: '.jest.tsx',
+            });
+        });
 
-//             // Mock readFileSync to return the file content
-//             (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
+        it('should throw an error if the file path is invalid', () => {
+            const invalidFilePath = 'some/path/to/folder/';
 
-//             expect(() => checkConfiguration('some/file')).toThrow(
-//                 'Jest binary path is not set. Please use setJestBinaryPath to set it.',
-//             );
+            expect(() => extractFileDetails(invalidFilePath)).toThrow(
+                'Invalid file path',
+            );
+        });
+    });
 
-//             expect(getConfigProperty('enzymeImportsPresent')).toBe(true);
-//         });
+    describe('createFileConversionFolder', () => {
+        it('should create the folder and return the correct path', () => {
+            const filePath = 'file.jest.tsx';
 
-//         it('should throw an error if Jest binary path is not set', () => {
-//             (fs.existsSync as jest.Mock).mockReturnValue(true);
+            const expectedFolderPath = 'undefined/file-jest-tsx';
+            const mkdirSyncSpy = jest.spyOn(fs, 'mkdirSync');
 
-//             expect(() => checkConfiguration('some/file')).toThrow(
-//                 'Jest binary path is not set. Please use setJestBinaryPath to set it.',
-//             );
-//         });
+            const result = createFileConversionFolder(filePath);
 
-//         it.skip('should throw an error if Jest binary path is set but jest is not installed', () => {
-//             // Cannot mock
-//             jest.doMock('jest', () => {
-//                 throw new Error('Module not found');
-//             });
+            expect(result).toBe(expectedFolderPath);
+            expect(mkdirSyncSpy).toHaveBeenCalledWith(expectedFolderPath, {
+                recursive: true,
+            });
+        });
 
-//             expect(() => checkConfiguration('some/file')).toThrow(
-//                 'jest is not installed. Please ensure that jest is installed in the host project.',
-//             );
-//         });
+        it('should sanitize the folder name by replacing invalid characters', () => {
+            const filePath = 'file<name>.jest.tsx';
 
-//         it('should throw an error if output results path is not set', () => {
-//             (fs.existsSync as jest.Mock).mockReturnValue(true);
-//             setJestBinaryPath('jest/path');
+            const expectedFolderPath = 'undefined/file-name-jest-tsx';
+            const mkdirSyncSpy = jest.spyOn(fs, 'mkdirSync');
 
-//             expect(() => checkConfiguration('some/file')).toThrow(
-//                 'Output results path is not set. Please use setOutputResultsPath to set it.',
-//             );
-//         });
+            const result = createFileConversionFolder(filePath);
 
-//         it('should not create new folders for results if they exist and log that paths exist', () => {
-//             setJestBinaryPath('jest/path');
-//             // Mock setOutputResultsPath
-//             const outputPath = 'path/to/output';
-//             const resolvedPath = '/resolved/path/to/output';
-//             (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
-//             const spyInfo = jest.spyOn(configLogger, 'info');
+            expect(result).toBe(expectedFolderPath);
+            expect(mkdirSyncSpy).toHaveBeenCalledWith(expectedFolderPath, {
+                recursive: true,
+            });
+        });
+    });
 
-//             setOutputResultsPath(outputPath);
+    describe('getReactVersion', () => {
+        it('should return the correct major version when React is in dependencies', () => {
+            const mockPackageJson = JSON.stringify({
+                dependencies: {
+                    react: '^16.8.0',
+                },
+            });
 
-//             (fs.existsSync as jest.Mock)
-//                 .mockReturnValueOnce(true)
-//                 .mockReturnValueOnce(true);
+            (path.resolve as jest.Mock).mockReturnValue(
+                '/mocked/path/to/package.json',
+            );
+            (fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);
 
-//             (fs.mkdirSync as jest.Mock) = jest.fn();
+            const version = getReactVersion();
+            expect(version).toBe(16);
+            expect(fs.readFileSync).toHaveBeenCalledWith(
+                '/mocked/path/to/package.json',
+                'utf-8',
+            );
+        });
 
-//             checkConfiguration('some/file');
-//             expect(spyInfo).toHaveBeenCalledWith('Output results path exists.');
-//             expect(fs.mkdirSync).not.toHaveBeenCalled();
-//         });
+        it('should default to React version 17 if no React version is found', () => {
+            const mockPackageJson = JSON.stringify({
+                dependencies: {
+                    enzyme: '3.11.0',
+                },
+            });
 
-//         it('should create new folders for results if they do not exist and log that paths exist', () => {
-//             setJestBinaryPath('jest/path');
-//             // Mock setOutputResultsPath
-//             const outputPath = 'path/to/output';
-//             const resolvedPath = '/resolved/path/to/output';
-//             (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
-//             const spyInfo = jest.spyOn(configLogger, 'info');
+            (path.resolve as jest.Mock).mockReturnValue(
+                '/mocked/path/to/package.json',
+            );
+            (fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);
 
-//             setOutputResultsPath(outputPath);
+            const version = getReactVersion();
+            expect(version).toBe(17);
+            expect(fs.readFileSync).toHaveBeenCalledWith(
+                '/mocked/path/to/package.json',
+                'utf-8',
+            );
+        });
+    });
 
-//             (fs.existsSync as jest.Mock)
-//                 .mockReturnValueOnce(true)
-//                 .mockReturnValueOnce(false);
+    describe('checkSharedConfig', () => {
+        it('should create the output directory if it does not exist', () => {
+            (fs.existsSync as jest.Mock).mockReturnValueOnce(false);
 
-//             (fs.mkdirSync as jest.Mock) = jest.fn();
+            checkSharedConfig();
+            expect(fs.mkdirSync).toHaveBeenCalledWith(undefined, {
+                recursive: true,
+            });
+        });
 
-//             checkConfiguration('some/file');
-//             expect(spyInfo).toHaveBeenCalledWith(
-//                 'Directory created: /resolved/path/to/output',
-//             );
-//             expect(fs.mkdirSync).toHaveBeenCalledWith(
-//                 '/resolved/path/to/output',
-//                 { recursive: true },
-//             );
-//         });
+        it('should log and skip directory creation if it exists', () => {
+            (fs.existsSync as jest.Mock).mockReturnValueOnce(true);
 
-//         it.skip('should throw an error if jscodeshift is not installed', () => {
-//             // Cannot mock
-//             jest.doMock('jscodeshift', () => {
-//                 throw new Error('Module not found');
-//             });
+            const spyInfo = jest.spyOn(configLogger, 'info');
+            checkSharedConfig();
+            expect(spyInfo).toHaveBeenCalledWith('Output results path exists.');
+        });
+    });
 
-//             expect(() => checkConfiguration('some/file')).toThrow(
-//                 'jscodeshift is not installed. Please ensure that jscodeshift is installed in the host project.',
-//             );
-//         });
+    describe('checkPerFileConfig', () => {
+        it('should throw an error if the test file does not exist', () => {
+            (fs.existsSync as jest.Mock).mockReturnValueOnce(false);
 
-//         it.skip('should throw an error if enzyme is not installed', () => {
-//             setJestBinaryPath('jest/path');
-//             setOutputResultsPath('output/path');
-//             (fs.existsSync as jest.Mock).mockReturnValue(true);
+            expect(() => checkPerFileConfig('non/existent/file')).toThrow(
+                'Enzyme file provided does not exist',
+            );
+        });
 
-//             // Cannot mock
-//             jest.doMock('enzyme', () => {
-//                 throw new Error('Module not found');
-//             });
+        it('should throw an error if the file conversion folder does not exist', () => {
+            (fs.existsSync as jest.Mock).mockReturnValueOnce(true);
+            (fs.existsSync as jest.Mock).mockReturnValueOnce(false);
 
-//             expect(() => checkConfiguration('some/file')).toThrow(
-//                 'enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
-//             );
-//         });
+            expect(() => checkPerFileConfig('some/file')).toThrow(
+                'Results folder for conversions does not exist',
+            );
+        });
+    });
 
-//         it('should call check version ', () => {
-//             (path.resolve as jest.Mock).mockReturnValue('/mocked/full/path');
-//             (fs.existsSync as jest.Mock).mockReturnValue(true);
-//             setJestBinaryPath('jest/path');
-//             setOutputResultsPath('output/path');
+    describe('checkIfEnzyme', () => {
+        it('should return true if the file contains Enzyme imports', () => {
+            const fileContent = "import { mount } from 'enzyme';\nconst a = 1;";
+            (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
 
-//             const fileContent = "import { mount } from 'enzyme';\nconst a = 1;";
-//             // Mock readFileSync to return the file content for test counts
-//             (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
+            const result = checkIfEnzyme('some/file');
+            expect(result).toBe(true);
+        });
 
-//             const spyWarn = jest.spyOn(configLogger, 'warn');
+        it('should return false if the file does not contain Enzyme imports', () => {
+            const fileContent = "import React from 'react';\nconst a = 1;";
+            (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
 
-//             checkConfiguration('some/file');
-//             expect(spyWarn).toHaveBeenCalledWith(
-//                 'Could not get react version from package.json. Defaulting to 17',
-//             );
-//         });
-//     });
-
-//     describe('addPathsToConfig', () => {
-//         it('should set various paths in the config based on the provided file path', () => {
-//             const filePath = 'some/path/file.jest.tsx';
-
-//             const outputPath = 'output/path';
-//             const resolvedPath = '/resolved/path/to/output';
-//             (path.resolve as jest.Mock).mockReturnValue(resolvedPath);
-
-//             (fs.mkdirSync as jest.Mock) = jest.fn();
-
-//             // Mock Date to return a specific date and time
-//             const mockDate = new Date(2024, 7, 21, 6, 6, 6);
-//             jest.spyOn(global, 'Date').mockImplementation(
-//                 () => mockDate as unknown as Date,
-//             );
-//             const expectedFolderName = `${resolvedPath}/file-jest-tsx`;
-
-//             setOutputResultsPath(outputPath);
-//             addPathsToConfig(filePath);
-
-//             expect(getConfigProperty('filePathTitle')).toBe('file');
-//             expect(getConfigProperty('filePathExtension')).toBe('.jest.tsx');
-//             expect(getConfigProperty('fileConversionFolder')).toBe(
-//                 expectedFolderName,
-//             );
-//             expect(fs.mkdirSync).toHaveBeenCalledWith(expectedFolderName, {
-//                 recursive: true,
-//             });
-//             expect(getConfigProperty('astTranformedFilePath')).toBe(
-//                 `${expectedFolderName}/ast-transformed-file.jest.tsx`,
-//             );
-//             expect(getConfigProperty('collectedDomTreeFilePath')).toBe(
-//                 `${expectedFolderName}/dom-tree-file.csv`,
-//             );
-//             expect(getConfigProperty('rtlConvertedFilePath')).toBe(
-//                 `${expectedFolderName}/rtl-converted-file.jest.tsx`,
-//             );
-//             expect(getConfigProperty('jestRunLogsFilePath')).toBe(
-//                 `${expectedFolderName}/jest-run-logs-file.md`,
-//             );
-//             expect(getConfigProperty('enzymeMountAdapterFilePath')).toBe(
-//                 `${expectedFolderName}/enzyme-mount-adapter.js`,
-//             );
-//             expect(getConfigProperty('filePathWithEnzymeAdapter')).toBe(
-//                 `${expectedFolderName}/enzyme-mount-overwritten-file.jest.tsx`,
-//             );
-//         });
-//     });
-// });
+            const result = checkIfEnzyme('some/file');
+            expect(result).toBe(false);
+        });
+    });
+});

@@ -62,7 +62,7 @@ interface InitializeSharedConfigArgs {
  * @param {string} options.testId - getByTestAttribute
  *
  */
-const initializeSharedConfig = ({
+export const initializeSharedConfig = ({
     jestBinaryPath,
     outputResultsPath,
     logLevel,
@@ -209,7 +209,7 @@ export const setOutputResultsPath = (outputResultsPath: string): string => {
  * @param filePath
  * @returns
  */
-const extractFileDetails = (
+export const extractFileDetails = (
     filePath: string,
 ): { fileTitle: string; fileExtension: string } => {
     // Extract the file name with extension
@@ -238,7 +238,7 @@ const extractFileDetails = (
  * @param filePath
  * @returns
  */
-const createFileConversionFolder = (filePath: string): string => {
+export const createFileConversionFolder = (filePath: string): string => {
     const fileConversionFolder = `${config.outputResultsPath}/${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
     configLogger.verbose(`Create folder for ${fileConversionFolder}`);
     fs.mkdirSync(fileConversionFolder, { recursive: true });
@@ -350,7 +350,7 @@ export const checkSharedConfig = (): void => {
     }
 };
 
-const checkPerFileConfig = (filePath: string): void => {
+export const checkPerFileConfig = (filePath: string): void => {
     // Check if file path exists
     if (filePath) {
         configLogger.verbose('Check if Enzyme file exists');
@@ -367,7 +367,7 @@ const checkPerFileConfig = (filePath: string): void => {
     }
 };
 
-const checkIfEnzyme = (filePath: string): boolean => {
+export const checkIfEnzyme = (filePath: string): boolean => {
     // Check if it is an Enzyme file
     configLogger.verbose('Check if Enzyme file has Enzyme imports');
     const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
@@ -381,12 +381,3 @@ const checkIfEnzyme = (filePath: string): boolean => {
     );
     return false;
 };
-
-// /**
-//  * Get config property
-//  * @param property
-//  * @returns
-//  */
-// export const getConfigProperty = <T extends keyof Config>(
-//     property: T,
-// ): Config[T] => config[property];

@@ -226,14 +226,6 @@ describe('getReactCompDom', () => {
     });
 
     it('should proceed with collecting DOM when Enzyme imports are present', async () => {
-        // // Mock getConfigProperty to return true for enzymeImportsPresent and mock other properties
-        // (getConfigProperty as jest.Mock).mockImplementation((property) => {
-        //     if (property === 'enzymeImportsPresent') return true;
-        //     if (property === 'filePathWithEnzymeAdapter')
-        //         return 'testFileWithAdapter.js';
-        //     return '';
-        // });
-
         const enzymeImportsPresent = true;
         const filePathWithEnzymeAdapter = 'path/to/filePathWithEnzymeAdapter';
         const collectedDomTreeFilePath = 'path/to/collectedDomTreeFilePath';

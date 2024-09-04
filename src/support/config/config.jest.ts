@@ -11,21 +11,15 @@ import {
     extractFileDetails,
     createFileConversionFolder,
     initializeConfig,
+    Config,
 } from './config';
 
 // Mock the modules
 jest.mock('fs');
 jest.mock('path');
 
-// Reset config function
-const resetConfig = (): void => {
-    (path.resolve as jest.Mock).mockReturnValue('');
-    setOutputResultsPath('');
-};
-
 describe('Configuration Functions', () => {
     beforeEach(() => {
-        resetConfig();
         jest.clearAllMocks();
     });
 
@@ -103,10 +97,14 @@ describe('Configuration Functions', () => {
             expect(resultConfig.jestRunLogsFilePathAttmp2).toContain(
                 `${resultConfig.fileConversionFolder}/attmp-2-jest-run-logs-file.md`,
             );
+            // Reset the config object after the test
+            (Object.keys(resultConfig) as Array<keyof Config>).forEach(
+                (key) => {
+                    resultConfig[key] = undefined!;
+                },
+            );
         });
     });
-
-    describe('initializePerFileConfig', () => {});
 
     describe('configureLogLevel', () => {
         it('should set the log level', () => {

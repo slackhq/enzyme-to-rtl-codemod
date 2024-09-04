@@ -1,9 +1,11 @@
 import fs from 'fs';
 import { initializeConfig, Config } from '../config/config';
-
 import { converWithAST } from '../ast-transformations/run-ast-transformations';
 import { getReactCompDom } from '../enzyme-helper/get-dom-enzyme';
-import { generateInitialPrompt } from '../prompt-generation/generate-prompt';
+import {
+    generateInitialPrompt,
+    generateFeedbackPrompt,
+} from '../prompt-generation/generate-prompt';
 import { extractCodeContentToFile } from '../code-extractor/extract-code';
 import {
     runTestAndAnalyze,
@@ -18,7 +20,10 @@ import {
 export type LLMCallFunction = (prompt: string) => Promise<string>;
 
 export interface TestResults {
-    [filePath: string]: TestResult;
+    [filePath: string]: {
+        attempt1: TestResult;
+        attempt2?: TestResult;
+    };
 }
 
 /**
@@ -37,6 +42,8 @@ export const convertTestFiles = async ({
     testId,
     llmCallFunction,
     extendInitialPrompt,
+    enableFeedbackStep,
+    extendFeedbackPrompt,
 }: {
     filePaths: string[];
     logLevel?: string;
@@ -45,6 +52,8 @@ export const convertTestFiles = async ({
     testId: string;
     llmCallFunction: LLMCallFunction;
     extendInitialPrompt?: string[];
+    enableFeedbackStep: boolean;
+    extendFeedbackPrompt?: string[];
 }): Promise<SummaryJson> => {
     // Initialize total results object to collect results
     const totalResults: TestResults = {};
@@ -63,10 +72,12 @@ export const convertTestFiles = async ({
                 testId,
             });
         } catch (error) {
-            console.log('Could not initialize');
+            console.error(
+                `Failed to initialize config for file: ${filePath}`,
+                error,
+            );
+            continue;
         }
-
-        console.log('config:', config);
 
         // Get AST conversion
         const astConvertedCode = converWithAST(
@@ -87,7 +98,7 @@ export const convertTestFiles = async ({
         );
 
         // Generate the prompt
-        const prompt = generateInitialPrompt(
+        const initialPrompt = generateInitialPrompt(
             filePath,
             config.testId,
             astConvertedCode,
@@ -97,7 +108,7 @@ export const convertTestFiles = async ({
         );
 
         // Call the API with a custom LLM method
-        const LLMResponse = await llmCallFunction(prompt);
+        const LLMResponse = await llmCallFunction(initialPrompt);
 
         // Extract generated code
         const convertedFilePath = extractCodeContentToFile(
@@ -119,7 +130,47 @@ export const convertTestFiles = async ({
 
         // Store the result in the totalResults object
         const filePathClean = `${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
-        totalResults[filePathClean] = attempt1Result;
+        totalResults[filePathClean] = { attempt1: attempt1Result };
+
+        // If feedback step is enabled and attempt 1 failed
+        if (
+            enableFeedbackStep &&
+            !totalResults[filePathClean].attempt1.testPass
+        ) {
+            // Create feedback command
+            const feedbackPrompt = generateFeedbackPrompt(
+                config.rtlConvertedFilePathAttmp1,
+                config.testId,
+                config.jestRunLogsFilePathAttmp1,
+                reactCompDom,
+                config.originalTestCaseNum,
+                extendFeedbackPrompt,
+            );
+
+            // Call the API with a custom LLM method
+            const feedbackLLMResponse = await llmCallFunction(feedbackPrompt);
+
+            // Extract generated code
+            const convertedFeedbackFilePath = extractCodeContentToFile(
+                feedbackLLMResponse,
+                config.rtlConvertedFilePathAttmp2,
+            );
+
+            // Run the file and analyze the failures
+            const attempt2Result = await runTestAndAnalyze(
+                convertedFeedbackFilePath,
+                false,
+                config.jestBinaryPath,
+                config.jestRunLogsFilePathAttmp2,
+                config.rtlConvertedFilePathAttmp2,
+                config.outputResultsPath,
+                config.originalTestCaseNum,
+                config.jsonSummaryPath,
+            );
+
+            // Store the result in the totalResults object
+            totalResults[filePathClean].attempt2 = attempt2Result;
+        }
     }
 
     // Write summary to outputResultsPath

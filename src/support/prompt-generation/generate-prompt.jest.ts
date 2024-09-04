@@ -36,7 +36,7 @@ describe('generatePrompt', () => {
       6. When asserting that a DOM renders nothing, replace isEmptyRender()).toBe(true) with toBeEmptyDOMElement() by wrapping the component into a container. Example: expect(container).toBeEmptyDOMElement();.
       Now, please evaluate your output and make sure your converted code is between <rtl_test_code></rtl_test_code> tags.
       If there are any deviations from the specified conditions, list them explicitly.
-      If the output adheres to all conditions and uses instructions section, you can simply state "The output meets all specified conditions.
+      If the output adheres to all conditions and uses instructions section, you can simply state "The output meets all specified conditions."
       Enzyme test case code: <enzyme_test_code>describe('Test suite', () => {
     it('test case 1', () => {});
     it.each([1, 2, 3])('test case 2', (num) => {});
@@ -49,13 +49,13 @@ describe('generatePrompt', () => {
             .replace(/\s+/g, ' ')
             .trim();
 
-        const result = generateInitialPrompt(
-            enzymeFilePath,
-            mockGetByTestIdAttribute,
-            mockAstCodemodOutput,
-            mockRenderedCompCode,
+        const result = generateInitialPrompt({
+            filePath: enzymeFilePath,
+            getByTestIdAttribute: mockGetByTestIdAttribute,
+            astCodemodOutput: mockAstCodemodOutput,
+            renderedCompCode: mockRenderedCompCode,
             originalTestCaseNum,
-        );
+        });
 
         expect(result.replace(/\s+/g, ' ').trim()).toBe(expectedPrompt);
     });
@@ -98,15 +98,15 @@ describe('generatePrompt', () => {
         Example: <Provider store={createTestStore()}> <Component {...props} /> </Provider>`,
             "dataTest('selector') should be converted to screen.getByTestId('selector')",
         ];
-        const result = generateInitialPrompt(
-            enzymeFilePath,
-            mockGetByTestIdAttribute,
-            mockAstCodemodOutput,
-            mockRenderedCompCode,
-            4,
-            extendPrompt,
-        );
 
+        const result = generateInitialPrompt({
+            filePath: enzymeFilePath,
+            getByTestIdAttribute: mockGetByTestIdAttribute,
+            astCodemodOutput: mockAstCodemodOutput,
+            renderedCompCode: mockRenderedCompCode,
+            originalTestCaseNum: 4,
+            extendPrompt,
+        });
         expect(result).toContain(
             '1. Wrap component rendering into <Provider store={createTestStore()}><Component></Provider>.',
         );

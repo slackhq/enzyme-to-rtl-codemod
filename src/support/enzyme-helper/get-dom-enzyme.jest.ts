@@ -206,7 +206,7 @@ describe('getReactCompDom', () => {
         const reactVersion = 16;
 
         // Run the method
-        const result = await getReactCompDom(
+        const result = await getReactCompDom({
             filePath,
             enzymeImportsPresent,
             filePathWithEnzymeAdapter,
@@ -214,7 +214,7 @@ describe('getReactCompDom', () => {
             enzymeMountAdapterFilePath,
             jestBinaryPath,
             reactVersion,
-        );
+        });
 
         // Assert
         expect(result).toBe(
@@ -256,7 +256,7 @@ describe('getReactCompDom', () => {
             .mockReturnValue(domTreeOutput);
 
         // Run the method
-        const result = await getReactCompDom(
+        const result = await getReactCompDom({
             filePath,
             enzymeImportsPresent,
             filePathWithEnzymeAdapter,
@@ -264,7 +264,7 @@ describe('getReactCompDom', () => {
             enzymeMountAdapterFilePath,
             jestBinaryPath,
             reactVersion,
-        );
+        });
 
         // Assert
         expect(result).toBe(domTreeOutput);

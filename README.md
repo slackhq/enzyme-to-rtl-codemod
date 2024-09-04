@@ -83,7 +83,7 @@ The order of methods used must be respected, as the flow depends on it
 import {
 	setJestBinaryPath,
 	setOutputResultsPath,
-	converWithAST,
+	convertWithAST,
 	getReactCompDom,
 	generatePrompt,
 	extractCodeContentToFile,
@@ -105,7 +105,7 @@ const convertTestFile = async (filePath: string): Promise<void> => {
     setOutputResultsPath('ai-conversion-testing/temp');
 
     // Get AST conversion
-    const astConvertedCode = converWithAST(filePath, 'data-test');
+    const astConvertedCode = convertWithAST(filePath, 'data-test');
 
     // Get React Component DOM tree for each test case
     const reactCompDom = await getReactCompDom(filePath);
@@ -154,9 +154,9 @@ setJestBinaryPath('yarn jest');
 ```ts
 setOutputResultsPath('<path_to_results_folder>');
 ```
-1. `converWithAST` - run AST conversions/annotations
+1. `convertWithAST` - run AST conversions/annotations
 ```ts
-const astConverted = await converWithAST(filePath);
+const astConverted = await convertWithAST(filePath);
 ```
 1. `getReactComponentDOM` - collect DOM tree for each test case in your file
 ```ts
@@ -218,7 +218,7 @@ import { mount } from 'enzyme';
 ```
 2. This package works only with jest, no other test runners have been tested
 3. `enzyme-mount-adapter.js` is a Javascript file to enable this for project that do not use Typescript
-4. `converWithAST` method must be run before getting DOM tree for the Enzyme file, because that method sets the paths. See example in section 2. Run conversion flow with individual methods for one file in a script
+4. `convertWithAST` method must be run before getting DOM tree for the Enzyme file, because that method sets the paths. See example in section 2. Run conversion flow with individual methods for one file in a script
 
 # Debugging
 1. By default log level is `info`

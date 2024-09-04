@@ -20,20 +20,42 @@ export interface TestResults {
 }
 
 /**
- * Run RTL test file with jest
- * @param testFilePath
- * @returns
+ * Run an RTL test file with Jest and analyze the results.
+ *
+ * This function executes a Jest test for a given file, logs the output, and performs
+ * an analysis of the test results. It also checks whether the number of test cases
+ * in the converted file matches the original and writes a summary of the results.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.filePath - The path to the test file to be executed.
+ * @param {boolean} [params.writeResults=true] - Flag indicating whether to write the results to a summary file.
+ * @param {string} params.jestBinaryPath - The path to the Jest binary.
+ * @param {string} params.jestRunLogsPath - The file path where Jest run logs will be saved.
+ * @param {string} params.rtlConvertedFilePath - The path to the converted React Testing Library test file.
+ * @param {string} params.outputResultsPath - The path where results will be saved.
+ * @param {number} params.originalTestCaseNum - The number of test cases in the original test file.
+ * @param {string} params.summaryFile - The file path where the test result summary will be saved.
+ * @returns {Promise<TestResult>} The test result, including pass/fail status, number of passed/failed tests, total tests, and success rate.
  */
-export const runTestAndAnalyze = async (
-    filePath: string,
+export const runTestAndAnalyze = async ({
+    filePath,
     writeResults = true,
-    jestBinaryPath: string,
-    jestRunLogsPath: string,
-    rtlConvertedFilePath: string,
-    outputResultsPath: string,
-    originalTestCaseNum: number,
-    summaryFile: string,
-): Promise<TestResult> => {
+    jestBinaryPath,
+    jestRunLogsPath,
+    rtlConvertedFilePath,
+    outputResultsPath,
+    originalTestCaseNum,
+    summaryFile,
+}: {
+    filePath: string;
+    writeResults?: boolean;
+    jestBinaryPath: string;
+    jestRunLogsPath: string;
+    rtlConvertedFilePath: string;
+    outputResultsPath: string;
+    originalTestCaseNum: number;
+    summaryFile: string;
+}): Promise<TestResult> => {
     testAnalysisLogger.info('Start: Run RTL test and analyze results');
 
     const result: TestResult = {

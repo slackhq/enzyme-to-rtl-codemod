@@ -98,15 +98,14 @@ interface InitializeConfigArgs {
  *
  * This function ensures that the shared configuration is initialized once and then
  * initializes or updates the configuration specific to a particular test file.
- * It returns the updated configuration object, which can be used throughout the
- * testing process.
+ * It returns the updated configuration object, which can be used throughout the process.
  *
- * @param {Object} options
- * @param {string} options.filePath - The path to the test file being processed.
- * @param {string} options.jestBinaryPath - The path to the Jest binary that can run one test file
- * @param {string} options.outputResultsPath - The path for the results
- * @param {string} options.testId - getByTestAttribute
- * @param {string} [options.logLevel='info'] - The logging level 'info' or 'verbose'
+ * @param {Object} params
+ * @param {string} params.filePath - The path to the test file being processed.
+ * @param {string} params.jestBinaryPath - The path to the Jest binary that can run one test file
+ * @param {string} params.outputResultsPath - The path for the results
+ * @param {string} params.testId - getByTestAttribute
+ * @param {string} [params.logLevel='info'] - The logging level 'info' or 'verbose'
  *
  * @returns {Config} The configuration object
  *

@@ -153,7 +153,7 @@ export const initializeConfig = ({
 
 /**
  * Initialize config for each file conversion
- * @param filePath 
+ * @param filePath
  */
 const initializePerFileConfig = (filePath: string): void => {
     // Common
@@ -359,7 +359,7 @@ export const checkSharedConfig = (): void => {
 
 /**
  * Check per file config
- * @param filePath 
+ * @param filePath
  */
 export const checkPerFileConfig = (filePath: string): void => {
     // Check if file path exists
@@ -380,8 +380,8 @@ export const checkPerFileConfig = (filePath: string): void => {
 
 /**
  * Check if test file has enzyme imports
- * @param filePath 
- * @returns 
+ * @param filePath
+ * @returns
  */
 export const checkIfEnzyme = (filePath: string): boolean => {
     // Check if it is an Enzyme file

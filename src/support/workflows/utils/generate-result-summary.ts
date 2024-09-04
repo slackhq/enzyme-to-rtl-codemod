@@ -28,12 +28,20 @@ export function generateSummaryJson(testResults: TestResults): SummaryJson {
     // Iterate over the test results to calculate totals
     for (const filePath in testResults) {
         if (Object.prototype.hasOwnProperty.call(testResults, filePath)) {
-            const testResult = testResults[filePath];
-            totalTests += testResult.totalTests;
+            const { attempt1, attempt2 } = testResults[filePath];
+
+            // Select the attempt with the higher success rate for calculations
+            const bestAttempt =
+                attempt2 && attempt2.successRate > attempt1.successRate
+                    ? attempt2
+                    : attempt1;
+
+            // Accumulate the totals based on the best attempt
+            totalTests += bestAttempt.totalTests;
             totalSuccessRate +=
-                (testResult.successRate / 100) * testResult.totalTests;
-            convertedAndPassed += testResult.passedTests;
-            convertedAndFailed += testResult.failedTests;
+                (bestAttempt.successRate / 100) * bestAttempt.totalTests;
+            convertedAndPassed += bestAttempt.passedTests;
+            convertedAndFailed += bestAttempt.failedTests;
         }
     }
 
@@ -52,7 +60,7 @@ export function generateSummaryJson(testResults: TestResults): SummaryJson {
     // Create the final JSON structure
     const summaryJson: SummaryJson = {
         summary,
-        ...testResults,
+        ...testResults, // Keep both attempt1 and attempt2 for each filePath
     };
 
     return summaryJson;

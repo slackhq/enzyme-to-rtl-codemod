@@ -122,8 +122,9 @@ export const generateFeedbackPrompt = (
     1. Fix only failing test cases based on the <jest_run_logs>.
     2. The number of test cases must remain the same. ${numTestCasesString}
     3. Remove unused imports
-    4. Fix any syntax errors
-    5. Return the entire file with all converted test cases, enclosed in <rtl_test_code></rtl_test_code> tags.
+    4. Keep comfigure import and testIdAttribute setup
+    5. Fix any syntax errors
+    6. Return the entire file with all converted test cases, enclosed in <rtl_test_code></rtl_test_code> tags.
     Ensure that all conditions are met. The converted file should be runnable by Jest without any manual changes.`;
 
     const additionalRequest = `\nOther instructions section, use them when applicable:

@@ -293,21 +293,38 @@ export const getReactVersion = (): number => {
 };
 
 /**
+ * Check dependency util function
+ * @param dependency
+ */
+const checkDependency = (dependency: string): void => {
+    try {
+        configLogger.verbose(
+            `Check if ${dependency} exists and can be resolved`,
+        );
+        require.resolve(dependency);
+    } catch {
+        configLogger.error(
+            `${dependency} is not installed. Please ensure that ${dependency} is installed in the host project.`,
+        );
+        throw new Error(
+            `${dependency} is not installed. Please ensure that ${dependency} is installed in the host project.`,
+        );
+    }
+};
+
+/**
  * Check shared config
  */
 export const checkSharedConfig = (): void => {
     // Check if jestBinaryPath can be found
     configLogger.verbose('Check if jest exists and can be resolved');
-    try {
-        require.resolve('jest');
-    } catch {
-        configLogger.error(
-            'jest is not installed. Please ensure that jest is installed in the host project.',
-        );
-        throw new Error(
-            'jest is not installed. Please ensure that jest is installed in the host project.',
-        );
-    }
+    checkDependency('jest');
+
+    configLogger.verbose('Check if jscodeshift exists and can be resolved');
+    checkDependency('jscodeshift');
+
+    configLogger.verbose('Check if enzyme exists and can be resolved');
+    checkDependency('enzyme');
 
     // Ensure the output directory exists or create it
     configLogger.verbose('Check if output results path exists');
@@ -327,32 +344,6 @@ export const checkSharedConfig = (): void => {
         );
         throw new Error(
             `Failed to create output results path: ${config.outputResultsPath}\nError: ${error}`,
-        );
-    }
-
-    // Check if jscodeshift is installed
-    try {
-        configLogger.verbose('Check if jscodeshift exists and can be resolved');
-        require.resolve('jscodeshift');
-    } catch {
-        configLogger.error(
-            'jscodeshift is not installed. Please ensure that jscodeshift is installed in the host project.',
-        );
-        throw new Error(
-            'jscodeshift is not installed. Please ensure that jscodeshift is installed in the host project.',
-        );
-    }
-
-    // Check if Enzyme is installed
-    try {
-        configLogger.verbose('Check if enzyme exists and can be resolved');
-        require.resolve('enzyme');
-    } catch {
-        configLogger.error(
-            'Enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
-        );
-        throw new Error(
-            'Enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
         );
     }
 };

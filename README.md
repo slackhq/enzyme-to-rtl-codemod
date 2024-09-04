@@ -70,7 +70,7 @@ const callLLMFunctionExample: LLMCallFunction = async (prompt: string): Promise<
     console.log('results:', results);
 })([
 	'<testPath1>',
-	'<testPath1>'
+	'<testPath2>'
 ]);
 ```
 
@@ -133,7 +133,7 @@ const convertTestFile = async (filePath: string): Promise<void> => {
 
 // Run the function and see logs and files in `outputResultsPath`
 convertTestFile(
-	'forms/__tests__/button-row.test.js',
+	'<testPath1>'
 );
 ```
 ## 3. Run conversion flow with cli and config for one file or more files:

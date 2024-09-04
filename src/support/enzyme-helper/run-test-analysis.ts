@@ -1,5 +1,4 @@
 import { runCommand } from '../shell-helper/shell-helper';
-import { getConfigProperty } from '../config/config';
 import { countTestCases } from '../prompt-generation/utils/utils';
 import fs from 'fs';
 import { createCustomLogger } from '../logger/logger';
@@ -28,6 +27,12 @@ export interface TestResults {
 export const runTestAndAnalyze = async (
     filePath: string,
     writeResults = true,
+    jestBinaryPath: string,
+    jestRunLogsPath: string,
+    rtlConvertedFilePath: string,
+    outputResultsPath: string,
+    originalTestCaseNum: number,
+    summaryFile: string,
 ): Promise<TestResult> => {
     testAnalysisLogger.info('Start: Run RTL test and analyze results');
 
@@ -40,7 +45,7 @@ export const runTestAndAnalyze = async (
     };
 
     // Create jest run command for the test file
-    const rtlRunCommand = `${getConfigProperty('jestBinaryPath')} ${filePath}`;
+    const rtlRunCommand = `${jestBinaryPath} ${filePath}`;
     testAnalysisLogger.verbose('Run converted tests');
     const generatedFileRunShellProcess = await runCommand(rtlRunCommand);
 
@@ -52,7 +57,6 @@ export const runTestAndAnalyze = async (
     );
 
     // Write logs to a file
-    const jestRunLogsPath = getConfigProperty('jestRunLogsFilePath');
     testAnalysisLogger.verbose(`Write jest run logs to ${jestRunLogsPath}`);
     fs.writeFileSync(jestRunLogsPath, testrunLogs, 'utf-8');
 
@@ -60,19 +64,14 @@ export const runTestAndAnalyze = async (
     testAnalysisLogger.verbose('Analyze logs for errors');
     result.testPass = analyzeLogsForErrors(testrunLogs);
 
-    const rtlConvertedFilePath = getConfigProperty('rtlConvertedFilePath');
-
     if (!result.testPass) {
         testAnalysisLogger.info('Test failed');
         testAnalysisLogger.info(
             `Converted RTL file path: ${rtlConvertedFilePath}`,
         );
         testAnalysisLogger.info(`Jest run logs file path: ${jestRunLogsPath}`);
-        testAnalysisLogger.info(
-            `See ${getConfigProperty('outputResultsPath')} for more info`,
-        );
+        testAnalysisLogger.info(`See ${outputResultsPath} for more info`);
     } else {
-        // TODO: add check if the converted file has fewer tests
         testAnalysisLogger.info('Test passed!');
         testAnalysisLogger.info(
             `Converted RTL file path: ${rtlConvertedFilePath}`,
@@ -81,7 +80,6 @@ export const runTestAndAnalyze = async (
 
         // Check if converted file has the same number of tests as original
         const convertedTestCaseNum = countTestCases(rtlConvertedFilePath);
-        const originalTestCaseNum = getConfigProperty('originalTestCaseNum');
         if (convertedTestCaseNum < originalTestCaseNum) {
             testAnalysisLogger.warn(
                 `Generated file has fewer test cases (${convertedTestCaseNum}) than original (${originalTestCaseNum})`,
@@ -102,13 +100,9 @@ export const runTestAndAnalyze = async (
 
     // Write results
     if (writeResults) {
-        const fileConversionFolder = getConfigProperty('fileConversionFolder');
-        testAnalysisLogger.info(
-            `Writing final result to ${fileConversionFolder}`,
-        );
+        testAnalysisLogger.info(`Writing final result to ${summaryFile}`);
         const jsonResult = JSON.stringify(result, null, 2);
-        const resultFilePath = `${fileConversionFolder}/summary.json`;
-        fs.writeFileSync(resultFilePath, jsonResult, 'utf-8');
+        fs.writeFileSync(summaryFile, jsonResult, 'utf-8');
     }
 
     testAnalysisLogger.info('Done: Run RTL test and analyze results');

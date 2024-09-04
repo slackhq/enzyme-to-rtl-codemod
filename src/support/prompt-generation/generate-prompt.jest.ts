@@ -1,12 +1,6 @@
 import fs from 'fs';
-import { generatePrompt } from './generate-prompt';
+import { generateInitialPrompt } from './generate-prompt';
 import { countTestCases } from './utils/utils';
-import { getConfigProperty } from '../config/config';
-
-// Mock the getConfigProperty function
-jest.mock('../config/config', () => ({
-    getConfigProperty: jest.fn(),
-}));
 
 describe('generatePrompt', () => {
     const enzymeFilePath =
@@ -14,13 +8,9 @@ describe('generatePrompt', () => {
     const mockGetByTestIdAttribute = 'data-testid';
     const mockAstCodemodOutput = '<codemod>Partially converted code</codemod>';
     const mockRenderedCompCode = '<component>Rendered component</component>';
+    const originalTestCaseNum = 4;
 
     it('should generate the correct prompt', () => {
-        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
-            typeof getConfigProperty
-        >;
-        getConfigPropertyMock.mockReturnValue(4);
-
         const expectedPrompt = `
       I need assistance converting an Enzyme test case to the React Testing Library framework.
       I will provide you with the Enzyme test file code inside <enzyme_test_code></enzyme_test_code> tags.
@@ -55,21 +45,22 @@ describe('generatePrompt', () => {
 });
       </enzyme_test_code>
       Partially converted test file code: <codemod><codemod>Partially converted code</codemod></codemod>
-      Rendered component DOM tree: <component><component>Rendered component</component></component>
-    `
+      Rendered component DOM tree: <component><component>Rendered component</component></component>`
             .replace(/\s+/g, ' ')
             .trim();
 
-        const result = generatePrompt(
+        const result = generateInitialPrompt(
             enzymeFilePath,
             mockGetByTestIdAttribute,
             mockAstCodemodOutput,
             mockRenderedCompCode,
+            originalTestCaseNum,
         );
 
         expect(result.replace(/\s+/g, ' ').trim()).toBe(expectedPrompt);
     });
 
+    // TODO: move to config
     it('should count test cases correctly', () => {
         const result = countTestCases(enzymeFilePath);
         expect(result).toBe(4);
@@ -98,20 +89,21 @@ describe('generatePrompt', () => {
 
     it('should generate prompt with additions and enumerate them', () => {
         const extendPrompt = [
-            `Wrap component rendering into <Provider store={createTestStore()}><Component></Provider>. 
+            `Wrap component rendering into <Provider store={createTestStore()}><Component></Provider>.
         In order to do that you need to do two things
-        First, import these: 
-        import { Provider } from '.../provider'; 
-        import createTestStore from '.../test-store'; 
-        Second, wrap component rendering in <Provider>, if it was not done before. 
+        First, import these:
+        import { Provider } from '.../provider';
+        import createTestStore from '.../test-store';
+        Second, wrap component rendering in <Provider>, if it was not done before.
         Example: <Provider store={createTestStore()}> <Component {...props} /> </Provider>`,
             "dataTest('selector') should be converted to screen.getByTestId('selector')",
         ];
-        const result = generatePrompt(
+        const result = generateInitialPrompt(
             enzymeFilePath,
             mockGetByTestIdAttribute,
             mockAstCodemodOutput,
             mockRenderedCompCode,
+            4,
             extendPrompt,
         );
 

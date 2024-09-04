@@ -1,6 +1,5 @@
 import fs from 'fs';
 import * as getDomEnzyme from './get-dom-enzyme';
-import { getConfigProperty } from '../config/config';
 import { runCommand } from '../shell-helper/shell-helper';
 
 // Mocks
@@ -95,13 +94,10 @@ describe('getenzymeRenderAdapterCode', () => {
     it('should generate JS adapter code when the file is a JS file', () => {
         const collectedDomTreeFilePath = 'path/to/test.js';
 
-        // Mock config props
-        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
-            typeof getConfigProperty
-        >;
-        getConfigPropertyMock.mockReturnValue(16);
-
-        const actualCode = getenzymeRenderAdapterCode(collectedDomTreeFilePath);
+        const actualCode = getenzymeRenderAdapterCode(
+            16,
+            collectedDomTreeFilePath,
+        );
         expect(actualCode).toContain(
             "import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';",
         );
@@ -117,21 +113,9 @@ describe('getenzymeRenderAdapterCode', () => {
 
 describe('createEnzymeAdapter', () => {
     it('should create enzyme adapter file with the correct content and path', () => {
-        // Mock config props
-        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
-            typeof getConfigProperty
-        >;
-
         // Mock only for this test case
-        const domTreeFilePath = '/path/to/domTree.csv';
+        const collectedDomTreeFilePath = '/path/to/domTree.csv';
         const enzymeMountAdapterFilePath = '/path/to/enzymeMountAdapter.js';
-
-        getConfigPropertyMock.mockImplementation((property) => {
-            if (property === 'collectedDomTreeFilePath') return domTreeFilePath;
-            if (property === 'enzymeMountAdapterFilePath')
-                return enzymeMountAdapterFilePath;
-            return '';
-        });
 
         // Mock render adapter code
         const getenzymeRenderAdapterCodeMock = jest.spyOn(
@@ -145,17 +129,16 @@ describe('createEnzymeAdapter', () => {
         getenzymeRenderAdapterCodeMock.mockReturnValue(enzymeRenderAdapterCode);
 
         // Run the method
-        createEnzymeAdapter();
+        createEnzymeAdapter(
+            16,
+            collectedDomTreeFilePath,
+            enzymeMountAdapterFilePath,
+        );
 
         // Assert
-        expect(getConfigPropertyMock).toHaveBeenCalledWith(
-            'collectedDomTreeFilePath',
-        );
         expect(getenzymeRenderAdapterCodeMock).toHaveBeenCalledWith(
-            domTreeFilePath,
-        );
-        expect(getConfigPropertyMock).toHaveBeenCalledWith(
-            'enzymeMountAdapterFilePath',
+            16,
+            collectedDomTreeFilePath,
         );
         expect(fs.writeFileSync).toHaveBeenCalledWith(
             enzymeMountAdapterFilePath,
@@ -167,46 +150,40 @@ describe('createEnzymeAdapter', () => {
 
 describe('runJestInChildProcess', () => {
     it('should generate the correct jest command and run it', () => {
-        // Mock config props
-        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
-            typeof getConfigProperty
-        >;
-        getConfigPropertyMock.mockReturnValueOnce('/path/to/jestBinary');
+        const pathToJestBinary = '/path/to/jestBinary';
+        const filePathWithEnzymeAdapter = 'path/to/filePathWithEnzymeAdapter';
 
         const mockedRunCommand = runCommand as jest.MockedFunction<
             typeof runCommand
         >;
 
-        runJestInChildProcess('path/to/filePathWithEnzymeAdapter');
+        runJestInChildProcess(pathToJestBinary, filePathWithEnzymeAdapter);
 
         expect(mockedRunCommand).toHaveBeenCalledTimes(1);
         expect(mockedRunCommand).toHaveBeenCalledWith(
-            '/path/to/jestBinary path/to/filePathWithEnzymeAdapter',
+            `${pathToJestBinary} ${filePathWithEnzymeAdapter}`,
         );
     });
 });
 
 describe('getDomTreeOutputFromFile', () => {
     it('should get correct file path and read a file', () => {
-        // Mock config props
-        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
-            typeof getConfigProperty
-        >;
-        getConfigPropertyMock.mockReturnValueOnce(
-            '/path/to/collectedDomTreeFilePath',
-        );
+        const collectedDomTreeFilePath = '/path/to/collectedDomTreeFilePath';
 
         // Mock readFileSync to return the file content
         const fileContent = 'DOMlogs';
         (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
 
-        getDomTreeOutputFromFile();
+        const domTreeOutput = getDomTreeOutputFromFile(
+            collectedDomTreeFilePath,
+        );
 
         // Check if readFileSync was called with the correct file path
         expect(fs.readFileSync).toHaveBeenCalledWith(
-            '/path/to/collectedDomTreeFilePath',
+            collectedDomTreeFilePath,
             'utf-8',
         );
+        expect(domTreeOutput).toEqual(fileContent);
     });
 });
 
@@ -221,15 +198,23 @@ describe('getReactCompDom', () => {
     it('should return a warning message when Enzyme imports are not present', async () => {
         const spyWarn = jest.spyOn(getDomEnzymeLogger, 'warn');
 
-        // Mock config props
-        const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
-            typeof getConfigProperty
-        >;
-
-        getConfigPropertyMock.mockReturnValue('');
+        const enzymeImportsPresent = false;
+        const filePathWithEnzymeAdapter = 'path/to/filePathWithEnzymeAdapter';
+        const collectedDomTreeFilePath = 'path/to/collectedDomTreeFilePath';
+        const enzymeMountAdapterFilePath = 'path/to/enzymeMountAdapterFilePath';
+        const jestBinaryPath = 'path/to/jestBinaryPath';
+        const reactVersion = 16;
 
         // Run the method
-        const result = await getReactCompDom(filePath);
+        const result = await getReactCompDom(
+            filePath,
+            enzymeImportsPresent,
+            filePathWithEnzymeAdapter,
+            collectedDomTreeFilePath,
+            enzymeMountAdapterFilePath,
+            jestBinaryPath,
+            reactVersion,
+        );
 
         // Assert
         expect(result).toBe(
@@ -241,13 +226,12 @@ describe('getReactCompDom', () => {
     });
 
     it('should proceed with collecting DOM when Enzyme imports are present', async () => {
-        // Mock getConfigProperty to return true for enzymeImportsPresent and mock other properties
-        (getConfigProperty as jest.Mock).mockImplementation((property) => {
-            if (property === 'enzymeImportsPresent') return true;
-            if (property === 'filePathWithEnzymeAdapter')
-                return 'testFileWithAdapter.js';
-            return '';
-        });
+        const enzymeImportsPresent = true;
+        const filePathWithEnzymeAdapter = 'path/to/filePathWithEnzymeAdapter';
+        const collectedDomTreeFilePath = 'path/to/collectedDomTreeFilePath';
+        const enzymeMountAdapterFilePath = 'path/to/enzymeMountAdapterFilePath';
+        const jestBinaryPath = 'path/to/jestBinaryPath';
+        const reactVersion = 16;
 
         // Spy on functions
         const createEnzymeAdapterMock = jest.spyOn(
@@ -272,7 +256,15 @@ describe('getReactCompDom', () => {
             .mockReturnValue(domTreeOutput);
 
         // Run the method
-        const result = await getReactCompDom(filePath);
+        const result = await getReactCompDom(
+            filePath,
+            enzymeImportsPresent,
+            filePathWithEnzymeAdapter,
+            collectedDomTreeFilePath,
+            enzymeMountAdapterFilePath,
+            jestBinaryPath,
+            reactVersion,
+        );
 
         // Assert
         expect(result).toBe(domTreeOutput);
@@ -284,7 +276,8 @@ describe('getReactCompDom', () => {
         );
         expect(fs.writeFileSync).toHaveBeenCalledTimes(2);
         expect(runJestInChildProcessMock).toHaveBeenCalledWith(
-            'testFileWithAdapter.js',
+            jestBinaryPath,
+            filePathWithEnzymeAdapter,
         );
         expect(getDomTreeOutputFromFileMock).toHaveBeenCalled();
     });

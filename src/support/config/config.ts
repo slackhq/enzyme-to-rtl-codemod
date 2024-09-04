@@ -9,41 +9,177 @@ import {
 
 export const configLogger = createCustomLogger('Config');
 
-// Define the union type for valid log level strings
+// Define type for valid log level strings
 type LogLevel = keyof typeof winstonConfig.npm.levels;
 
-interface Config {
+// Config interface
+export interface Config {
+    // Shared
     jestBinaryPath: string;
     outputResultsPath: string;
+    jsonSummaryPath: string;
+    logLevel: LogLevel;
+    testId: string;
+    reactVersion: number;
+    configInitialized: boolean;
+
+    // Per test file
     filePathTitle: string;
     filePathExtension: string;
     fileConversionFolder: string;
     astTranformedFilePath: string;
     collectedDomTreeFilePath: string;
-    rtlConvertedFilePath: string;
-    jestRunLogsFilePath: string;
-    enzymeMountAdapterFilePath: string;
-    filePathWithEnzymeAdapter: string;
-    enzymeImportsPresent: boolean;
-    reactVersion: number;
     originalTestCaseNum: number;
+    filePathWithEnzymeAdapter: string;
+    enzymeMountAdapterFilePath: string;
+    enzymeImportsPresent: boolean;
+
+    // Attempt 1
+    rtlConvertedFilePathAttmp1: string;
+    jestRunLogsFilePathAttmp1: string;
+
+    // Attempt 2
+    rtlConvertedFilePathAttmp2: string;
+    jestRunLogsFilePathAttmp2: string;
 }
 
-const config: Config = {
-    jestBinaryPath: '',
-    outputResultsPath: '',
-    filePathTitle: '',
-    filePathExtension: '',
-    fileConversionFolder: '',
-    astTranformedFilePath: '',
-    collectedDomTreeFilePath: '',
-    rtlConvertedFilePath: '',
-    jestRunLogsFilePath: '',
-    enzymeMountAdapterFilePath: '',
-    filePathWithEnzymeAdapter: '',
-    enzymeImportsPresent: false,
-    reactVersion: 17,
-    originalTestCaseNum: 0,
+// Persistent config object
+const config: Config = {} as Config;
+
+interface InitializeSharedConfigArgs {
+    jestBinaryPath: string;
+    outputResultsPath: string;
+    logLevel: LogLevel;
+    testId: string;
+}
+
+/**
+ * Initialize shared config
+ * @param {Object} options
+ * @param {string} options.jestBinaryPath - The path to the Jest binary.
+ * @param {string} options.outputResultsPath - The path where the test results
+ * @param {string} options.logLevel - The logging level for the test execution.
+ * @param {string} options.testId - getByTestAttribute
+ *
+ */
+export const initializeSharedConfig = ({
+    jestBinaryPath,
+    outputResultsPath,
+    logLevel,
+    testId,
+}: InitializeSharedConfigArgs): void => {
+    config.jestBinaryPath = jestBinaryPath;
+    config.outputResultsPath = setOutputResultsPath(outputResultsPath);
+    config.jsonSummaryPath = `${config.outputResultsPath}/summary.json`;
+    config.logLevel = logLevel;
+    // Set log level
+    configureLogLevel(config.logLevel);
+    config.testId = testId;
+    config.reactVersion = getReactVersion();
+
+    // Check shared config
+    checkSharedConfig();
+
+    config.configInitialized = true;
+};
+
+// Main function to initialize config
+// Define an interface for the named arguments
+interface InitializeConfigArgs {
+    filePath: string;
+    jestBinaryPath: string;
+    outputResultsPath: string;
+    testId: string;
+    logLevel?: LogLevel;
+}
+
+/**
+ * Initialize the configuration
+ *
+ * This function ensures that the shared configuration is initialized once and then
+ * initializes or updates the configuration specific to a particular test file.
+ * It returns the updated configuration object, which can be used throughout the
+ * testing process.
+ *
+ * @param {Object} options
+ * @param {string} options.filePath - The path to the test file being processed.
+ * @param {string} options.jestBinaryPath - The path to the Jest binary that can run one test file
+ * @param {string} options.outputResultsPath - The path for the results
+ * @param {string} options.testId - getByTestAttribute
+ * @param {string} [options.logLevel='info'] - The logging level 'info' or 'verbose'
+ *
+ * @returns {Config} The configuration object
+ *
+ * @example
+ * const config = initializeConfig({
+ *   filePath: 'tests/example.jest.tsx',
+ *   jestBinaryPath: 'npm run test',
+ *   outputResultsPath: 'temp',
+ *   testId: 'data-test',
+ *   logLevel: 'verbose',
+ * });
+ */
+export const initializeConfig = ({
+    filePath,
+    jestBinaryPath,
+    outputResultsPath,
+    testId,
+    logLevel = 'info',
+}: InitializeConfigArgs): Config => {
+    // Check if the shared config has already been initialized
+    if (!config.configInitialized) {
+        initializeSharedConfig({
+            jestBinaryPath,
+            outputResultsPath,
+            logLevel,
+            testId,
+        });
+    }
+
+    // Initialize or update per test file properties
+    initializePerFileConfig(filePath);
+
+    // Count number of test cases
+    configLogger.info('Starting conversion from Enzyme to RTL');
+    configLogger.info(`Jest binary path: ${config.jestBinaryPath}`);
+    configLogger.info(`Results folder path: ${config.outputResultsPath}`);
+    configLogger.info(`Enzyme file path to convert: ${filePath}`);
+    configLogger.info(
+        `Number of test cases in file: ${config.originalTestCaseNum}`,
+    );
+
+    return config;
+};
+
+/**
+ * Initialize config for each file conversion
+ * @param filePath
+ */
+const initializePerFileConfig = (filePath: string): void => {
+    // Common
+    const { fileTitle, fileExtension } = extractFileDetails(filePath);
+    config.filePathTitle = fileTitle;
+    config.filePathExtension = fileExtension;
+    config.fileConversionFolder = createFileConversionFolder(
+        config.filePathTitle + config.filePathExtension,
+    );
+    config.astTranformedFilePath = `${config.fileConversionFolder}/ast-transformed-${config.filePathTitle}${config.filePathExtension}`;
+    config.collectedDomTreeFilePath = `${config.fileConversionFolder}/dom-tree-${config.filePathTitle}.csv`;
+    config.originalTestCaseNum = countTestCases(filePath);
+    config.filePathWithEnzymeAdapter = `${config.fileConversionFolder}/enzyme-mount-overwritten-${config.filePathTitle}${config.filePathExtension}`;
+    config.enzymeMountAdapterFilePath = `${config.fileConversionFolder}/enzyme-mount-adapter.js`;
+    config.enzymeImportsPresent = checkIfEnzyme(filePath);
+
+    // Attempt 1
+    config.rtlConvertedFilePathAttmp1 = `${config.fileConversionFolder}/attmp-1-rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
+    config.jestRunLogsFilePathAttmp1 = `${config.fileConversionFolder}/attmp-1-jest-run-logs-${config.filePathTitle}.md`;
+
+    // Attempt 2
+    config.rtlConvertedFilePathAttmp2 = `${config.fileConversionFolder}/attmp-2-rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
+    config.jestRunLogsFilePathAttmp2 = `${config.fileConversionFolder}/attmp-2-jest-run-logs-${config.filePathTitle}.md`;
+
+    // Check per file config
+    checkPerFileConfig(filePath);
 };
 
 /**
@@ -59,184 +195,17 @@ export const configureLogLevel = (logLevel: LogLevel): void => {
 };
 
 /**
- * Provide the Jest binary run command used in your project. E.g. "npm run jest"
- * @param newJestBinaryPath
+ * Create timestamped results folder
+ * @param outputResultsPath
  */
-export const setJestBinaryPath = (newJestBinaryPath: string): void => {
-    configLogger.info(`Set jest binary path to "${newJestBinaryPath}"`);
-    config.jestBinaryPath = newJestBinaryPath;
-};
-
-/**
- * Provide path in your project to output generated files
- * @param newOutputResultsPath
- */
-export const setOutputResultsPath = (newOutputResultsPath: string): void => {
+export const setOutputResultsPath = (outputResultsPath: string): string => {
     const hostProjectRoot = process.cwd();
     const now = new Date();
     const timeStamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
-    const pathWithTimestamp = `${newOutputResultsPath}/${timeStamp}`;
+    const pathWithTimestamp = `${outputResultsPath}/${timeStamp}`;
     const resolvedPath = path.resolve(hostProjectRoot, pathWithTimestamp);
     configLogger.info(`Set output results path to "${resolvedPath}"`);
-    config.outputResultsPath = resolvedPath;
-};
-
-/**
- * Check if all the requirements are met
- * @param filePath
- */
-export const checkConfiguration = (filePath: string): void => {
-    if (filePath) {
-        configLogger.verbose('Check if Enzyme file exists');
-        if (!fs.existsSync(filePath)) {
-            configLogger.error('Enzyme file provided does not exist');
-            throw new Error('Enzyme file provided does not exist');
-        }
-
-        // Check if it is an Enzyme file
-        configLogger.verbose('Check if Enzyme file has Enzyme imports');
-        const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        if (importStatementRegex.test(fileContent)) {
-            configLogger.verbose(`Found tests in ${filePath}`);
-            config.enzymeImportsPresent = true;
-        } else {
-            configLogger.warn(
-                'Enzyme file provided does not have any tests. Cannot collect DOM tree for tests',
-            );
-        }
-    }
-
-    // Check if jestBinaryPath is set and can be found
-    configLogger.verbose('Check if jest binary path is set');
-    if (!config.jestBinaryPath) {
-        configLogger.error(
-            'Jest binary path is not set. Please use setJestBinaryPath to set it.',
-        );
-        throw new Error(
-            'Jest binary path is not set. Please use setJestBinaryPath to set it.',
-        );
-    } else {
-        // Check if jest installed
-        try {
-            configLogger.verbose('Check if jest exists and can be resolved');
-            require.resolve('jest');
-        } catch {
-            configLogger.error(
-                'jest is not installed. Please ensure that jest is installed in the host project.',
-            );
-            throw new Error(
-                'jest is not installed. Please ensure that jest is installed in the host project.',
-            );
-        }
-    }
-
-    // Check outputResultsPath is set and exists
-    configLogger.verbose('Check if outputResultsPath is set');
-    if (!config.outputResultsPath) {
-        configLogger.error(
-            'Output results path is not set. Please use setOutputResultsPath to set it.',
-        );
-        throw new Error(
-            'Output results path is not set. Please use setOutputResultsPath to set it.',
-        );
-    } else {
-        // Ensure the directory exists or create it
-        configLogger.verbose('Check if output results path exists');
-        try {
-            if (!fs.existsSync(config.outputResultsPath)) {
-                configLogger.verbose(
-                    `Output results path does not exist. Creating directory: ${config.outputResultsPath}`,
-                );
-                fs.mkdirSync(config.outputResultsPath, { recursive: true });
-                configLogger.info(
-                    `Directory created: ${config.outputResultsPath}`,
-                );
-            } else {
-                configLogger.info('Output results path exists.');
-            }
-        } catch (error) {
-            configLogger.error(
-                `Failed to create output results path: ${config.outputResultsPath}\nError: ${error}`,
-            );
-            throw new Error(
-                `Failed to create output results path: ${config.outputResultsPath}\nError: ${error}`,
-            );
-        }
-    }
-
-    // Check if jscodeshift is installed
-    try {
-        configLogger.verbose('Check if jscodeshift exists and can be resolved');
-        require.resolve('jscodeshift');
-    } catch {
-        configLogger.error(
-            'jscodeshift is not installed. Please ensure that jscodeshift is installed in the host project.',
-        );
-        throw new Error(
-            'jscodeshift is not installed. Please ensure that jscodeshift is installed in the host project.',
-        );
-    }
-
-    // Check if Enzyme is installed
-    try {
-        configLogger.verbose('Check if enzyme exists and can be resolved');
-        require.resolve('enzyme');
-    } catch {
-        configLogger.error(
-            'Enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
-        );
-        throw new Error(
-            'Enzyme is not installed. Please ensure that Enzyme is installed in the host project.',
-        );
-    }
-
-    // Check React version
-    configLogger.verbose('Check enzyme version');
-    const reactVersion = getReactVersion();
-    if (!reactVersion) {
-        configLogger.warn(
-            `Could not get react version from package.json. Defaulting to ${config.reactVersion}`,
-        );
-    } else {
-        config.reactVersion = reactVersion;
-        configLogger.verbose(`Enzyme version ${config.reactVersion}`);
-    }
-
-    // Count number of test cases
-    config.originalTestCaseNum = countTestCases(filePath);
-
-    configLogger.info('Starting conversion from Enzyme to RTL');
-    configLogger.info(`Jest binary path: ${config.jestBinaryPath}`);
-    configLogger.info(`Results folder path: ${config.outputResultsPath}`);
-    configLogger.info(`Enzyme file path to convert: ${filePath}`);
-    configLogger.info(
-        `Number of test cases in file: ${config.originalTestCaseNum}`,
-    );
-};
-
-/**
- * Get config property
- * @param property
- * @returns
- */
-export const getConfigProperty = <T extends keyof Config>(
-    property: T,
-): Config[T] => config[property];
-
-export const addPathsToConfig = (filePath: string): void => {
-    const { fileTitle, fileExtension } = extractFileDetails(filePath);
-    config.filePathTitle = fileTitle;
-    config.filePathExtension = fileExtension;
-    config.fileConversionFolder = createFileConversionFolder(
-        config.filePathTitle + config.filePathExtension,
-    );
-    config.astTranformedFilePath = `${config.fileConversionFolder}/ast-transformed-${config.filePathTitle}${config.filePathExtension}`;
-    config.collectedDomTreeFilePath = `${config.fileConversionFolder}/dom-tree-${config.filePathTitle}.csv`;
-    config.rtlConvertedFilePath = `${config.fileConversionFolder}/rtl-converted-${config.filePathTitle}${config.filePathExtension}`;
-    config.jestRunLogsFilePath = `${config.fileConversionFolder}/jest-run-logs-${config.filePathTitle}.md`;
-    config.enzymeMountAdapterFilePath = `${config.fileConversionFolder}/enzyme-mount-adapter.js`;
-    config.filePathWithEnzymeAdapter = `${config.fileConversionFolder}/enzyme-mount-overwritten-${config.filePathTitle}${config.filePathExtension}`;
+    return resolvedPath;
 };
 
 /**
@@ -244,7 +213,7 @@ export const addPathsToConfig = (filePath: string): void => {
  * @param filePath
  * @returns
  */
-const extractFileDetails = (
+export const extractFileDetails = (
     filePath: string,
 ): { fileTitle: string; fileExtension: string } => {
     // Extract the file name with extension
@@ -273,7 +242,7 @@ const extractFileDetails = (
  * @param filePath
  * @returns
  */
-const createFileConversionFolder = (filePath: string): string => {
+export const createFileConversionFolder = (filePath: string): string => {
     const fileConversionFolder = `${config.outputResultsPath}/${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
     configLogger.verbose(`Create folder for ${fileConversionFolder}`);
     fs.mkdirSync(fileConversionFolder, { recursive: true });
@@ -284,25 +253,138 @@ const createFileConversionFolder = (filePath: string): string => {
  * Get React version from package.json
  * @returns
  */
-export const getReactVersion = (): number | null => {
+export const getReactVersion = (): number => {
+    let reactVersion: number | null = null;
+
     try {
         const packageJsonPath = path.resolve(process.cwd(), 'package.json');
         const packageJson = JSON.parse(
             fs.readFileSync(packageJsonPath, 'utf-8'),
         );
-        const reactVersion =
+
+        const reactVersionString =
             packageJson.dependencies.react ||
             packageJson.devDependencies.react ||
             null;
 
-        if (reactVersion) {
+        if (reactVersionString) {
             // Extract the main version number (e.g., "16" from "^16.8.0", "~16.8.0", etc.)
-            const versionMatch = reactVersion.match(/^\D*(\d+)\./);
-            const version = parseInt(versionMatch[1], 10);
-            return versionMatch ? version : null;
+            const versionMatch = reactVersionString.match(/^\D*(\d+)\./);
+            if (versionMatch) {
+                reactVersion = parseInt(versionMatch[1], 10);
+            }
         }
-        return null;
     } catch (error) {
-        return null;
+        configLogger.warn(
+            'Error reading package.json. Defaulting to React version 17',
+        );
     }
+
+    // Check the version and deault to 17 if not found
+    if (reactVersion === null) {
+        configLogger.warn(
+            'Could not get React version from package.json. Defaulting to 17',
+        );
+        // Default to React version 17 if not found
+        return 17;
+    } else {
+        return reactVersion;
+    }
+};
+
+/**
+ * Check dependency util function
+ * @param dependency
+ */
+const checkDependency = (dependency: string): void => {
+    try {
+        configLogger.verbose(
+            `Check if ${dependency} exists and can be resolved`,
+        );
+        require.resolve(dependency);
+    } catch {
+        configLogger.error(
+            `${dependency} is not installed. Please ensure that ${dependency} is installed in the host project.`,
+        );
+        throw new Error(
+            `${dependency} is not installed. Please ensure that ${dependency} is installed in the host project.`,
+        );
+    }
+};
+
+/**
+ * Check shared config
+ */
+export const checkSharedConfig = (): void => {
+    // Check if jestBinaryPath can be found
+    configLogger.verbose('Check if jest exists and can be resolved');
+    checkDependency('jest');
+
+    configLogger.verbose('Check if jscodeshift exists and can be resolved');
+    checkDependency('jscodeshift');
+
+    configLogger.verbose('Check if enzyme exists and can be resolved');
+    checkDependency('enzyme');
+
+    // Ensure the output directory exists or create it
+    configLogger.verbose('Check if output results path exists');
+    try {
+        if (!fs.existsSync(config.outputResultsPath)) {
+            configLogger.verbose(
+                `Output results path does not exist. Creating directory: ${config.outputResultsPath}`,
+            );
+            fs.mkdirSync(config.outputResultsPath, { recursive: true });
+            configLogger.info(`Directory created: ${config.outputResultsPath}`);
+        } else {
+            configLogger.info('Output results path exists.');
+        }
+    } catch (error) {
+        configLogger.error(
+            `Failed to create output results path: ${config.outputResultsPath}\nError: ${error}`,
+        );
+        throw new Error(
+            `Failed to create output results path: ${config.outputResultsPath}\nError: ${error}`,
+        );
+    }
+};
+
+/**
+ * Check per file config
+ * @param filePath
+ */
+export const checkPerFileConfig = (filePath: string): void => {
+    // Check if file path exists
+    if (filePath) {
+        configLogger.verbose('Check if Enzyme file exists');
+        if (!fs.existsSync(filePath)) {
+            configLogger.error('Enzyme file provided does not exist');
+            throw new Error('Enzyme file provided does not exist');
+        }
+    }
+
+    // Check if file conversion folder exists
+    if (!fs.existsSync(config.fileConversionFolder)) {
+        configLogger.error('Results folder for conversions does not exist');
+        throw new Error('Results folder for conversions does not exist');
+    }
+};
+
+/**
+ * Check if test file has enzyme imports
+ * @param filePath
+ * @returns
+ */
+export const checkIfEnzyme = (filePath: string): boolean => {
+    // Check if it is an Enzyme file
+    configLogger.verbose('Check if Enzyme file has Enzyme imports');
+    const importStatementRegex = /(import\s*{[^}]*}\s*from\s*'enzyme'\s*;)/;
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    if (importStatementRegex.test(fileContent)) {
+        configLogger.verbose(`Found tests in ${filePath}`);
+        return true;
+    }
+    configLogger.warn(
+        'Enzyme file provided does not have any tests. Cannot collect DOM tree for tests',
+    );
+    return false;
 };

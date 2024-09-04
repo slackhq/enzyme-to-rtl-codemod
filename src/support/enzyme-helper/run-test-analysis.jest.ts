@@ -1,19 +1,12 @@
 import * as runTestAnalysis from './run-test-analysis';
 import { runCommand, ShellProcess } from '../shell-helper/shell-helper';
-import { getConfigProperty } from '../config/config';
 import fs from 'fs';
 
 // Mock implementations
-jest.mock('../config/config', () => ({
-    getConfigProperty: jest.fn(),
-}));
 jest.mock('../shell-helper/shell-helper');
 jest.mock('fs');
 
 describe('runTestAndAnalyze', () => {
-    const getConfigPropertyMock = getConfigProperty as jest.MockedFunction<
-        typeof getConfigProperty
-    >;
     const mockedRunCommand = runCommand as jest.MockedFunction<
         typeof runCommand
     >;
@@ -27,17 +20,14 @@ describe('runTestAndAnalyze', () => {
 
     it('should run the RTL test, analyze the results and write a json file by default', async () => {
         const filePath = 'path/to/testFile';
-        const testPassMock = false;
+        const jestBinaryPath = '/path/to/jestBinary';
+        const jestRunLogsPath = '/path/to/jestRunLogs';
+        const rtlConvertedFilePath = '/path/to/rtlConvertedFile';
+        const outputResultsPath = '/path/to/outputResults';
+        const originalTestCaseNum = 5;
+        const summaryFile = '/path/to/summaryFile';
 
-        // Mock jest binary path
-        getConfigPropertyMock.mockImplementation((property) => {
-            if (property === 'jestBinaryPath') return '/path/to/jestBinary';
-            if (property === 'jestRunLogsFilePath')
-                return '/path/to/jestRunLogs';
-            if (property === 'fileConversionFolder')
-                return '/path/to/outputResultsPath/fileConversionFolder';
-            return '';
-        });
+        const testPassMock = false;
 
         // Mock shell process
         const mockShellProcess: ShellProcess = {
@@ -79,12 +69,21 @@ describe('runTestAndAnalyze', () => {
         );
 
         // Run the method
-        const result = await runTestAnalysis.runTestAndAnalyze(filePath);
+        const result = await runTestAnalysis.runTestAndAnalyze(
+            filePath,
+            true,
+            jestBinaryPath,
+            jestRunLogsPath,
+            rtlConvertedFilePath,
+            outputResultsPath,
+            originalTestCaseNum,
+            summaryFile,
+        );
 
         // Run command assertion
         expect(mockedRunCommand).toHaveBeenCalledTimes(1);
         expect(mockedRunCommand).toHaveBeenCalledWith(
-            '/path/to/jestBinary path/to/testFile',
+            `${jestBinaryPath} ${filePath}`,
         );
 
         // Remove Ansi assertion
@@ -97,7 +96,7 @@ describe('runTestAndAnalyze', () => {
         expect(mockedWriteFileSync).toHaveBeenCalledTimes(2);
         expect(mockedWriteFileSync).toHaveBeenNthCalledWith(
             1,
-            '/path/to/jestRunLogs',
+            jestRunLogsPath,
             mockShellProcess.output + mockShellProcess.stderr,
             'utf-8',
         );
@@ -116,7 +115,7 @@ describe('runTestAndAnalyze', () => {
 
         expect(mockedWriteFileSync).toHaveBeenNthCalledWith(
             2,
-            '/path/to/outputResultsPath/fileConversionFolder/summary.json',
+            summaryFile,
             expectedJsonString,
             'utf-8',
         );

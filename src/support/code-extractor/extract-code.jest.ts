@@ -1,22 +1,14 @@
 import fs from 'fs';
 import { extractCodeContentToFile, codeExtractorLogger } from './extract-code';
-import { getConfigProperty } from '../config/config';
-
-// Mock the getConfigProperty function
-jest.mock('../config/config', () => ({
-    getConfigProperty: jest.fn(),
-}));
 
 // Mock fs.writeFileSync
 jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
 
 describe('extractCodeContentToFile', () => {
-    const getConfigPropertyMock = getConfigProperty as jest.Mock;
     const rtlConvertedFilePathExpected = '/path/to/file';
 
     beforeEach(() => {
         jest.clearAllMocks();
-        getConfigPropertyMock.mockReturnValue(rtlConvertedFilePathExpected);
     });
 
     it('should extract code content and write to file', () => {
@@ -28,7 +20,10 @@ describe('extractCodeContentToFile', () => {
 
             1. Converted test case code from Enzyme to RTL
             The output meets all specified conditions.`;
-        const rtlConvertedFilePath = extractCodeContentToFile(LLMresponse);
+        const rtlConvertedFilePath = extractCodeContentToFile(
+            LLMresponse,
+            rtlConvertedFilePathExpected,
+        );
 
         expect(rtlConvertedFilePath).toBe(rtlConvertedFilePath);
         expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -50,17 +45,17 @@ describe('extractCodeContentToFile', () => {
         1. Converted test case code from Enzyme to RTL
         The output meets all specified conditions.`;
 
-        expect(() => extractCodeContentToFile(LLMresponse)).toThrow(
-            'Could not extract code from the LLM response',
-        );
+        expect(() =>
+            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+        ).toThrow('Could not extract code from the LLM response');
     });
 
     it('should throw an error if code is not extracted due to empty string', () => {
         const LLMresponse = '';
 
-        expect(() => extractCodeContentToFile(LLMresponse)).toThrow(
-            'Could not extract code from the LLM response',
-        );
+        expect(() =>
+            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+        ).toThrow('Could not extract code from the LLM response');
     });
 
     it('should throw an error if code is not extracted due to LLM response cut off', () => {
@@ -71,9 +66,9 @@ describe('extractCodeContentToFile', () => {
         const spyWarn = jest.spyOn(codeExtractorLogger, 'warn');
         const spyError = jest.spyOn(codeExtractorLogger, 'error');
 
-        expect(() => extractCodeContentToFile(LLMresponse)).toThrow(
-            'Could not extract code from the LLM response',
-        );
+        expect(() =>
+            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+        ).toThrow('Could not extract code from the LLM response');
 
         expect(spyWarn).toHaveBeenNthCalledWith(
             1,

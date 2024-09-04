@@ -1,18 +1,14 @@
 import fs from 'fs';
+import { initializeConfig, Config } from '../config/config';
+
 import { converWithAST } from '../ast-transformations/run-ast-transformations';
 import { getReactCompDom } from '../enzyme-helper/get-dom-enzyme';
-import { generatePrompt } from '../prompt-generation/generate-prompt';
+import { generateInitialPrompt } from '../prompt-generation/generate-prompt';
 import { extractCodeContentToFile } from '../code-extractor/extract-code';
 import {
     runTestAndAnalyze,
     TestResult,
 } from '../enzyme-helper/run-test-analysis';
-import {
-    setJestBinaryPath,
-    setOutputResultsPath,
-    configureLogLevel,
-    getConfigProperty,
-} from '../config/config';
 import {
     generateSummaryJson,
     SummaryJson,
@@ -40,7 +36,7 @@ export const convertTestFiles = async ({
     outputResultsPath,
     testId,
     llmCallFunction,
-    extendPrompt,
+    extendInitialPrompt,
 }: {
     filePaths: string[];
     logLevel?: string;
@@ -48,57 +44,88 @@ export const convertTestFiles = async ({
     outputResultsPath: string;
     testId: string;
     llmCallFunction: LLMCallFunction;
-    extendPrompt?: string[];
+    extendInitialPrompt?: string[];
 }): Promise<SummaryJson> => {
-    // Set log level
-    if (logLevel) {
-        configureLogLevel(logLevel);
-    }
-
-    // Set host project jest bin path
-    setJestBinaryPath(jestBinaryPath);
-
-    // Set host project results output path
-    setOutputResultsPath(outputResultsPath);
-
     // Initialize total results object to collect results
     const totalResults: TestResults = {};
 
+    // Initialize config
+    let config = {} as Config;
+
     for (const filePath of filePaths) {
+        try {
+            // Initialize config
+            config = initializeConfig({
+                filePath,
+                logLevel,
+                jestBinaryPath,
+                outputResultsPath,
+                testId,
+            });
+        } catch (error) {
+            console.log('Could not initialize');
+        }
+
+        console.log('config:', config);
+
         // Get AST conversion
-        const astConvertedCode = converWithAST(filePath, testId);
+        const astConvertedCode = converWithAST(
+            filePath,
+            config.testId,
+            config.astTranformedFilePath,
+        );
 
         // Get React Component DOM tree for each test case
-        const reactCompDom = await getReactCompDom(filePath);
+        const reactCompDom = await getReactCompDom(
+            filePath,
+            config.enzymeImportsPresent,
+            config.filePathWithEnzymeAdapter,
+            config.collectedDomTreeFilePath,
+            config.enzymeMountAdapterFilePath,
+            config.jestBinaryPath,
+            config.reactVersion,
+        );
 
         // Generate the prompt
-        const prompt = generatePrompt(
+        const prompt = generateInitialPrompt(
             filePath,
-            'data-test',
+            config.testId,
             astConvertedCode,
             reactCompDom,
-            extendPrompt,
+            config.originalTestCaseNum,
+            extendInitialPrompt,
         );
 
         // Call the API with a custom LLM method
         const LLMResponse = await llmCallFunction(prompt);
 
         // Extract generated code
-        const convertedFilePath = extractCodeContentToFile(LLMResponse);
+        const convertedFilePath = extractCodeContentToFile(
+            LLMResponse,
+            config.rtlConvertedFilePathAttmp1,
+        );
 
         // Run the file and analyze the failures
-        const result = await runTestAndAnalyze(convertedFilePath, false);
+        const attempt1Result = await runTestAndAnalyze(
+            convertedFilePath,
+            false,
+            config.jestBinaryPath,
+            config.jestRunLogsFilePathAttmp1,
+            config.rtlConvertedFilePathAttmp1,
+            config.outputResultsPath,
+            config.originalTestCaseNum,
+            config.jsonSummaryPath,
+        );
 
         // Store the result in the totalResults object
         const filePathClean = `${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
-        totalResults[filePathClean] = result;
+        totalResults[filePathClean] = attempt1Result;
     }
 
     // Write summary to outputResultsPath
     const generatedSummary = generateSummaryJson(totalResults);
     const finalSummaryJson = JSON.stringify(generatedSummary, null, 2);
-    const resultFilePath = `${getConfigProperty('outputResultsPath')}/summary.json`;
-    fs.writeFileSync(resultFilePath, finalSummaryJson, 'utf-8');
+    fs.writeFileSync(config.jsonSummaryPath, finalSummaryJson, 'utf-8');
 
     return generatedSummary;
 };

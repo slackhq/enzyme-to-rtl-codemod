@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { runCommand } from '../shell-helper/shell-helper';
-import { getConfigProperty } from '../config/config';
 import { createCustomLogger } from '../logger/logger';
 import jscodeshift from 'jscodeshift';
 import { convertRelativeImports } from '../ast-transformations/individual-transformations/convert-relative-imports';
@@ -12,11 +11,19 @@ export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
  * @param filePath
  * @returns
  */
-export const getReactCompDom = async (filePath: string): Promise<string> => {
+export const getReactCompDom = async (
+    filePath: string,
+    enzymeImportsPresent: boolean,
+    filePathWithEnzymeAdapter: string,
+    collectedDomTreeFilePath: string,
+    enzymeMountAdapterFilePath: string,
+    jestBinaryPath: string,
+    reactVersion: number,
+): Promise<string> => {
     getDomEnzymeLogger.info('Start: getting rendered component code');
 
     // Check if file has Enzyme imports for mount/shallow
-    if (!getConfigProperty('enzymeImportsPresent')) {
+    if (!enzymeImportsPresent) {
         getDomEnzymeLogger.warn(
             'No Enzyme imports present. Cannot collect logs. Continue...',
         );
@@ -25,12 +32,10 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
 
     // Create setup for collecting DOM for rendered components in tests
     getDomEnzymeLogger.verbose('Create enzyme adapter to collect DOM');
-    createEnzymeAdapter();
-
-    // Create new Enzyme file with Enzyme mounts overwrite
-    getDomEnzymeLogger.verbose('Get filePathWithEnzymeAdapter');
-    const filePathWithEnzymeAdapter = getConfigProperty(
-        'filePathWithEnzymeAdapter',
+    createEnzymeAdapter(
+        reactVersion,
+        collectedDomTreeFilePath,
+        enzymeMountAdapterFilePath,
     );
 
     // Overwrite Enzyme mounts with custom methods
@@ -56,12 +61,13 @@ export const getReactCompDom = async (filePath: string): Promise<string> => {
     // Run tests with child process
     getDomEnzymeLogger.verbose('Run Enzyme jest test to collect DOM');
     const jestRunProcess = await runJestInChildProcess(
+        jestBinaryPath,
         filePathWithEnzymeAdapter,
     );
 
     // Return output
     getDomEnzymeLogger.verbose('Get DOM tree output');
-    const domTreeOutput = getDomTreeOutputFromFile();
+    const domTreeOutput = getDomTreeOutputFromFile(collectedDomTreeFilePath);
 
     // Check if jest ran successfully and share the logs
     if (
@@ -128,19 +134,16 @@ export const overwriteRelativeImports = (
 /**
  * Create Enzyme adapter with overwritten mount/shallow methods that collect DOM in each test case
  */
-export const createEnzymeAdapter = (): void => {
-    // Get a csv file path with DOM for test cases
-    getDomEnzymeLogger.verbose('Get domTreeFilePath');
-    const domTreeFilePath = getConfigProperty('collectedDomTreeFilePath');
-
+export const createEnzymeAdapter = (
+    reactVersion: number,
+    collectedDomTreeFilePath: string,
+    enzymeMountAdapterFilePath: string,
+): void => {
     // Create a string with enzyme shallow/mount adapters wih the path to csv for DOM tree
     getDomEnzymeLogger.verbose('Get enzymeRenderAdapterCode');
-    const enzymeRenderAdapterCode = getenzymeRenderAdapterCode(domTreeFilePath);
-
-    // Get the path to the file for enzymeRenderAdapterCode
-    getDomEnzymeLogger.verbose('Get enzymeRenderAdapterFilePath');
-    const enzymeMountAdapterFilePath = getConfigProperty(
-        'enzymeMountAdapterFilePath',
+    const enzymeRenderAdapterCode = getenzymeRenderAdapterCode(
+        reactVersion,
+        collectedDomTreeFilePath,
     );
 
     // Create a file with shallow/enzyme adapter that collects DOM
@@ -158,10 +161,11 @@ export const createEnzymeAdapter = (): void => {
  * @returns
  */
 export const runJestInChildProcess = async (
+    jestBinaryPath: string,
     filePathWithEnzymeAdapter: string,
 ): Promise<string | null> => {
     getDomEnzymeLogger.verbose('Generate jest command');
-    const jestCommand = `${getConfigProperty('jestBinaryPath')} ${filePathWithEnzymeAdapter}`;
+    const jestCommand = `${jestBinaryPath} ${filePathWithEnzymeAdapter}`;
     try {
         getDomEnzymeLogger.verbose(
             `Run jest file with command: ${jestCommand}`,
@@ -181,13 +185,12 @@ export const runJestInChildProcess = async (
  * Get collected DOM from a file
  * @returns
  */
-export const getDomTreeOutputFromFile = (): string => {
+export const getDomTreeOutputFromFile = (
+    collectedDomTreeFilePath: string,
+): string => {
     let domTreeOutput =
         'Could not collect DOM for test cases. Proceed without DOM';
 
-    const collectedDomTreeFilePath = getConfigProperty(
-        'collectedDomTreeFilePath',
-    );
     try {
         getDomEnzymeLogger.verbose(
             `Getting collected DOM from ${collectedDomTreeFilePath}`,
@@ -195,7 +198,7 @@ export const getDomTreeOutputFromFile = (): string => {
         domTreeOutput = fs.readFileSync(collectedDomTreeFilePath, 'utf-8');
     } catch (error) {
         getDomEnzymeLogger.warn(
-            `Could not collect DOM logs from ${getConfigProperty('collectedDomTreeFilePath')}\nError: ${error}`,
+            `Could not collect DOM logs from ${collectedDomTreeFilePath}\nError: ${error}`,
         );
     }
     return domTreeOutput;
@@ -207,9 +210,9 @@ export const getDomTreeOutputFromFile = (): string => {
  * @returns
  */
 export const getenzymeRenderAdapterCode = (
+    reactVersion: number,
     collectedDomTreeFilePath: string,
 ): string => {
-    const reactVersion = getConfigProperty('reactVersion');
     let adapterCode = '';
 
     if (reactVersion === 16) {
@@ -225,8 +228,6 @@ enzyme.configure({ adapter: new Adapter() });
     } else {
         adapterCode = `// No Enzyme adapter configured for React version: ${reactVersion}`;
     }
-
-    // TODO: if file is in ts use TS adapter. If not, use JS
     const enzymeRenderAdapterCodeJS = `
 // Import original methods
 import enzyme, { mount as originalMount, shallow as originalShallow } from 'enzyme';

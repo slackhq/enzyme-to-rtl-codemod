@@ -1,5 +1,4 @@
 import fs from 'fs';
-import { getConfigProperty } from '../config/config';
 import { createCustomLogger } from '../logger/logger';
 
 export const codeExtractorLogger = createCustomLogger('Extract Code');
@@ -9,7 +8,10 @@ export const codeExtractorLogger = createCustomLogger('Extract Code');
  * @param LLMresponse
  * @returns
  */
-export const extractCodeContentToFile = (LLMresponse: string): string => {
+export const extractCodeContentToFile = (
+    LLMresponse: string,
+    rtlConvertedFilePath: string,
+): string => {
     codeExtractorLogger.info('Start: Extracting code from the LLM response');
 
     // Extract code between tags
@@ -32,7 +34,6 @@ export const extractCodeContentToFile = (LLMresponse: string): string => {
     }
 
     // Write extracted code to file
-    const rtlConvertedFilePath = getConfigProperty('rtlConvertedFilePath');
     fs.writeFileSync(`${rtlConvertedFilePath}`, testCaseCode, 'utf-8');
 
     codeExtractorLogger.info('Done: extracting code from the LLM response');

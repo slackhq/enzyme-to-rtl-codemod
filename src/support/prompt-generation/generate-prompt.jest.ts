@@ -1,8 +1,11 @@
 import fs from 'fs';
-import { generateInitialPrompt } from './generate-prompt';
+import {
+    generateInitialPrompt,
+    generateFeedbackPrompt,
+} from './generate-prompt';
 import { countTestCases } from './utils/utils';
 
-describe('generatePrompt', () => {
+describe('generate initial prompt', () => {
     const enzymeFilePath =
         'src/support/prompt-generation/utils/test-data/gen-prompt-test-file.jest.tsx';
     const mockGetByTestIdAttribute = 'data-testid';
@@ -113,5 +116,69 @@ describe('generatePrompt', () => {
         expect(result).toContain(
             "2. dataTest('selector') should be converted to screen.getByTestId('selector')",
         );
+    });
+});
+
+describe('generateFeedbackPrompt', () => {
+    beforeEach(() => {
+        // Mock the fs.readFileSync function
+        jest.spyOn(fs, 'readFileSync').mockImplementation(
+            (filePath: fs.PathOrFileDescriptor) => {
+                if (typeof filePath === 'string') {
+                    if (filePath === '/path/to/rtlConvertedFile.js') {
+                        return 'Mocked RTL test file content';
+                    }
+                    if (filePath === '/path/to/jestRunLogs.log') {
+                        return 'Mocked Jest logs content';
+                    }
+                }
+                return '';
+            },
+        );
+    });
+
+    afterEach(() => {
+        // Restore the original implementation of fs.readFileSync after each test
+        jest.restoreAllMocks();
+    });
+
+    it('should generate the correct feedback prompt for a happy path', () => {
+        // Arrange
+        const params = {
+            rtlConvertedFilePathAttmpt1: '/path/to/rtlConvertedFile.js',
+            getByTestIdAttribute: 'data-testid',
+            jestRunLogsFilePathAttmp1: '/path/to/jestRunLogs.log',
+            renderedCompCode: '<div>Mocked Component</div>',
+            originalTestCaseNum: 5,
+            extendPrompt: [
+                'Please improve coverage.',
+                'Ensure performance optimizations.',
+            ],
+        };
+
+        // Act
+        const result = generateFeedbackPrompt(params);
+
+        // Assert
+        expect(result).toContain(
+            'I need assistance fixing a React unit test that uses React Testing Library',
+        );
+        expect(result).toContain(
+            `In the original file there are ${params.originalTestCaseNum} test cases.`,
+        );
+        expect(result).toContain(
+            '\nReact Testing Library test file code: <code>Mocked RTL test file content</code>',
+        );
+        expect(result).toContain(
+            `2. ${params.getByTestIdAttribute} attribute is configured to be used with "screen.getByTestId" queries.`,
+        );
+        expect(result).toContain(
+            '\nJest test run logs: <jest_run_logs>Mocked Jest logs content</jest_run_logs>',
+        );
+        expect(result).toContain(
+            `\nRendered component DOM tree: <component>${params.renderedCompCode}</component>`,
+        );
+        expect(result).toContain('1. Please improve coverage.');
+        expect(result).toContain('2. Ensure performance optimizations.');
     });
 });

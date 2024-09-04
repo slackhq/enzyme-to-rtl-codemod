@@ -7,19 +7,40 @@ import { convertRelativeImports } from '../ast-transformations/individual-transf
 export const getDomEnzymeLogger = createCustomLogger('Get DOM Enzyme');
 
 /**
- * Get React component DOM for test cases
- * @param filePath
- * @returns
+ * Get React component DOM for test cases.
+ *
+ * This function collects the DOM tree of a React component using Enzyme
+ * for rendering in test cases. It configures Enzyme adapters, overwrites
+ * mount methods, converts relative imports to absolute, and runs Jest tests
+ * to capture the DOM tree.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.filePath - The path to the test file to process.
+ * @param {boolean} params.enzymeImportsPresent - Indicates if Enzyme imports are present in the file.
+ * @param {string} params.filePathWithEnzymeAdapter - The file path where the modified test file will be saved.
+ * @param {string} params.collectedDomTreeFilePath - The file path where the collected DOM tree will be written.
+ * @param {string} params.enzymeMountAdapterFilePath - The file path to the Enzyme adapter for mount rendering.
+ * @param {string} params.jestBinaryPath - The path to the Jest binary to run the tests.
+ * @param {number} params.reactVersion - The version of React being used.
+ * @returns {Promise<string>} The collected DOM tree output.
  */
-export const getReactCompDom = async (
-    filePath: string,
-    enzymeImportsPresent: boolean,
-    filePathWithEnzymeAdapter: string,
-    collectedDomTreeFilePath: string,
-    enzymeMountAdapterFilePath: string,
-    jestBinaryPath: string,
-    reactVersion: number,
-): Promise<string> => {
+export const getReactCompDom = async ({
+    filePath,
+    enzymeImportsPresent,
+    filePathWithEnzymeAdapter,
+    collectedDomTreeFilePath,
+    enzymeMountAdapterFilePath,
+    jestBinaryPath,
+    reactVersion,
+}: {
+    filePath: string;
+    enzymeImportsPresent: boolean;
+    filePathWithEnzymeAdapter: string;
+    collectedDomTreeFilePath: string;
+    enzymeMountAdapterFilePath: string;
+    jestBinaryPath: string;
+    reactVersion: number;
+}): Promise<string> => {
     getDomEnzymeLogger.info('Start: getting rendered component code');
 
     // Check if file has Enzyme imports for mount/shallow

@@ -1,8 +1,11 @@
 import fs from 'fs';
-import { generateInitialPrompt } from './generate-prompt';
+import {
+    generateInitialPrompt,
+    generateFeedbackPrompt,
+} from './generate-prompt';
 import { countTestCases } from './utils/utils';
 
-describe('generatePrompt', () => {
+describe('generate initial prompt', () => {
     const enzymeFilePath =
         'src/support/prompt-generation/utils/test-data/gen-prompt-test-file.jest.tsx';
     const mockGetByTestIdAttribute = 'data-testid';
@@ -36,7 +39,7 @@ describe('generatePrompt', () => {
       6. When asserting that a DOM renders nothing, replace isEmptyRender()).toBe(true) with toBeEmptyDOMElement() by wrapping the component into a container. Example: expect(container).toBeEmptyDOMElement();.
       Now, please evaluate your output and make sure your converted code is between <rtl_test_code></rtl_test_code> tags.
       If there are any deviations from the specified conditions, list them explicitly.
-      If the output adheres to all conditions and uses instructions section, you can simply state "The output meets all specified conditions.
+      If the output adheres to all conditions and uses instructions section, you can simply state "The output meets all specified conditions."
       Enzyme test case code: <enzyme_test_code>describe('Test suite', () => {
     it('test case 1', () => {});
     it.each([1, 2, 3])('test case 2', (num) => {});
@@ -49,13 +52,13 @@ describe('generatePrompt', () => {
             .replace(/\s+/g, ' ')
             .trim();
 
-        const result = generateInitialPrompt(
-            enzymeFilePath,
-            mockGetByTestIdAttribute,
-            mockAstCodemodOutput,
-            mockRenderedCompCode,
+        const result = generateInitialPrompt({
+            filePath: enzymeFilePath,
+            getByTestIdAttribute: mockGetByTestIdAttribute,
+            astCodemodOutput: mockAstCodemodOutput,
+            renderedCompCode: mockRenderedCompCode,
             originalTestCaseNum,
-        );
+        });
 
         expect(result.replace(/\s+/g, ' ').trim()).toBe(expectedPrompt);
     });
@@ -98,20 +101,84 @@ describe('generatePrompt', () => {
         Example: <Provider store={createTestStore()}> <Component {...props} /> </Provider>`,
             "dataTest('selector') should be converted to screen.getByTestId('selector')",
         ];
-        const result = generateInitialPrompt(
-            enzymeFilePath,
-            mockGetByTestIdAttribute,
-            mockAstCodemodOutput,
-            mockRenderedCompCode,
-            4,
-            extendPrompt,
-        );
 
+        const result = generateInitialPrompt({
+            filePath: enzymeFilePath,
+            getByTestIdAttribute: mockGetByTestIdAttribute,
+            astCodemodOutput: mockAstCodemodOutput,
+            renderedCompCode: mockRenderedCompCode,
+            originalTestCaseNum: 4,
+            extendPrompt,
+        });
         expect(result).toContain(
             '1. Wrap component rendering into <Provider store={createTestStore()}><Component></Provider>.',
         );
         expect(result).toContain(
             "2. dataTest('selector') should be converted to screen.getByTestId('selector')",
         );
+    });
+});
+
+describe('generateFeedbackPrompt', () => {
+    beforeEach(() => {
+        // Mock the fs.readFileSync function
+        jest.spyOn(fs, 'readFileSync').mockImplementation(
+            (filePath: fs.PathOrFileDescriptor) => {
+                if (typeof filePath === 'string') {
+                    if (filePath === '/path/to/rtlConvertedFile.js') {
+                        return 'Mocked RTL test file content';
+                    }
+                    if (filePath === '/path/to/jestRunLogs.log') {
+                        return 'Mocked Jest logs content';
+                    }
+                }
+                return '';
+            },
+        );
+    });
+
+    afterEach(() => {
+        // Restore the original implementation of fs.readFileSync after each test
+        jest.restoreAllMocks();
+    });
+
+    it('should generate the correct feedback prompt for a happy path', () => {
+        // Arrange
+        const params = {
+            rtlConvertedFilePathAttmpt1: '/path/to/rtlConvertedFile.js',
+            getByTestIdAttribute: 'data-testid',
+            jestRunLogsFilePathAttmp1: '/path/to/jestRunLogs.log',
+            renderedCompCode: '<div>Mocked Component</div>',
+            originalTestCaseNum: 5,
+            extendPrompt: [
+                'Please improve coverage.',
+                'Ensure performance optimizations.',
+            ],
+        };
+
+        // Act
+        const result = generateFeedbackPrompt(params);
+
+        // Assert
+        expect(result).toContain(
+            'I need assistance fixing a React unit test that uses React Testing Library',
+        );
+        expect(result).toContain(
+            `In the original file there are ${params.originalTestCaseNum} test cases.`,
+        );
+        expect(result).toContain(
+            '\nReact Testing Library test file code: <code>Mocked RTL test file content</code>',
+        );
+        expect(result).toContain(
+            `2. ${params.getByTestIdAttribute} attribute is configured to be used with "screen.getByTestId" queries.`,
+        );
+        expect(result).toContain(
+            '\nJest test run logs: <jest_run_logs>Mocked Jest logs content</jest_run_logs>',
+        );
+        expect(result).toContain(
+            `\nRendered component DOM tree: <component>${params.renderedCompCode}</component>`,
+        );
+        expect(result).toContain('1. Please improve coverage.');
+        expect(result).toContain('2. Ensure performance optimizations.');
     });
 });

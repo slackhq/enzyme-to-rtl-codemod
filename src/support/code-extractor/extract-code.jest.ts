@@ -20,10 +20,10 @@ describe('extractCodeContentToFile', () => {
 
             1. Converted test case code from Enzyme to RTL
             The output meets all specified conditions.`;
-        const rtlConvertedFilePath = extractCodeContentToFile(
+        const rtlConvertedFilePath = extractCodeContentToFile({
             LLMresponse,
-            rtlConvertedFilePathExpected,
-        );
+            rtlConvertedFilePath: rtlConvertedFilePathExpected,
+        });
 
         expect(rtlConvertedFilePath).toBe(rtlConvertedFilePath);
         expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -46,7 +46,10 @@ describe('extractCodeContentToFile', () => {
         The output meets all specified conditions.`;
 
         expect(() =>
-            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+            extractCodeContentToFile({
+                LLMresponse,
+                rtlConvertedFilePath: rtlConvertedFilePathExpected,
+            }),
         ).toThrow('Could not extract code from the LLM response');
     });
 
@@ -54,7 +57,10 @@ describe('extractCodeContentToFile', () => {
         const LLMresponse = '';
 
         expect(() =>
-            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+            extractCodeContentToFile({
+                LLMresponse,
+                rtlConvertedFilePath: rtlConvertedFilePathExpected,
+            }),
         ).toThrow('Could not extract code from the LLM response');
     });
 
@@ -67,7 +73,10 @@ describe('extractCodeContentToFile', () => {
         const spyError = jest.spyOn(codeExtractorLogger, 'error');
 
         expect(() =>
-            extractCodeContentToFile(LLMresponse, rtlConvertedFilePathExpected),
+            extractCodeContentToFile({
+                LLMresponse,
+                rtlConvertedFilePath: rtlConvertedFilePathExpected,
+            }),
         ).toThrow('Could not extract code from the LLM response');
 
         expect(spyWarn).toHaveBeenNthCalledWith(

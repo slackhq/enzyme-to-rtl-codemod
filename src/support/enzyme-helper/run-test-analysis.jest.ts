@@ -69,16 +69,16 @@ describe('runTestAndAnalyze', () => {
         );
 
         // Run the method
-        const result = await runTestAnalysis.runTestAndAnalyze(
+        const result = await runTestAnalysis.runTestAndAnalyze({
             filePath,
-            true,
+            writeResults: true,
             jestBinaryPath,
             jestRunLogsPath,
             rtlConvertedFilePath,
             outputResultsPath,
             originalTestCaseNum,
             summaryFile,
-        );
+        });
 
         // Run command assertion
         expect(mockedRunCommand).toHaveBeenCalledTimes(1);

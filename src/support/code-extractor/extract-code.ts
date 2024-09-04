@@ -4,14 +4,25 @@ import { createCustomLogger } from '../logger/logger';
 export const codeExtractorLogger = createCustomLogger('Extract Code');
 
 /**
- * Extract code content to a file
- * @param LLMresponse
- * @returns
+ * Extract code content from an LLM response and write it to a file.
+ *
+ * This function parses the LLM response for code enclosed in `<rtl_test_code>` tags
+ * and writes the extracted code to the specified file path. If the extraction fails,
+ * an error is thrown with detailed logging information.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.LLMresponse - The response from the LLM containing the code to extract.
+ * @param {string} params.rtlConvertedFilePath - The file path where the extracted code will be saved.
+ * @returns {string} The path to the file where the extracted code is written.
+ * @throws Will throw an error if the code cannot be extracted from the LLM response.
  */
-export const extractCodeContentToFile = (
-    LLMresponse: string,
-    rtlConvertedFilePath: string,
-): string => {
+export const extractCodeContentToFile = ({
+    LLMresponse,
+    rtlConvertedFilePath,
+}: {
+    LLMresponse: string;
+    rtlConvertedFilePath: string;
+}): string => {
     codeExtractorLogger.info('Start: Extracting code from the LLM response');
 
     // Extract code between tags

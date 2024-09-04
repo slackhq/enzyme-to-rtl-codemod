@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { initializeConfig, Config } from '../config/config';
-import { converWithAST } from '../ast-transformations/run-ast-transformations';
+import { convertWithAST } from '../ast-transformations/run-ast-transformations';
 import { getReactCompDom } from '../enzyme-helper/get-dom-enzyme';
 import {
     generateInitialPrompt,
@@ -80,53 +80,53 @@ export const convertTestFiles = async ({
         }
 
         // Get AST conversion
-        const astConvertedCode = converWithAST(
+        const astConvertedCode = convertWithAST({
             filePath,
-            config.testId,
-            config.astTranformedFilePath,
-        );
+            testId: config.testId,
+            astTransformedFilePath: config.astTranformedFilePath,
+        });
 
         // Get React Component DOM tree for each test case
-        const reactCompDom = await getReactCompDom(
+        const reactCompDom = await getReactCompDom({
             filePath,
-            config.enzymeImportsPresent,
-            config.filePathWithEnzymeAdapter,
-            config.collectedDomTreeFilePath,
-            config.enzymeMountAdapterFilePath,
-            config.jestBinaryPath,
-            config.reactVersion,
-        );
+            enzymeImportsPresent: config.enzymeImportsPresent,
+            filePathWithEnzymeAdapter: config.filePathWithEnzymeAdapter,
+            collectedDomTreeFilePath: config.collectedDomTreeFilePath,
+            enzymeMountAdapterFilePath: config.enzymeMountAdapterFilePath,
+            jestBinaryPath: config.jestBinaryPath,
+            reactVersion: config.reactVersion,
+        });
 
         // Generate the prompt
-        const initialPrompt = generateInitialPrompt(
+        const initialPrompt = generateInitialPrompt({
             filePath,
-            config.testId,
-            astConvertedCode,
-            reactCompDom,
-            config.originalTestCaseNum,
-            extendInitialPrompt,
-        );
+            getByTestIdAttribute: config.testId,
+            astCodemodOutput: astConvertedCode,
+            renderedCompCode: reactCompDom,
+            originalTestCaseNum: config.originalTestCaseNum,
+            extendPrompt: extendInitialPrompt,
+        });
 
         // Call the API with a custom LLM method
-        const LLMResponse = await llmCallFunction(initialPrompt);
+        const LLMresponseAttmp1 = await llmCallFunction(initialPrompt);
 
         // Extract generated code
-        const convertedFilePath = extractCodeContentToFile(
-            LLMResponse,
-            config.rtlConvertedFilePathAttmp1,
-        );
+        const convertedFilePath = extractCodeContentToFile({
+            LLMresponse: LLMresponseAttmp1,
+            rtlConvertedFilePath: config.rtlConvertedFilePathAttmp1,
+        });
 
         // Run the file and analyze the failures
-        const attempt1Result = await runTestAndAnalyze(
-            convertedFilePath,
-            false,
-            config.jestBinaryPath,
-            config.jestRunLogsFilePathAttmp1,
-            config.rtlConvertedFilePathAttmp1,
-            config.outputResultsPath,
-            config.originalTestCaseNum,
-            config.jsonSummaryPath,
-        );
+        const attempt1Result = await runTestAndAnalyze({
+            filePath: convertedFilePath,
+            writeResults: false,
+            jestBinaryPath: config.jestBinaryPath,
+            jestRunLogsPath: config.jestRunLogsFilePathAttmp1,
+            rtlConvertedFilePath: config.rtlConvertedFilePathAttmp1,
+            outputResultsPath: config.outputResultsPath,
+            originalTestCaseNum: config.originalTestCaseNum,
+            summaryFile: config.jsonSummaryPath,
+        });
 
         // Store the result in the totalResults object
         const filePathClean = `${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
@@ -138,35 +138,35 @@ export const convertTestFiles = async ({
             !totalResults[filePathClean].attempt1.testPass
         ) {
             // Create feedback command
-            const feedbackPrompt = generateFeedbackPrompt(
-                config.rtlConvertedFilePathAttmp1,
-                config.testId,
-                config.jestRunLogsFilePathAttmp1,
-                reactCompDom,
-                config.originalTestCaseNum,
-                extendFeedbackPrompt,
-            );
+            const feedbackPrompt = generateFeedbackPrompt({
+                rtlConvertedFilePathAttmpt1: config.rtlConvertedFilePathAttmp1,
+                getByTestIdAttribute: config.testId,
+                jestRunLogsFilePathAttmp1: config.jestRunLogsFilePathAttmp1,
+                renderedCompCode: reactCompDom,
+                originalTestCaseNum: config.originalTestCaseNum,
+                extendPrompt: extendFeedbackPrompt,
+            });
 
             // Call the API with a custom LLM method
-            const feedbackLLMResponse = await llmCallFunction(feedbackPrompt);
+            const LLMresponseAttmp2 = await llmCallFunction(feedbackPrompt);
 
             // Extract generated code
-            const convertedFeedbackFilePath = extractCodeContentToFile(
-                feedbackLLMResponse,
-                config.rtlConvertedFilePathAttmp2,
-            );
+            const convertedFeedbackFilePath = extractCodeContentToFile({
+                LLMresponse: LLMresponseAttmp2,
+                rtlConvertedFilePath: config.rtlConvertedFilePathAttmp2,
+            });
 
             // Run the file and analyze the failures
-            const attempt2Result = await runTestAndAnalyze(
-                convertedFeedbackFilePath,
-                false,
-                config.jestBinaryPath,
-                config.jestRunLogsFilePathAttmp2,
-                config.rtlConvertedFilePathAttmp2,
-                config.outputResultsPath,
-                config.originalTestCaseNum,
-                config.jsonSummaryPath,
-            );
+            const attempt2Result = await runTestAndAnalyze({
+                filePath: convertedFeedbackFilePath,
+                writeResults: false,
+                jestBinaryPath: config.jestBinaryPath,
+                jestRunLogsPath: config.jestRunLogsFilePathAttmp2,
+                rtlConvertedFilePath: config.rtlConvertedFilePathAttmp2,
+                outputResultsPath: config.outputResultsPath,
+                originalTestCaseNum: config.originalTestCaseNum,
+                summaryFile: config.jsonSummaryPath,
+            });
 
             // Store the result in the totalResults object
             totalResults[filePathClean].attempt2 = attempt2Result;

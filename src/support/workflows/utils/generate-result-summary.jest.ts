@@ -44,7 +44,7 @@ describe('generateSummaryJson', () => {
 
         const expectedSummary: Summary = {
             totalTests: 7,
-            totalSuccessRate: 100, // Best attempts are both 100%
+            totalSuccessRate: 100,
             convertedAndPassed: 7,
             convertedAndFailed: 0,
         };
@@ -87,8 +87,8 @@ describe('generateSummaryJson', () => {
 
         const expectedSummary: Summary = {
             totalTests: 7,
-            totalSuccessRate: (75 * 4 + 100 * 3) / 7, // Best attempt for dummy-test-1 is attempt2 with 75%
-            convertedAndPassed: 6, // 3 from dummy-test-2 and 3 from best attempt of dummy-test-1
+            totalSuccessRate: (75 * 4 + 100 * 3) / 7,
+            convertedAndPassed: 6,
             convertedAndFailed: 1,
         };
 

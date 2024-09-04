@@ -42,8 +42,6 @@ export function generateSummaryJson(testResults: TestResults): SummaryJson {
                 (bestAttempt.successRate / 100) * bestAttempt.totalTests;
             convertedAndPassed += bestAttempt.passedTests;
             convertedAndFailed += bestAttempt.failedTests;
-
-            // No modification of the original testResults, keep both attempt1 and attempt2
         }
     }
 

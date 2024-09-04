@@ -113,7 +113,7 @@ interface InitializeConfigArgs {
  * @example
  * const config = initializeConfig({
  *   filePath: 'tests/example.jest.tsx',
- *   jestBinaryPath: 'npm jest',
+ *   jestBinaryPath: 'npm run test',
  *   outputResultsPath: 'temp',
  *   testId: 'data-test',
  *   logLevel: 'verbose',
@@ -151,6 +151,10 @@ export const initializeConfig = ({
     return config;
 };
 
+/**
+ * Initialize config for each file conversion
+ * @param filePath 
+ */
 const initializePerFileConfig = (filePath: string): void => {
     // Common
     const { fileTitle, fileExtension } = extractFileDetails(filePath);
@@ -288,6 +292,9 @@ export const getReactVersion = (): number => {
     }
 };
 
+/**
+ * Check shared config
+ */
 export const checkSharedConfig = (): void => {
     // Check if jestBinaryPath can be found
     configLogger.verbose('Check if jest exists and can be resolved');
@@ -350,6 +357,10 @@ export const checkSharedConfig = (): void => {
     }
 };
 
+/**
+ * Check per file config
+ * @param filePath 
+ */
 export const checkPerFileConfig = (filePath: string): void => {
     // Check if file path exists
     if (filePath) {
@@ -367,6 +378,11 @@ export const checkPerFileConfig = (filePath: string): void => {
     }
 };
 
+/**
+ * Check if test file has enzyme imports
+ * @param filePath 
+ * @returns 
+ */
 export const checkIfEnzyme = (filePath: string): boolean => {
     // Check if it is an Enzyme file
     configLogger.verbose('Check if Enzyme file has Enzyme imports');

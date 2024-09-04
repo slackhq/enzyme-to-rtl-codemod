@@ -5,7 +5,8 @@ import { astLogger } from './utils/ast-logger';
 /**
  * Run jscodeshift and make AST conversions
  * @param filePath
- * @param testId - This unique identifier which matches the 'data-testid' attribute.
+ * @param testId
+ * @param astTranformedFilePath
  * @returns
  */
 export const converWithAST = (
@@ -13,6 +14,7 @@ export const converWithAST = (
     testId: string,
     astTranformedFilePath: string,
 ): string => {
+    // TODO: add error handling for running ast main transform method
     // Run main transformation function in jscodeshift
     astLogger.info('Start: Running AST codemod');
     const astTransformedCode = mainASTtransform(filePath, testId);

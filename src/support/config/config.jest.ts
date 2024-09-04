@@ -13,6 +13,7 @@ import {
     initializeConfig,
     Config,
 } from './config';
+import { countTestCases } from './utils/utils';
 
 // Mock the modules
 jest.mock('fs');
@@ -272,5 +273,42 @@ describe('Configuration Functions', () => {
             const result = checkIfEnzyme('some/file');
             expect(result).toBe(false);
         });
+    });
+});
+
+describe('Count test cases', () => {
+    it('should count test cases correctly', () => {
+        const fileContent = `
+        describe('Test suite', () => {
+            it('test case 1', () => {});
+            it.each([1, 2, 3])('test case 2', (num) => {});
+            test('test case 3', () => {});
+            test.each([4, 5, 6])('test case 4', (num) => {});
+        });
+        `;
+        (fs.readFileSync as jest.Mock).mockReturnValue(fileContent);
+        const result = countTestCases('enzymeFilePath');
+        expect(result).toBe(4);
+    });
+
+    it('should return 0 if no test cases are found in the test file code', () => {
+        // Use jest.spyOn to mock fs.readFileSync for this test
+        const readFileSyncMock = jest.spyOn(fs, 'readFileSync');
+
+        // Define the mock file content
+        const fileContent = `
+        describe('Test suite that has no test cases', () => {
+            // No test
+        });
+    `;
+
+        // Mock fs.readFileSync to return the specified file content
+        readFileSyncMock.mockReturnValue(fileContent);
+
+        // Call the function under test
+        const result = countTestCases('enzymeFilePathNoTests');
+
+        // Assert that the result is as expected
+        expect(result).toBe(0);
     });
 });

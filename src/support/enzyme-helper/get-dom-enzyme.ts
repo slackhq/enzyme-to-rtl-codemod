@@ -151,7 +151,6 @@ export const overwriteRelativeImports = (
     return convertedRelativeImportsCode;
 };
 
-// TODO: install RTL with correct version based on React version installed - @testing-library/react@12.1.5 for React 17^; 10.4.9 for React 16
 /**
  * Create Enzyme adapter with overwritten mount/shallow methods that collect DOM in each test case
  */

@@ -3,7 +3,6 @@ import {
     generateInitialPrompt,
     generateFeedbackPrompt,
 } from './generate-prompt';
-import { countTestCases } from './utils/utils';
 
 describe('generate initial prompt', () => {
     const enzymeFilePath =
@@ -61,33 +60,6 @@ describe('generate initial prompt', () => {
         });
 
         expect(result.replace(/\s+/g, ' ').trim()).toBe(expectedPrompt);
-    });
-
-    // TODO: move to config
-    it('should count test cases correctly', () => {
-        const result = countTestCases(enzymeFilePath);
-        expect(result).toBe(4);
-    });
-
-    it('should return 0 if no test cases are found in the test file code', () => {
-        // Use jest.spyOn to mock fs.readFileSync for this test
-        const readFileSyncMock = jest.spyOn(fs, 'readFileSync');
-
-        // Define the mock file content
-        const fileContent = `
-            describe('Test suite that has no test cases', () => {
-                // No test
-            });
-        `;
-
-        // Mock fs.readFileSync to return the specified file content
-        readFileSyncMock.mockReturnValue(fileContent);
-
-        // Call the function under test
-        const result = countTestCases('enzymeFilePathNoTests');
-
-        // Assert that the result is as expected
-        expect(result).toBe(0);
     });
 
     it('should generate prompt with additions and enumerate them', () => {

@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { config as winstonConfig } from 'winston';
-import { countTestCases } from '../prompt-generation/utils/utils';
+import { countTestCases } from './utils/utils';
 import {
     createCustomLogger,
     updateLogLevelForAllLoggers,

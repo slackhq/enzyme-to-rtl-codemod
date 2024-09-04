@@ -1,5 +1,5 @@
 import { runCommand } from '../shell-helper/shell-helper';
-import { countTestCases } from '../prompt-generation/utils/utils';
+import { countTestCases } from '../config/utils/utils';
 import fs from 'fs';
 import { createCustomLogger } from '../logger/logger';
 

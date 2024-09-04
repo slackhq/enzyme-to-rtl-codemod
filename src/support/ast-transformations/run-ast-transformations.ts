@@ -25,7 +25,6 @@ export const convertWithAST = ({
     testId: string;
     astTransformedFilePath: string;
 }): string => {
-    // TODO: add error handling for running ast main transform method
     // Run main transformation function in jscodeshift
     astLogger.info('Start: Running AST codemod');
     let astTransformedCode = '';

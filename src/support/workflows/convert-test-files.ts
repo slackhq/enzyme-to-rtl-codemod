@@ -20,10 +20,7 @@ import {
 export type LLMCallFunction = (prompt: string) => Promise<string>;
 
 export interface TestResults {
-    [filePath: string]: {
-        attempt1: TestResult;
-        attempt2?: TestResult;
-    };
+    [filePath: string]: TestResult;
 }
 
 /**
@@ -126,11 +123,22 @@ export const convertTestFiles = async ({
             outputResultsPath: config.outputResultsPath,
             originalTestCaseNum: config.originalTestCaseNum,
             summaryFile: config.jsonSummaryPath,
+            attempt: 'attempt1',
         });
 
         // Store the result in the totalResults object
         const filePathClean = `${filePath.replace(/[<>:"/|?*.]+/g, '-')}`;
-        totalResults[filePathClean] = { attempt1: attempt1Result };
+        totalResults[filePathClean] = {
+            attempt1: attempt1Result.attempt1, // Store attempt1
+            // Initialize attempt2 with default values
+            attempt2: {
+                testPass: null,
+                failedTests: 0,
+                passedTests: 0,
+                totalTests: 0,
+                successRate: 0,
+            },
+        };
 
         // If feedback step is enabled and attempt 1 failed
         if (
@@ -166,10 +174,11 @@ export const convertTestFiles = async ({
                 outputResultsPath: config.outputResultsPath,
                 originalTestCaseNum: config.originalTestCaseNum,
                 summaryFile: config.jsonSummaryPath,
+                attempt: 'attempt2',
             });
 
-            // Store the result in the totalResults object
-            totalResults[filePathClean].attempt2 = attempt2Result;
+            // Store the result for attempt2 in the totalResults object
+            totalResults[filePathClean].attempt2 = attempt2Result.attempt2;
         }
     }
 

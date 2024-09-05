@@ -1,5 +1,8 @@
 # Enzyme to RTL codemod
-This package is designed to help with automated conversion of jest tests from Enzyme to RTL. It's intended to be used with your version of the LLM.
+This package is designed to help with automated conversion of jest tests from Enzyme to RTL. It's intended to be used with your own implementation of the LLM.
+
+# Note
+Due to the numerous requests from external developers we are open sourcing a version of our Slack built tool for Enzyme to RTL conversions. This tool is not meant to be complete and working for all use cases, but rather an effort to share our approach that can serve as a starting point to automate it for others. With 1.5 million Enzyme downloands from npm (as of Sep 2024), we would like to help out others to make this journey less miserable and save some time. And also showcase a useful and working case for LLM integration in developer work. We are hoping this tool is helpful for you. We suggest making contributions to this repo or forking it and make necessary changes. We will still provide limited support for reviewing work for critical bug fixes.
 
 # Requirements 
 1. Jest: This package depends on your host project jest binary and configuration. See API/Usage for more info how to set it up
@@ -21,23 +24,14 @@ yarn add @slack/enzyme-to-rtl-codemod
 ```
 # API/Usage
 There three ways to use this package:
+1. Using one function `convertTestFiles({...})` 
+2. Using many individual functions with more control over the flow
+3. cli (not implemented)
 
-## 1. Run conversion flow for one or more files in one method in a script:
-1. Import convertTestFiles
+## 1. Run conversion flow for one or more files with one method in a script by using `convertTestFiles()` function:
+1. Example
 ```ts
-export declare const convertTestFiles: ({ filePaths, logLevel, jestBinaryPath, outputResultsPath, testId, llmCallFunction, extendPrompt, }: {
-    filePaths: string[];
-    logLevel?: string;
-    jestBinaryPath: string;
-    outputResultsPath: string;
-    testId: string;
-    llmCallFunction: LLMCallFunction;
-    extendPrompt?: string[];
-}) => Promise<SummaryJson>;
-```
-2. Example
-```ts
-// Import convertTestFiles that accepts an array of Enzyme files, LLMCallFunction and SummaryJson types
+// Import convertTestFiles, LLMCallFunction and SummaryJson types
 import { convertTestFiles, LLMCallFunction, SummaryJson } from '@slack/enzyme-to-rtl-codemod';
 
 // Example implementation of the LLM call function
@@ -49,29 +43,35 @@ const callLLMFunctionExample: LLMCallFunction = async (prompt: string): Promise<
     };
 
     // Step 2: Call the LLM with the provided prompt
-    const response = await someLLMAPI.call(config, prompt);
+    const LLLresponse = await callLLMapi(config, prompt);
 
-    // Step 3: Process the response and return the result
-    // Adjust according to the API response structure
-    return response.data.text; 
+    // Step 3: Return the result
+    return LLLresponse; 
 };
 
-// Call the async method, see logs and files in `outputResultsPath`
-(async function convertTests(filePaths: string[]) {
-	const results: SummaryJson = await convertTestFiles({
+// Implement convertTestFiles function call with your arguments
+// See Exported methods section for more details about convertTestFiles
+const convertFiles = async (filePaths: string[]) => {
+	const results = await convertTestFiles({
 		filePaths: filePaths,
-		logLevel: 'verbose',
 		jestBinaryPath: 'npx jest',
 		outputResultsPath: 'ai-conversion-testing/temp',
 		testId: 'data-test',
-		llmCallFunction: callLLMFunctionExample,
-		extendPrompt: ['convert this to that', 'add myStore to <Provider> like this <Provider store=(myStore)>Component</Provider>']
+		llmCallFunction: callLLM,
+		enableFeedbackStep: true,
 	});
-    console.log('results:', results);
-})([
-	'<testPath1>',
-	'<testPath2>'
-]);
+	
+	console.log('results:', results)
+}
+
+const enzymeFilePaths = [
+	'path/to/your/enzymeFile1.jest.tsx',
+    'path/to/your/enzymeFile2.jest.tsx',
+]
+
+// Run the function and check logs and outputResultsPath for results
+convertFiles(enzymeFilePaths);
+
 ```
 
 ## 2. Run conversion flow with individual methods for one file in a script:

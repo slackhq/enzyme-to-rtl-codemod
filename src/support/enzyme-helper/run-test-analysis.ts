@@ -12,6 +12,23 @@ export interface TestResult {
     totalTests: number;
     successRate: number;
 }
+
+export interface TestResultNew {
+    'attempt1': {
+        testPass: boolean | null;
+        failedTests: number;
+        passedTests: number;
+        totalTests: number;
+        successRate: number;
+    },
+    'attempt2': {
+        testPass: boolean | null;
+        failedTests: number;
+        passedTests: number;
+        totalTests: number;
+        successRate: number;
+    },
+}
 export interface TestResults {
     failedTests: number;
     passedTests: number;

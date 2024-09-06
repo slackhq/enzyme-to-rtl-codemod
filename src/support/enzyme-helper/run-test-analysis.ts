@@ -5,13 +5,19 @@ import { createCustomLogger } from '../logger/logger';
 
 export const testAnalysisLogger = createCustomLogger('Test Analysis');
 
-export interface TestResult {
+export interface IndividualTestResult {
     testPass: boolean | null;
     failedTests: number;
     passedTests: number;
     totalTests: number;
     successRate: number;
 }
+
+export interface TestResult {
+    attempt1: IndividualTestResult;
+    attempt2: IndividualTestResult;
+}
+
 export interface TestResults {
     failedTests: number;
     passedTests: number;
@@ -35,6 +41,7 @@ export interface TestResults {
  * @param {string} params.outputResultsPath - The path where results will be saved.
  * @param {number} params.originalTestCaseNum - The number of test cases in the original test file.
  * @param {string} params.summaryFile - The file path where the test result summary will be saved.
+ * @param {string} params.attempt - Attempt 1 or attempt 2
  * @returns {Promise<TestResult>} The test result, including pass/fail status, number of passed/failed tests, total tests, and success rate.
  */
 export const runTestAndAnalyze = async ({
@@ -46,6 +53,7 @@ export const runTestAndAnalyze = async ({
     outputResultsPath,
     originalTestCaseNum,
     summaryFile,
+    attempt,
 }: {
     filePath: string;
     writeResults?: boolean;
@@ -55,10 +63,11 @@ export const runTestAndAnalyze = async ({
     outputResultsPath: string;
     originalTestCaseNum: number;
     summaryFile: string;
+    attempt: keyof TestResult;
 }): Promise<TestResult> => {
     testAnalysisLogger.info('Start: Run RTL test and analyze results');
 
-    const result: TestResult = {
+    const resultForAttempt: IndividualTestResult = {
         testPass: null,
         failedTests: 0,
         passedTests: 0,
@@ -84,9 +93,9 @@ export const runTestAndAnalyze = async ({
 
     // Analyze logs for errors
     testAnalysisLogger.verbose('Analyze logs for errors');
-    result.testPass = analyzeLogsForErrors(testrunLogs);
+    resultForAttempt.testPass = analyzeLogsForErrors(testrunLogs);
 
-    if (!result.testPass) {
+    if (!resultForAttempt.testPass) {
         testAnalysisLogger.info('Test failed');
         testAnalysisLogger.info(
             `Converted RTL file path: ${rtlConvertedFilePath}`,
@@ -111,25 +120,50 @@ export const runTestAndAnalyze = async ({
     testAnalysisLogger.info('Extracting test results');
     const detailedResult = extractTestResults(testrunLogs);
     // Merge detailedResult into the result object
-    result.failedTests = detailedResult.failedTests;
-    result.passedTests = detailedResult.passedTests;
-    result.totalTests = detailedResult.totalTests;
-    result.successRate = detailedResult.successRate;
+    resultForAttempt.failedTests = detailedResult.failedTests;
+    resultForAttempt.passedTests = detailedResult.passedTests;
+    resultForAttempt.totalTests = detailedResult.totalTests;
+    resultForAttempt.successRate = detailedResult.successRate;
 
     testAnalysisLogger.info(
         `Detailed result: ${JSON.stringify(detailedResult)}`,
     );
+    // Check if the summary file already exists
+    let finalResult: TestResult = {
+        attempt1: {
+            testPass: null,
+            failedTests: 0,
+            passedTests: 0,
+            totalTests: 0,
+            successRate: 0,
+        },
+        attempt2: {
+            testPass: null,
+            failedTests: 0,
+            passedTests: 0,
+            totalTests: 0,
+            successRate: 0,
+        },
+    };
+
+    if (fs.existsSync(summaryFile)) {
+        // Read the existing file content
+        const fileContent = fs.readFileSync(summaryFile, 'utf-8');
+        finalResult = JSON.parse(fileContent) as TestResult;
+    }
+    // Store the result for the current attempt (either 'attempt1' or 'attempt2')
+    finalResult[attempt] = resultForAttempt;
 
     // Write results
     if (writeResults) {
         testAnalysisLogger.info(`Writing final result to ${summaryFile}`);
-        const jsonResult = JSON.stringify(result, null, 2);
+        const jsonResult = JSON.stringify(finalResult, null, 2);
         fs.writeFileSync(summaryFile, jsonResult, 'utf-8');
     }
 
     testAnalysisLogger.info('Done: Run RTL test and analyze results');
 
-    return result;
+    return finalResult;
 };
 
 /**

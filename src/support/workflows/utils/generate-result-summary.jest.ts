@@ -4,7 +4,6 @@ import {
     Summary,
 } from './generate-result-summary';
 import { TestResults } from '../convert-test-files';
-
 describe('generateSummaryJson', () => {
     it('should correctly calculate summary with all passed tests using best attempts', () => {
         const testResults: TestResults = {
@@ -17,11 +16,11 @@ describe('generateSummaryJson', () => {
                     successRate: 100,
                 },
                 attempt2: {
-                    testPass: true,
+                    testPass: null,
                     failedTests: 0,
-                    passedTests: 4,
-                    totalTests: 4,
-                    successRate: 90,
+                    passedTests: 0,
+                    totalTests: 0,
+                    successRate: 0,
                 },
             },
             'dummy-test-2': {
@@ -33,11 +32,11 @@ describe('generateSummaryJson', () => {
                     successRate: 100,
                 },
                 attempt2: {
-                    testPass: true,
+                    testPass: null,
                     failedTests: 0,
-                    passedTests: 3,
-                    totalTests: 3,
-                    successRate: 95,
+                    passedTests: 0,
+                    totalTests: 0,
+                    successRate: 0,
                 },
             },
         };
@@ -82,6 +81,13 @@ describe('generateSummaryJson', () => {
                     totalTests: 3,
                     successRate: 100,
                 },
+                attempt2: {
+                    testPass: null,
+                    failedTests: 0,
+                    passedTests: 0,
+                    totalTests: 0,
+                    successRate: 0,
+                },
             },
         };
 
@@ -108,6 +114,13 @@ describe('generateSummaryJson', () => {
                     passedTests: 1,
                     totalTests: 1,
                     successRate: 100,
+                },
+                attempt2: {
+                    testPass: null,
+                    failedTests: 0,
+                    passedTests: 0,
+                    totalTests: 0,
+                    successRate: 0,
                 },
             },
         };
@@ -164,6 +177,13 @@ describe('generateSummaryJson', () => {
                     failedTests: 3,
                     passedTests: 0,
                     totalTests: 3,
+                    successRate: 0,
+                },
+                attempt2: {
+                    testPass: null,
+                    failedTests: 0,
+                    passedTests: 0,
+                    totalTests: 0,
                     successRate: 0,
                 },
             },

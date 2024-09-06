@@ -32,7 +32,8 @@ export function generateSummaryJson(testResults: TestResults): SummaryJson {
 
             // Select the attempt with the higher success rate for calculations
             const bestAttempt =
-                attempt2 && attempt2.successRate > attempt1.successRate
+                attempt2.testPass !== null &&
+                attempt2.successRate > attempt1.successRate
                     ? attempt2
                     : attempt1;
 

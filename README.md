@@ -24,7 +24,7 @@ yarn add @slack/enzyme-to-rtl-codemod
 ```
 # API/Usage
 There three ways to use this package:
-1. Using one function `convertTestFiles({...})` 
+1. Using one workflow function `convertTestFiles({...})` 
 2. Using many individual functions with more control over the flow
 3. cli (not implemented)
 
@@ -232,7 +232,53 @@ const config = initializeConfig({
     logLevel: 'verbose',  // Optional; defaults to 'info'
 });
 ```
-2. 
+
+### Conversion flow methods
+2. `convertTestFiles` - run the conversion flow in one method. Easy and fast way to start converting
+```ts
+/**
+ * Converts test files and processes them using the specified parameters.
+ *
+ * This function accepts an array of test file paths and performs a series of operations
+ * including setting up Jest environment, initializing configuration, and generating output results.
+ * It utilizes a Large Language Model (LLM) for assisting in code transformations and analysis.
+ * Results from the conversions, including test outcomes, are saved in the specified output directory.
+ * The function supports feedback loops to refine transformations in case of initial failure.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {string[]} params.filePaths - The array of test file paths to be processed.
+ * @param {string} [params.logLevel] - Optional log level to control verbosity of logs. 'info' or 'verbose'
+ * @param {string} params.jestBinaryPath - Path to the Jest binary for running tests.
+ * @param {string} params.outputResultsPath - The directory where output results should be stored.
+ * @param {string} params.testId - The identifier for tracking and processing tests.
+ * @param {LLMCallFunction} params.llmCallFunction - Function for making LLM API calls to process the tests.
+ * @param {string[]} [params.extendInitialPrompt] - Optional array of additional instructions for the initial LLM prompt.
+ * @param {boolean} params.enableFeedbackStep - Flag indicating whether to enable feedback-based refinement in case of failed tests.
+ * @param {string[]} [params.extendFeedbackPrompt] - Optional array of additional instructions for the feedback LLM prompt.
+ * @returns {Promise<SummaryJson>} A promise that resolves to the generated summary JSON object containing the results of the test conversions.
+ */
+export const convertTestFiles = async ({
+    filePaths,
+    logLevel,
+    jestBinaryPath,
+    outputResultsPath,
+    testId,
+    llmCallFunction,
+    extendInitialPrompt,
+    enableFeedbackStep,
+    extendFeedbackPrompt,
+}: {
+    filePaths: string[];
+    logLevel?: string;
+    jestBinaryPath: string;
+    outputResultsPath: string;
+    testId: string;
+    llmCallFunction: LLMCallFunction;
+    extendInitialPrompt?: string[];
+    enableFeedbackStep: boolean;
+    extendFeedbackPrompt?: string[];
+}): Promise<SummaryJson> => {
+```
 
 
 1. `convertWithAST` - Run AST conversions and annotations on a test file.

@@ -23,14 +23,26 @@ export interface TestResults {
     [filePath: string]: TestResult;
 }
 
-// TODO: add better function docs
 /**
  * Converts test files and processes them using the specified parameters.
  *
- * This function takes an array of test file paths and performs a series of operations
- * including setting up the Jest environment, setting up configurations, and output paths.
- * It also utilizes an LLM (Large Language Model) call function to process the test files.
- * The results of the conversion are stored in the specified output directory.
+ * This function accepts an array of test file paths and performs a series of operations
+ * including setting up Jest environment, initializing configuration, and generating output results.
+ * It utilizes a Large Language Model (LLM) for assisting in code transformations and analysis.
+ * Results from the conversions, including test outcomes, are saved in the specified output directory.
+ * The function supports feedback loops to refine transformations in case of initial failure.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {string[]} params.filePaths - The array of test file paths to be processed.
+ * @param {string} [params.logLevel] - Optional log level to control verbosity of logs. 'info' or 'verbose'
+ * @param {string} params.jestBinaryPath - Path to the Jest binary for running tests.
+ * @param {string} params.outputResultsPath - The directory where output results should be stored.
+ * @param {string} params.testId - The identifier for tracking and processing tests.
+ * @param {LLMCallFunction} params.llmCallFunction - Function for making LLM API calls to process the tests.
+ * @param {string[]} [params.extendInitialPrompt] - Optional array of additional instructions for the initial LLM prompt.
+ * @param {boolean} params.enableFeedbackStep - Flag indicating whether to enable feedback-based refinement in case of failed tests.
+ * @param {string[]} [params.extendFeedbackPrompt] - Optional array of additional instructions for the feedback LLM prompt.
+ * @returns {Promise<SummaryJson>} A promise that resolves to the generated summary JSON object containing the results of the test conversions.
  */
 export const convertTestFiles = async ({
     filePaths,

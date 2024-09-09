@@ -207,56 +207,38 @@ convertTestFile(
 );
 ```
 ## 3. Run conversion flow with cli and config for one file or more files:
-<!-- TODO -->
+### TODO
 
+# Output results
+Results will be written to the outputResultsPath/<timeStampFolder>/<filePath>/* folder
+```
+└── 2024-09-05_16-15-41
+   ├── <file-path>
+   |  ├── ast-transformed-<file_title>.test.tsx  - AST converted/annotated file
+   |  ├── attmp-1-jest-run-logs-<file_title>.md - Jest run logs for RTL file attempt 1
+   |  ├── attmp-1-rtl-converted-<file_title>.test.tsx - Converted Enzyme to RTL file attempt 1
+   |  ├── attmp-2-jest-run-logs-<file_title>.md - Jest run logs for RTL file attempt 2
+   |  ├── attmp-2-rtl-converted-<file_title>.test.tsx - Converted Enzyme to RTL file attempt 2
+   |  ├── dom-tree-<file_title>.csv - Collected DOM for each test case in Enzyme file
+   |  ├── enzyme-mount-adapter.js - Enzyme rendering methods with DOM logs collection logic
+   |  └── enzyme-mount-overwritten-<file_title>.test.tsx - Enzyme file with new methods that emit DOM
+```
+
+# NOTE:
+1. This package will only work if your test files use Enzyme `mount` and `shallow` imported directly from Enzyme package. If you use helper methods to mount the components it will not work
+```ts
+import { mount } from 'enzyme';
+```
+2. This package works only with jest, no other test runners have been tested
+
+# Debugging
+1. By default log level is `info`
+2. Set the log level to `verbose` in `convertFiles` or `initializeConfig`
 
 ## Exported methods
 This package exports the following:
-
-### Configuration
-1. `initializeConfig` - Initialize configuration settings required for the conversion process. This method prepares paths and settings, such as Jest binary, output paths, and test identifiers.
+1. `convertTestFiles` - run the conversion flow in one function. Easy and fast way to start converting
 ```ts
-interface InitializeConfigArgs {
-    filePath: string;
-    jestBinaryPath: string;
-    outputResultsPath: string;
-    testId: string;
-    logLevel?: LogLevel;
-}
-
-const config = initializeConfig({
-    filePath: 'weekly/__tests__/weekly-report-table.test.js',
-    jestBinaryPath: 'npx jest',
-    outputResultsPath: 'ai-conversion-testing/temp',
-    testId: 'data-test',
-    logLevel: 'verbose',  // Optional; defaults to 'info'
-});
-```
-
-### Conversion flow methods
-2. `convertTestFiles` - run the conversion flow in one method. Easy and fast way to start converting
-```ts
-/**
- * Converts test files and processes them using the specified parameters.
- *
- * This function accepts an array of test file paths and performs a series of operations
- * including setting up Jest environment, initializing configuration, and generating output results.
- * It utilizes a Large Language Model (LLM) for assisting in code transformations and analysis.
- * Results from the conversions, including test outcomes, are saved in the specified output directory.
- * The function supports feedback loops to refine transformations in case of initial failure.
- *
- * @param {Object} params - The parameters for the function.
- * @param {string[]} params.filePaths - The array of test file paths to be processed.
- * @param {string} [params.logLevel] - Optional log level to control verbosity of logs. 'info' or 'verbose'
- * @param {string} params.jestBinaryPath - Path to the Jest binary for running tests.
- * @param {string} params.outputResultsPath - The directory where output results should be stored.
- * @param {string} params.testId - The identifier for tracking and processing tests.
- * @param {LLMCallFunction} params.llmCallFunction - Function for making LLM API calls to process the tests.
- * @param {string[]} [params.extendInitialPrompt] - Optional array of additional instructions for the initial LLM prompt.
- * @param {boolean} params.enableFeedbackStep - Flag indicating whether to enable feedback-based refinement in case of failed tests.
- * @param {string[]} [params.extendFeedbackPrompt] - Optional array of additional instructions for the feedback LLM prompt.
- * @returns {Promise<SummaryJson>} A promise that resolves to the generated summary JSON object containing the results of the test conversions.
- */
 export const convertTestFiles = async ({
     filePaths,
     logLevel,
@@ -279,74 +261,127 @@ export const convertTestFiles = async ({
     extendFeedbackPrompt?: string[];
 }): Promise<SummaryJson> => {
 ```
-
-
-1. `convertWithAST` - Run AST conversions and annotations on a test file.
-```ts
-const astConverted = await convertWithAST(filePath);
-```
-1. `getReactComponentDOM` - Collect the DOM tree for each test case in your file.
-```ts
-const reactCompDom = await getReactComponentDOM(filePath);
-```
-1. `generatePrompt` - generate prompt with all the necessary info. Extend it with extendPrompt: string[] that would enumerate each array item and add to the main prompt
-```ts
-const prompt = await generatePrompt(filePath, 'data-qa', astConverted, reactCompDom, extendPrompt?);
-```
-1. `extractCodeContent` - extract code from the LLM response
-```ts
-const convertedFilePath = extractCodeContent(LLMResponse);
-```
-1. `TestResult` - type of return object for `runTestAndAnalyze`
-1. `runTestAndAnalyze` - run the converted test file and analyze the logs. Return an object of `TestResult` type
-```ts
-await runTestAndAnalyze(convertedFilePath);
-```
-1. `LLMCallFunction` - llm function type
+2. `LLMCallFunction` - llm call function type
 ```ts
 export type LLMCallFunction = (prompt: string) => Promise<string>;
 ```
-1. `TestResults` - test run results type returned by `convertTestFiles`
-1. `convertTestFiles` - run the conversion flow in one method. See methods above that correspond to parameters below
+3. `initializeConfig` - Initialize configuration settings required for the conversion process. This method prepares paths and settings, such as Jest binary, output paths, and test identifiers.
 ```ts
-export const convertTestFiles = async ({
-    filePaths,
-    logLevel,
-    jestBinaryPath,
-    outputResultsPath,
-    testId,
-    llmCallFunction,
-    extendPrompt,
-}: {
-    filePaths: string[];
-    logLevel?: string;
+interface InitializeConfigArgs {
+    filePath: string;
     jestBinaryPath: string;
     outputResultsPath: string;
     testId: string;
-    llmCallFunction: LLMCallFunction;
-    extendPrompt?: string[];
-}): Promise<SummaryJson> =>...
+    logLevel?: LogLevel;
+}
+
+export const initializeConfig = ({
+    filePath,
+    jestBinaryPath,
+    outputResultsPath,
+    testId,
+    logLevel = 'info',
+}: InitializeConfigArgs): Config => {
 ```
-
-# Output results
-Results will be written to the outputResultsPath/<timeStampFolder>/<filePath>/* folder
-1. ast-transformed-file.jest.tsx - AST converted/annotated file
-2. enzyme-mount-overwrite.jest.tsx - Your file with overwritten Enzyme rendering methods that emit DOM for test cases 
-3. enzyme-render-adapter.ts - Enzyme rendering methods with DOM logs collection logic
-4. rtl-converted-file.jest.tsx - Converted RTL file
-5. test-cases-dom-tree.csv - CSV with DOM tree for each test case
-6. jest-test-run-logs.md - Jest run logs for your RTL file
-7. summary.json - summary of conversions
-
-# NOTE:
-1. This package will only work if your test files use Enzyme `mount` and `shallow` imported directly from Enzyme package. If you use helper methods to mount the components it will not work
+4. `convertWithAST` - Run jscodeshift and make AST conversions/annotations.
 ```ts
-import { mount } from 'enzyme';
+export const convertWithAST = ({
+    filePath,
+    testId,
+    astTransformedFilePath,
+}: {
+    filePath: string;
+    testId: string;
+    astTransformedFilePath: string;
+}): string => {
 ```
-2. This package works only with jest, no other test runners have been tested
-3. `enzyme-mount-adapter.js` is a Javascript file to enable this for project that do not use Typescript
-4. `convertWithAST` method must be run before getting DOM tree for the Enzyme file, because that method sets the paths. See example in section 2. Run conversion flow with individual methods for one file in a script
-
-# Debugging
-1. By default log level is `info`
-2. Set the log level to `verbose` by importing and setting `configureLogLevel('verbose')`
+5. `getReactCompDom` - Get React component DOM for test cases.
+```ts
+export const getReactCompDom = async ({
+    filePath,
+    enzymeImportsPresent,
+    filePathWithEnzymeAdapter,
+    collectedDomTreeFilePath,
+    enzymeMountAdapterFilePath,
+    jestBinaryPath,
+    reactVersion,
+}: {
+    filePath: string;
+    enzymeImportsPresent: boolean;
+    filePathWithEnzymeAdapter: string;
+    collectedDomTreeFilePath: string;
+    enzymeMountAdapterFilePath: string;
+    jestBinaryPath: string;
+    reactVersion: number;
+}): Promise<string> => {
+```
+6. `generateInitialPrompt` - Generate a prompt for an LLM to assist in converting Enzyme test cases to RTL.
+```ts
+export const generateInitialPrompt = ({
+    filePath,
+    getByTestIdAttribute,
+    astCodemodOutput,
+    renderedCompCode,
+    originalTestCaseNum,
+    extendPrompt,
+}: {
+    filePath: string;
+    getByTestIdAttribute: string;
+    astCodemodOutput: string;
+    renderedCompCode: string;
+    originalTestCaseNum: number;
+    extendPrompt?: string[];
+}): string => {
+```
+7. `generateFeedbackPrompt` - Generate a feedback prompt for an LLM to assist in fixing React unit tests using RTL.
+```ts
+export const generateFeedbackPrompt = ({
+    rtlConvertedFilePathAttmpt1,
+    getByTestIdAttribute,
+    jestRunLogsFilePathAttmp1,
+    renderedCompCode,
+    originalTestCaseNum,
+    extendPrompt,
+}: {
+    rtlConvertedFilePathAttmpt1: string;
+    getByTestIdAttribute: string;
+    jestRunLogsFilePathAttmp1: string;
+    renderedCompCode: string;
+    originalTestCaseNum: number;
+    extendPrompt?: string[];
+}): string => {
+```
+8. `extractCodeContentToFile` - Extract code content from an LLM response and write it to a file.
+```ts
+export const extractCodeContentToFile = ({
+    LLMresponse,
+    rtlConvertedFilePath,
+}: {
+    LLMresponse: string;
+    rtlConvertedFilePath: string;
+}): string => {
+```
+9. `runTestAndAnalyze` - Run an RTL test file with Jest and analyze the results.
+```ts
+export const runTestAndAnalyze = async ({
+    filePath,
+    writeResults = true,
+    jestBinaryPath,
+    jestRunLogsPath,
+    rtlConvertedFilePath,
+    outputResultsPath,
+    originalTestCaseNum,
+    summaryFile,
+    attempt,
+}: {
+    filePath: string;
+    writeResults?: boolean;
+    jestBinaryPath: string;
+    jestRunLogsPath: string;
+    rtlConvertedFilePath: string;
+    outputResultsPath: string;
+    originalTestCaseNum: number;
+    summaryFile: string;
+    attempt: keyof TestResult;
+}): Promise<TestResult> => {
+```

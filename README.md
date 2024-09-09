@@ -52,7 +52,6 @@ const callLLMFunctionExample: LLMCallFunction = async (prompt: string): Promise<
 };
 
 // Implement convertTestFiles function call with your arguments
-// See the Exported methods section for more details about convertTestFiles
 const convertFiles = async (filePaths: string[]) => {
 	const results = await convertTestFiles({
 		filePaths: filePaths,
@@ -210,7 +209,8 @@ convertTestFile(
 ### TODO
 
 # Output results
-Results will be written to the outputResultsPath/<timeStampFolder>/<filePath>/* folder
+Results will be written to the `outputResultsPath/<timeStampFolder>/<filePath>/*` folder.
+Example:
 ```
 └── 2024-09-05_16-15-41
    ├── <file-path>
@@ -238,150 +238,11 @@ import { mount } from 'enzyme';
 ## Exported methods
 This package exports the following:
 1. `convertTestFiles` - run the entire conversion flow in one function. Easy and fast way to start converting
-```ts
-export const convertTestFiles = async ({
-    filePaths,
-    logLevel,
-    jestBinaryPath,
-    outputResultsPath,
-    testId,
-    llmCallFunction,
-    extendInitialPrompt,
-    enableFeedbackStep,
-    extendFeedbackPrompt,
-}: {
-    filePaths: string[];
-    logLevel?: string;
-    jestBinaryPath: string;
-    outputResultsPath: string;
-    testId: string;
-    llmCallFunction: LLMCallFunction;
-    extendInitialPrompt?: string[];
-    enableFeedbackStep: boolean;
-    extendFeedbackPrompt?: string[];
-}): Promise<SummaryJson> => {
-```
 2. `LLMCallFunction` - llm call function type
-```ts
-export type LLMCallFunction = (prompt: string) => Promise<string>;
-```
 3. `initializeConfig` - Initialize configuration settings required for the conversion process. This method prepares paths and settings, such as Jest binary, output paths, and test identifiers.
-```ts
-interface InitializeConfigArgs {
-    filePath: string;
-    jestBinaryPath: string;
-    outputResultsPath: string;
-    testId: string;
-    logLevel?: LogLevel;
-}
-
-export const initializeConfig = ({
-    filePath,
-    jestBinaryPath,
-    outputResultsPath,
-    testId,
-    logLevel = 'info',
-}: InitializeConfigArgs): Config => {
-```
 4. `convertWithAST` - Run jscodeshift and make AST conversions/annotations.
-```ts
-export const convertWithAST = ({
-    filePath,
-    testId,
-    astTransformedFilePath,
-}: {
-    filePath: string;
-    testId: string;
-    astTransformedFilePath: string;
-}): string => {
-```
 5. `getReactCompDom` - Get React component DOM for test cases.
-```ts
-export const getReactCompDom = async ({
-    filePath,
-    enzymeImportsPresent,
-    filePathWithEnzymeAdapter,
-    collectedDomTreeFilePath,
-    enzymeMountAdapterFilePath,
-    jestBinaryPath,
-    reactVersion,
-}: {
-    filePath: string;
-    enzymeImportsPresent: boolean;
-    filePathWithEnzymeAdapter: string;
-    collectedDomTreeFilePath: string;
-    enzymeMountAdapterFilePath: string;
-    jestBinaryPath: string;
-    reactVersion: number;
-}): Promise<string> => {
-```
 6. `generateInitialPrompt` - Generate a prompt for an LLM to assist in converting Enzyme test cases to RTL.
-```ts
-export const generateInitialPrompt = ({
-    filePath,
-    getByTestIdAttribute,
-    astCodemodOutput,
-    renderedCompCode,
-    originalTestCaseNum,
-    extendPrompt,
-}: {
-    filePath: string;
-    getByTestIdAttribute: string;
-    astCodemodOutput: string;
-    renderedCompCode: string;
-    originalTestCaseNum: number;
-    extendPrompt?: string[];
-}): string => {
-```
 7. `generateFeedbackPrompt` - Generate a feedback prompt for an LLM to assist in fixing React unit tests using RTL.
-```ts
-export const generateFeedbackPrompt = ({
-    rtlConvertedFilePathAttmpt1,
-    getByTestIdAttribute,
-    jestRunLogsFilePathAttmp1,
-    renderedCompCode,
-    originalTestCaseNum,
-    extendPrompt,
-}: {
-    rtlConvertedFilePathAttmpt1: string;
-    getByTestIdAttribute: string;
-    jestRunLogsFilePathAttmp1: string;
-    renderedCompCode: string;
-    originalTestCaseNum: number;
-    extendPrompt?: string[];
-}): string => {
-```
 8. `extractCodeContentToFile` - Extract code content from an LLM response and write it to a file.
-```ts
-export const extractCodeContentToFile = ({
-    LLMresponse,
-    rtlConvertedFilePath,
-}: {
-    LLMresponse: string;
-    rtlConvertedFilePath: string;
-}): string => {
-```
 9. `runTestAndAnalyze` - Run an RTL test file with Jest and analyze the results.
-```ts
-export const runTestAndAnalyze = async ({
-    filePath,
-    writeResults = true,
-    jestBinaryPath,
-    jestRunLogsPath,
-    rtlConvertedFilePath,
-    outputResultsPath,
-    originalTestCaseNum,
-    summaryFile,
-    attempt,
-}: {
-    filePath: string;
-    writeResults?: boolean;
-    jestBinaryPath: string;
-    jestRunLogsPath: string;
-    rtlConvertedFilePath: string;
-    outputResultsPath: string;
-    originalTestCaseNum: number;
-    summaryFile: string;
-    attempt: keyof TestResult;
-}): Promise<TestResult> => {
-```

@@ -5,7 +5,7 @@ This package is designed to help with automated conversion of jest tests from En
 Due to the numerous requests from external developers we are open sourcing a version of our Slack built tool for Enzyme to RTL conversions. This tool is not meant to be complete and working for all use cases, but rather an effort to share our approach that can serve as a starting point to automate it for others. With 1.5 million Enzyme downloands from npm (as of Sep 2024), we would like to help out others to make this journey less miserable and save some time. And also showcase a useful and working case for LLM integration in developer work. We are hoping this tool is helpful for you. We suggest making contributions to this repo or forking it and make necessary changes. We will still provide limited support for reviewing work for critical bug fixes.
 
 # Requirements 
-1. Jest: This package depends on your host project jest binary and configuration. See API/Usage for more info how to set it up
+1. Jest: This package depends on your host project jest binary and configuration. See API/Usage for more info.
 2. Enzyme - this package depends on your host project Enzyme version
 3. Jscodeshift - installed as part of this package
 4. LLM support
@@ -57,7 +57,7 @@ const convertFiles = async (filePaths: string[]) => {
 		jestBinaryPath: 'npx jest',
 		outputResultsPath: 'ai-conversion-testing/temp',
 		testId: 'data-test',
-		llmCallFunction: callLLM,
+		llmCallFunction: callLLMFunctionExample,
 		enableFeedbackStep: true,
 	});
 	
@@ -75,60 +75,130 @@ convertFiles(enzymeFilePaths);
 ```
 
 ## 2. Run conversion flow with individual methods for one file in a script:
-This approach gives you more control of the flow and ability to inspect the output of each method.
+This approach gives you more control of the flow and ability to inspect the output of each method. Or maybe you just want to get AST converted code.
 The order of methods used must be respected, as the flow depends on it
 1. Import all the individual methods. See Exported methods section for more info on each method
 ```ts
 // Import all the methods
 import {
-	setJestBinaryPath,
-	setOutputResultsPath,
+	initializeConfig,
 	convertWithAST,
 	getReactCompDom,
-	generatePrompt,
+	generateInitialPrompt,
 	extractCodeContentToFile,
 	runTestAndAnalyze,
-    TestResult,
-	configureLogLevel,
+	generateFeedbackPrompt,
 } from '@slack/enzyme-to-rtl-codemod';
 // Import llm call method helper
 import { callLLM } from './llm-helper';
 
 const convertTestFile = async (filePath: string): Promise<void> => {
-    // Set log level to verbose
-    configureLogLevel('verbose');
-
-    // Set host project jest bin path
-    setJestBinaryPath('npx jest');
-
-    // Set host project results output path
-    setOutputResultsPath('ai-conversion-testing/temp');
+   	// Initialize config
+	const config = initializeConfig({
+		filePath,
+		jestBinaryPath: 'npx jest',
+		outputResultsPath: 'ai-conversion-testing/temp',
+		testId: 'data-test',
+	});
 
     // Get AST conversion
-    const astConvertedCode = convertWithAST(filePath, 'data-test');
+	// Note: use config properties
+	const astConvertedCode = convertWithAST({
+		filePath,
+		testId: config.testId,
+		astTransformedFilePath: config.astTranformedFilePath,
+	});
 
     // Get React Component DOM tree for each test case
-    const reactCompDom = await getReactCompDom(filePath);
+	const reactCompDom = await getReactCompDom({
+		filePath,
+		enzymeImportsPresent: config.enzymeImportsPresent,
+		filePathWithEnzymeAdapter: config.filePathWithEnzymeAdapter,
+		collectedDomTreeFilePath: config.collectedDomTreeFilePath,
+		enzymeMountAdapterFilePath: config.enzymeMountAdapterFilePath,
+		jestBinaryPath: config.jestBinaryPath,
+		reactVersion: config.reactVersion,
+	});
 
     // Generate the prompt
-    const prompt = generatePrompt(filePath, 'data-test', astConvertedCode, reactCompDom);
+	const initialPrompt = generateInitialPrompt(
+		{
+			filePath,
+			getByTestIdAttribute: config.testId,
+			astCodemodOutput: astConvertedCode,
+			renderedCompCode: reactCompDom,
+			originalTestCaseNum: config.originalTestCaseNum,
+		}
+	)
 
     /**
-     * Call LLM with the generated prompt
-     * 1. This would be specific for every project
-     * 2. We only add tooling for context gathering and prompt generation
-     * 3. It should be LLM model agnostic due to the prompt instructions (not tested on)
-     */
-    // Create Claude specific prompt, make a request, get response
-    const LLMResponse = await callLLM(prompt);
+	 * Call LLM with the generated prompt
+	 * 1. This would be specific for your LLM
+	 * 2. We only provide tooling for context gathering and prompt generation
+	 * 3. The prompt string should be LLM agnostic
+	 */
+	// Create a prompt, make a request, get a response
+	const LLMresponse = await callLLM(initialPrompt);
 
-    // Extract generated code
-    const convertedFilePath = extractCodeContentToFile(LLMResponse);
+	// Extract generated code
+	const convertedFilePath = extractCodeContentToFile({
+		LLMresponse,
+		rtlConvertedFilePath: config.rtlConvertedFilePathAttmp1,
+	});
 
     // Run the file and analyze the failures
-    const result: TestResult = await runTestAndAnalyze(convertedFilePath);
+	const attempt1Result = await runTestAndAnalyze({
+		filePath: convertedFilePath,
+		jestBinaryPath: config.jestBinaryPath,
+		jestRunLogsPath: config.jestRunLogsFilePathAttmp1,
+		rtlConvertedFilePath: config.rtlConvertedFilePathAttmp1,
+		outputResultsPath: config.outputResultsPath,
+		originalTestCaseNum: config.originalTestCaseNum,
+		summaryFile: config.jsonSummaryPath,
+		attempt: 'attempt1',
+	});
 
-    console.log('result:', result);
+    // Store results
+    let finalResult = attempt1Result;
+
+    // Step to call LLM if attempt 1 failed
+    // This is optional, but can add 5-20% better results
+	if (!attempt1Result.attempt1.testPass) {
+		// Create feedback command
+		const feedbackPrompt = generateFeedbackPrompt({
+			rtlConvertedFilePathAttmpt1: config.rtlConvertedFilePathAttmp1,
+			getByTestIdAttribute: config.testId,
+			jestRunLogsFilePathAttmp1: config.jestRunLogsFilePathAttmp1,
+			renderedCompCode: reactCompDom,
+			originalTestCaseNum: config.originalTestCaseNum,
+		});
+
+		// Call the API with a custom LLM method
+		const LLMresponseAttmp2 = await callLLM(feedbackPrompt);
+
+		// Extract generated code
+		const convertedFeedbackFilePath = extractCodeContentToFile({
+			LLMresponse: LLMresponseAttmp2,
+			rtlConvertedFilePath: config.rtlConvertedFilePathAttmp2,
+		});
+
+		// Run the file and analyze the failures
+		const attempt2Result = await runTestAndAnalyze({
+			filePath: convertedFeedbackFilePath,
+			jestBinaryPath: config.jestBinaryPath,
+			jestRunLogsPath: config.jestRunLogsFilePathAttmp2,
+			rtlConvertedFilePath: config.rtlConvertedFilePathAttmp2,
+			outputResultsPath: config.outputResultsPath,
+			originalTestCaseNum: config.originalTestCaseNum,
+			summaryFile: config.jsonSummaryPath,
+			attempt: 'attempt2'
+		});
+		// Update finalResult to include attempt2Result
+        finalResult = attempt2Result;
+	}
+
+	// Output final result
+	console.log('final result:', finalResult);
 };
 
 // Run the function and see logs and files in `outputResultsPath`
@@ -142,23 +212,34 @@ convertTestFile(
 
 ## Exported methods
 This package exports the following:
-1. `configureLogLevel` - set log level. Winston logging levels, see: https://github.com/winstonjs/winston#logging. We used 'info' (default) and 'verbose'
+
+### Configuration
+1. `initializeConfig` - Initialize configuration settings required for the conversion process. This method prepares paths and settings, such as Jest binary, output paths, and test identifiers.
 ```ts
-configureLogLevel('verbose');
+interface InitializeConfigArgs {
+    filePath: string;
+    jestBinaryPath: string;
+    outputResultsPath: string;
+    testId: string;
+    logLevel?: LogLevel;
+}
+
+const config = initializeConfig({
+    filePath: 'weekly/__tests__/weekly-report-table.test.js',
+    jestBinaryPath: 'npx jest',
+    outputResultsPath: 'ai-conversion-testing/temp',
+    testId: 'data-test',
+    logLevel: 'verbose',  // Optional; defaults to 'info'
+});
 ```
-1. `setJestBinaryPath` - set the path to the executable binary for jest, e.g. `npm jest`, `yarn jest` or `npx jest` that would allow to run a single test with that command in your host project, e.g. `npm jest <SingeEnzymeFilePath>`
-```ts
-setJestBinaryPath('yarn jest');
-```
-1. `setOutputResultsPath` - filepath to output all the generated files in your host project
-```ts
-setOutputResultsPath('<path_to_results_folder>');
-```
-1. `convertWithAST` - run AST conversions/annotations
+2. 
+
+
+1. `convertWithAST` - Run AST conversions and annotations on a test file.
 ```ts
 const astConverted = await convertWithAST(filePath);
 ```
-1. `getReactComponentDOM` - collect DOM tree for each test case in your file
+1. `getReactComponentDOM` - Collect the DOM tree for each test case in your file.
 ```ts
 const reactCompDom = await getReactComponentDOM(filePath);
 ```

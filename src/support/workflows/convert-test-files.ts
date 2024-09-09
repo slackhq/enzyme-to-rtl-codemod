@@ -23,6 +23,7 @@ export interface TestResults {
     [filePath: string]: TestResult;
 }
 
+// TODO: add better function docs
 /**
  * Converts test files and processes them using the specified parameters.
  *

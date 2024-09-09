@@ -33,7 +33,6 @@ There are three ways to use this package:
 3. CLI (currently not implemented)
 
 ## 1. Running the conversion flow for one or more files with one method using the `convertTestFiles()` function:
-1. Example
 ```ts
 // Import convertTestFiles and LLMCallFunction type
 import { convertTestFiles, LLMCallFunction } from '@slack/enzyme-to-rtl-codemod';
@@ -81,8 +80,6 @@ convertFiles(enzymeFilePaths);
 ## 2. Running the conversion flow with individual methods for one file:
 This approach gives you more control over the flow and allows you to inspect the output of each method. You may also want to extract only the AST-converted code.
 Important: The methods must be called in the correct order, as the flow depends on it.
-
-1. Import all the individual methods. See the Exported Methods section for more details on each method.
 ```ts
 // Import the required methods
 import {

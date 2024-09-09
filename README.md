@@ -16,7 +16,6 @@ We hope this tool proves useful. We encourage contributions to this repository o
     3. LLM is instructed to return converted code in certain xml tags in the prompt, which should make it compatible with any LLM model
 
 # How to install
-1. Install the package
 ```bash
 npm install @slack/enzyme-to-rtl-codemod
 ```

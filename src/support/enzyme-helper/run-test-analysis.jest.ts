@@ -78,6 +78,7 @@ describe('runTestAndAnalyze', () => {
             outputResultsPath,
             originalTestCaseNum,
             summaryFile,
+            attempt: 'attempt1',
         });
 
         // Run command assertion
@@ -100,18 +101,24 @@ describe('runTestAndAnalyze', () => {
             mockShellProcess.output + mockShellProcess.stderr,
             'utf-8',
         );
-        // Stringify the expected JSON object for comparison
-        const expectedJsonString = JSON.stringify(
-            {
+        const result1Object = {
+            attempt1: {
                 testPass: testPassMock,
                 failedTests: 1,
                 passedTests: 0,
                 totalTests: 1,
                 successRate: 0,
             },
-            null,
-            2,
-        );
+            attempt2: {
+                testPass: null,
+                failedTests: 0,
+                passedTests: 0,
+                totalTests: 0,
+                successRate: 0,
+            },
+        };
+        // Stringify the expected JSON object for comparison
+        const expectedJsonString = JSON.stringify(result1Object, null, 2);
 
         expect(mockedWriteFileSync).toHaveBeenNthCalledWith(
             2,
@@ -130,13 +137,40 @@ describe('runTestAndAnalyze', () => {
         expect(spyExtractTestResults).toHaveBeenCalledTimes(1);
 
         // Check results is returned
-        expect(result).toEqual({
-            testPass: testPassMock,
-            failedTests: 1,
-            passedTests: 0,
-            totalTests: 1,
-            successRate: 0,
+        expect(result).toEqual(result1Object);
+
+        // Check attempt2
+        const result2Object = {
+            attempt1: {
+                testPass: null,
+                failedTests: 0,
+                passedTests: 0,
+                totalTests: 0,
+                successRate: 0,
+            },
+            attempt2: {
+                testPass: testPassMock,
+                failedTests: 1,
+                passedTests: 0,
+                totalTests: 1,
+                successRate: 0,
+            },
+        };
+
+        const result2 = await runTestAnalysis.runTestAndAnalyze({
+            filePath,
+            writeResults: true,
+            jestBinaryPath,
+            jestRunLogsPath,
+            rtlConvertedFilePath,
+            outputResultsPath,
+            originalTestCaseNum,
+            summaryFile,
+            attempt: 'attempt2',
         });
+
+        // Check results is returned
+        expect(result2).toEqual(result2Object);
     });
 
     describe('analyzeLogsForErrors', () => {

@@ -1,12 +1,12 @@
 {
   "name": "@slack/enzyme-to-rtl-codemod",
   "version": "0.0.1",
-  "description": "AST codemod for Enzyme to RTL with AI integrationc capabilities",
+  "description": "AST codemod for Enzyme to RTL with AI integration capabilities",
   "keywords": ["slack", "enzyme", "rtl", "codemod"],
   "author": "Salesforce, Inc.",
   "license": "Apache-2.0",
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   },
   "repository": {
     "type": "git",

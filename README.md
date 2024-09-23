@@ -44,7 +44,7 @@ There are three ways to use this package:
 // Import convertTestFiles and LLMCallFunction type
 import {
     convertTestFiles,
-    LLMCallFunction,
+    type LLMCallFunction,
 } from '@slack/enzyme-to-rtl-codemod';
 
 // Example implementation of the LLM call function

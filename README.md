@@ -68,9 +68,9 @@ const callLLMFunctionExample: LLMCallFunction = async (
 const convertFiles = async (filePaths: string[]) => {
     const results = await convertTestFiles({
         filePaths: filePaths,
-        jestBinaryPath: 'npx jest',
+        jestBinaryPath: 'npx jest', // this command should be able to run one jest test file, e.g. `npx jest <filePath>`
         outputResultsPath: 'ai-conversion-testing/temp',
-        testId: 'data-test',
+        testId: '<your_custom_test_id_attribute', // defaults to RTL `data-testid` attribute
         llmCallFunction: callLLMFunctionExample,
         enableFeedbackStep: true,
     });
@@ -110,9 +110,9 @@ const convertTestFile = async (filePath: string): Promise<void> => {
     // Initialize config
     const config = initializeConfig({
         filePath,
-        jestBinaryPath: 'npx jest',
+        jestBinaryPath: 'npx jest', // this command should be able to run one jest test file, e.g. `npx jest <filePath>`
         outputResultsPath: 'ai-conversion-testing/temp',
-        testId: 'data-test',
+        testId: '<your_custom_test_id_attribute', // defaults to RTL `data-testid` attribute
     });
 
     // Perform AST conversion

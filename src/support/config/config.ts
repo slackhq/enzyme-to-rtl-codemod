@@ -89,7 +89,7 @@ interface InitializeConfigArgs {
     filePath: string;
     jestBinaryPath: string;
     outputResultsPath: string;
-    testId: string;
+    testId?: string;
     logLevel?: LogLevel;
 }
 
@@ -122,7 +122,7 @@ export const initializeConfig = ({
     filePath,
     jestBinaryPath,
     outputResultsPath,
-    testId,
+    testId = 'data-testid',
     logLevel = 'info',
 }: InitializeConfigArgs): Config => {
     // Check if the shared config has already been initialized

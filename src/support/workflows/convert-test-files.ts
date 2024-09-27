@@ -37,7 +37,7 @@ export interface TestResults {
  * @param {string} [params.logLevel] - Optional log level to control verbosity of logs. 'info' or 'verbose'
  * @param {string} params.jestBinaryPath - Path to the Jest binary for running tests.
  * @param {string} params.outputResultsPath - The directory where output results should be stored.
- * @param {string} params.testId - The identifier for tracking and processing tests.
+ * @param {string} params.testId - Optional identifier getByTestId(testId) queries.
  * @param {LLMCallFunction} params.llmCallFunction - Function for making LLM API calls to process the tests.
  * @param {string[]} [params.extendInitialPrompt] - Optional array of additional instructions for the initial LLM prompt.
  * @param {boolean} params.enableFeedbackStep - Flag indicating whether to enable feedback-based refinement in case of failed tests.
@@ -49,7 +49,7 @@ export const convertTestFiles = async ({
     logLevel,
     jestBinaryPath,
     outputResultsPath,
-    testId,
+    testId = 'data-testid',
     llmCallFunction,
     extendInitialPrompt,
     enableFeedbackStep,
@@ -59,7 +59,7 @@ export const convertTestFiles = async ({
     logLevel?: string;
     jestBinaryPath: string;
     outputResultsPath: string;
-    testId: string;
+    testId?: string;
     llmCallFunction: LLMCallFunction;
     extendInitialPrompt?: string[];
     enableFeedbackStep: boolean;
